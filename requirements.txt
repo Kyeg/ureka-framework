@@ -1,0 +1,12 @@
+coverage==7.2.7
+iniconfig==2.0.0
+packaging==23.1
+pluggy==1.2.0
+py-cpuinfo==9.0.0
+pyclean==2.7.3
+pygal==3.0.0
+pytest==7.4.0
+pytest-benchmark==4.0.0
+pytest-cov==4.1.0
+pytest-cover==3.0.0
+pytest-mock==3.11.1

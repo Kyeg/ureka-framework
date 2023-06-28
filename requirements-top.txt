@@ -1,0 +1,6 @@
+pytest
+pytest-mock
+pytest-cover
+pytest-benchmark
+pygal
+pyclean
