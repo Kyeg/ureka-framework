@@ -1,5 +1,6 @@
 # Custom
 .DS_Store
+secure_db/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
