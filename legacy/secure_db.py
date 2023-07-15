@@ -12,7 +12,7 @@ import shutil
 class SecureDB:
     def __init__(self, db_path=""):
         # File I/O
-        self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
+        # self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
         self.current_path = os.path.abspath(os.path.dirname(__file__)) + db_path
 
         self.path_device_priv = "/DeviceKey/PrivateKey.key"
@@ -35,8 +35,8 @@ class SecureDB:
         self.owner_pub_key_str = ""
 
     def loadSecureDB(self, debug_mode=False):
-        # False: Boot_mode / True: Ticket_mode
-        ticket_mode = False
+        # False: Uninitialized / True: Initialized
+        is_initialized = False
 
         if self.checkFileExist(self.path_device_priv):
             if self.checkFileExist(self.path_device_pub):
@@ -61,7 +61,7 @@ class SecureDB:
                     logging.debug("device_pub_key_str: %s" % self.device_pub_key_str)
                     logging.debug("")
 
-                ticket_mode = True
+                is_initialized = True
 
         if self.checkFileExist(self.path_owner_pub):
             self.owner_pub_key_byte = self.loadFile(self.path_owner_pub)
@@ -76,10 +76,10 @@ class SecureDB:
                 logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str)
                 logging.debug("")
 
-            ticket_mode = True
+            is_initialized = True
 
         return (
-            ticket_mode,
+            is_initialized,
             self.device_priv_key,
             self.device_priv_key_str,
             self.device_pub_key,
@@ -92,10 +92,11 @@ class SecureDB:
     def deleteSecureDB(self, debug_mode=False):
         # removing directory
         try:
-            shutil.rmtree(self.secure_db_path)
-            logging.debug("SecureDB deleted.")
+            # shutil.rmtree(self.secure_db_path)
+            shutil.rmtree(self.current_path)
+            logging.debug(f"{self.current_path} deleted.")
         except OSError as e:
-            logging.debug("Error: %s - %s." % (e.filename, e.strerror))
+            logging.debug(f"ERROR: {e.filename} - {e.strerror}.")
 
     # Initialization
     def initDeviceId(self, device_priv_key_byte, device_pub_key_byte, debug_mode=False):

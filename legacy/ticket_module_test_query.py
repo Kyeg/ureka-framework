@@ -29,11 +29,10 @@ iot_device_1 = ticket_module.TicketModule(
 # iot_device_2 = ticket_module.TicketModule(module_type = ticket.IOT_DEVICE, module_name = "iot_device_2", db_path = '/secure_db/iot_device_2')
 logging.debug("")
 
-# Different features in initialization_mode & ticket_mode
 if not (
-    private_authenticator_1.ticket_mode
-    and private_authenticator_2.ticket_mode
-    and iot_device_1.ticket_mode
+    private_authenticator_1.is_initialized
+    and private_authenticator_2.is_initialized
+    and iot_device_1.is_initialized
 ):
     logging.debug("All devices should be initiziled 1st...")
 

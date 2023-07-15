@@ -17,8 +17,8 @@ class TicketModule:
         # Module Name
         self.module_name = module_name
 
-        # False: Boot_mode / True: Ticket_mode
-        self.ticket_mode = False
+        # False: Uninitialized / True: Initialized
+        self.is_initialized = False
 
         # Device Id (Device can be Private Autenticator or IoT Device...)
         self.device_priv_key = None
@@ -33,7 +33,7 @@ class TicketModule:
         # +++ Load SecureDB +++
         self.mSecureDB = secure_db.SecureDB(db_path=db_path)
         (
-            self.ticket_mode,
+            self.is_initialized,
             self.device_priv_key,
             self.device_priv_key_str,
             self.device_pub_key,
@@ -42,7 +42,7 @@ class TicketModule:
             self.owner_pub_key_str,
         ) = self.mSecureDB.loadSecureDB()
 
-        if self.ticket_mode:
+        if self.is_initialized:
             logging.debug("+++ Ticket module <%s> was initailized +++" % module_name)
             # self.display_state()
         else:
@@ -94,7 +94,7 @@ class TicketModule:
     # Generate Different Ticket Types
     ######################################################
 
-    def generate_boostrapping_ticket(self, holder_id):
+    def generate_initialization_ticket(self, holder_id):
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_INITIALIZATION_TICKET
@@ -428,14 +428,14 @@ class TicketModule:
     # Ticket Handshake
     #   +++ Execute xxxTicket (E-Z) +++
     ######################################################
-    def initialize_iot_device(self, new_ticket):
+    def initialize_iot_device(self, new_ticket) -> bool:
         if self.module_type != ticket.IOT_DEVICE:
             logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
-            return
+            return False
 
-        if self.ticket_mode:
-            logging.debug("ERROR: NOT INITIALIZATION_MODE")
-            return
+        if self.is_initialized:
+            logging.debug("ERROR: ALREADY INITIALIZED")
+            return False
 
         ######################################################
         # Initialize Device Id
@@ -458,7 +458,7 @@ class TicketModule:
         # Read-after-write Consistency
         ######################################################
         (
-            self.ticket_mode,
+            self.is_initialized,
             self.device_priv_key,
             self.device_priv_key_str,
             self.device_pub_key,
@@ -468,6 +468,7 @@ class TicketModule:
         ) = self.mSecureDB.loadSecureDB()
 
         self.display_state()
+        return True
 
     def query(self):
         logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
@@ -499,7 +500,7 @@ class TicketModule:
         # Read-after-write Consistency
         ######################################################
         (
-            self.ticket_mode,
+            self.is_initialized,
             self.device_priv_key,
             self.device_priv_key_str,
             self.device_pub_key,
@@ -538,10 +539,12 @@ class TicketModule:
     ######################################################
     def one_time_intialization_command(self) -> bool:
         if self.module_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.debug("ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION")
+            logging.debug(
+                "ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
+            )
             return False
 
-        if self.ticket_mode:
+        if self.is_initialized:
             logging.debug("ERROR: ALREADY INITIALIZED")
             return False
 
@@ -559,7 +562,7 @@ class TicketModule:
         # Read-after-write Consistency
         ######################################################
         (
-            self.ticket_mode,
+            self.is_initialized,
             self.device_priv_key,
             self.device_priv_key_str,
             self.device_pub_key,

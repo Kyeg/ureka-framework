@@ -19,7 +19,7 @@ class TestIntializeAgentOrServer:
         # WHEN: one_time_intialization_command()
         # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.one_time_intialization_command() == True
-        assert self.cloud_server_1.ticket_mode == True
+        assert self.cloud_server_1.is_initialized == True
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
 

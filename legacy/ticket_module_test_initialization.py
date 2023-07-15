@@ -29,11 +29,10 @@ iot_device_1 = ticket_module.TicketModule(
 # iot_device_2 = ticket_module.TicketModule(module_type = ticket.IOT_DEVICE, module_name = "iot_device_2", db_path = '/secure_db/iot_device_2')
 logging.debug("")
 
-# Different features in initialization_mode & ticket_mode
 if (
-    private_authenticator_1.ticket_mode
-    or private_authenticator_2.ticket_mode
-    or iot_device_1.ticket_mode
+    private_authenticator_1.is_initialized
+    or private_authenticator_2.is_initialized
+    or iot_device_1.is_initialized
 ):
     logging.debug("All devices have already initiziled...")
 
@@ -85,7 +84,7 @@ priv_private_authenticator_2 = private_authenticator_2.device_priv_key
 # -----------------------------------------------------
 private_authenticator_1.display_module_name()
 
-test_ticket = private_authenticator_1.generate_boostrapping_ticket(
+test_ticket = private_authenticator_1.generate_initialization_ticket(
     holder_id=pub_private_authenticator_1
 )
 
