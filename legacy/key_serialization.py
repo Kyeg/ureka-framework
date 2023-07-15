@@ -1,5 +1,8 @@
 # Ureka Module
-import ticket
+import legacy.ticket as ticket
+
+# Testing
+import logging
 
 # JSON Serialization
 import json
@@ -37,7 +40,7 @@ def key_to_byte(key_obj, key_type="ecc-public-key"):
             Encoding.DER, PrivateFormat.PKCS8, serialization.NoEncryption()
         )
     else:
-        print("Only support key_type = [ecc-public-key] or [ecc-private-key]")
+        logging.debug("Only support key_type = [ecc-public-key] or [ecc-private-key]")
         return b""
 
 
@@ -47,7 +50,7 @@ def byte_backto_key(key_byte, key_type="ecc-public-key"):
     elif key_type == "ecc-private-key":
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
-        print("Only support key_type = [ecc-public-key] or [ecc-private-key]")
+        logging.debug("Only support key_type = [ecc-public-key] or [ecc-private-key]")
         return None
 
 
@@ -63,13 +66,13 @@ def str_backto_key(key_str, key_type="ecc-public-key"):
 #             (not always success...)) ||                                      #
 #                                      || base64.urlsafe_b64encode(.)          #
 #                                       v                                      #
-#                     < BASE64_byte (Printable Characters) >                   #
+#                     < BASE64_byte (logging.debugable Characters) >                   #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
 #                                      ||(always success due to BASE64...)     #
 #                                       v                                      #
-#       < JSON_str (Printable Key / Signature / Salt... in Ticket Field) >     #
+#       < JSON_str (logging.debugable Key / Signature / Salt... in Ticket Field) >     #
 ################################################################################
 
 
@@ -84,13 +87,13 @@ def str_backto_byte(string):
 
 
 ################################################################################
-#                     < BASE64_byte (Printable Characters) >                   #
+#                     < BASE64_byte (logging.debugable Characters) >                   #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
 #                                      ||(not always success...)               #
 #                                       v                                      #
-#                  < JSON_str (Printable data Ticket Field) >                  #
+#                  < JSON_str (logging.debugable data Ticket Field) >                  #
 ################################################################################
 
 
@@ -109,15 +112,15 @@ def byte_backto_str(byte):
 ######################################################
 
 # orig_byte = '你好嗎'.encode('UTF-8')
-# print('orig_byte: ' + str(orig_byte))
+# logging.debug('orig_byte: ' + str(orig_byte))
 # b64_byte = base64.urlsafe_b64encode(orig_byte)
-# print('b64_byte: ' + str(b64_byte))
+# logging.debug('b64_byte: ' + str(b64_byte))
 # new_byte = base64.urlsafe_b64decode(b64_byte)
-# print('new_byte: ' + str(new_byte))
+# logging.debug('new_byte: ' + str(new_byte))
 
-# print(orig_byte == new_byte)
+# logging.debug(orig_byte == new_byte)
 
-# print()
+# logging.debug("")
 
 
 ################################################################################
@@ -171,27 +174,27 @@ def dict_to_jsonstr(dict_obj):
 
 # ticket_str1 = '{"device_id": "1234", "holder_id": "abcd", "issuer_id": "efgh"}'
 # ticket1 = jsonstr_to_ticket(ticket_str1)
-# print(ticket1)
-# print()
+# logging.debug(ticket1)
+# logging.debug("")
 
 # new_ticket1 = ticket.Ticket()
 # new_ticket1.device_id = "1234"
 # new_ticket1.holder_id = "abcd"
 # new_ticket1.issuer_id = "efgh"
 # new_ticket_str1 = ticket_to_jsonstr(new_ticket1)
-# print(new_ticket_str1)
-# print()
+# logging.debug(new_ticket_str1)
+# logging.debug("")
 
 # # Notice that different setting order will generate different json string...
 # new_ticket2 = ticket.Ticket()
 # new_ticket2.holder_id = "abcd"
 # new_ticket2.device_id = "1234"
 # new_ticket_str2 = ticket_to_jsonstr(new_ticket2)
-# print(new_ticket_str2)
-# print()
+# logging.debug(new_ticket_str2)
+# logging.debug("")
 
 # # Notice that wrong field will still be set in the object, but no error will be raised
 # ticket_str2 = '{"holder_id": "abcd", "wrong": "blablabla..."}'
 # ticket2 = jsonstr_to_ticket(ticket_str2)
-# print(ticket2)
-# print(ticket2.wrong)
+# logging.debug(ticket2)
+# logging.debug(ticket2.wrong)

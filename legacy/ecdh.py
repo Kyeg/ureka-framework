@@ -1,3 +1,6 @@
+# Testing
+import logging
+
 # Random Generator
 import os
 
@@ -118,33 +121,33 @@ def decrypt(ciphertext, key, iv):
 # salt = generate_random_byte(32)
 
 # session_key1 = generate_ecdh_key(private_key1, salt, pre_shared_info, public_key2)
-# print('session_key1: ' + str(session_key1))
+# logging.debug('session_key1: ' + str(session_key1))
 
 # session_key2 = generate_ecdh_key(private_key2, salt, pre_shared_info, public_key1)
-# print('session_key2: ' + str(session_key2))
+# logging.debug('session_key2: ' + str(session_key2))
 
 # if(session_key1 == session_key2):
-#     print("Session Key is shared.")
+#     logging.debug("Session Key is shared.")
 # else:
-#     print("Some error.")
+#     logging.debug("Some error.")
 
-# print()
+# logging.debug("")
 
 
 # message = b'message to be encrypted'
 
 # (iv, encrypted_message) = encrypt(message, session_key1)
-# print('encrypted_message: ' + str(encrypted_message))
+# logging.debug('encrypted_message: ' + str(encrypted_message))
 
 # decrypted_message = decrypt(encrypted_message, session_key2, iv)
-# print('decrypted_message: ' + str(decrypted_message))
+# logging.debug('decrypted_message: ' + str(decrypted_message))
 
 # if(message == decrypted_message):
-#     print("Message is shared.")
+#     logging.debug("Message is shared.")
 # else:
-#     print("Some error.")
+#     logging.debug("Some error.")
 
-# print()
+# logging.debug("")
 
 
 ######################################################
@@ -207,17 +210,17 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 # salt = generate_random_byte(32)
 
 # session_key1 = generate_ecdh_key(private_key1, salt, pre_shared_info, public_key2)  # 32
-# print('session_key1: ' + str(session_key1))
+# logging.debug('session_key1: ' + str(session_key1))
 
 # session_key2 = generate_ecdh_key(private_key2, salt, pre_shared_info, public_key1)  # 32
-# print('session_key2: ' + str(session_key2))
+# logging.debug('session_key2: ' + str(session_key2))
 
 # if(session_key1 == session_key2):
-#     print("Session Key is shared.")
+#     logging.debug("Session Key is shared.")
 # else:
-#     print("Some error.")
+#     logging.debug("Some error.")
 
-# print()
+# logging.debug("")
 
 
 # message = b'message to be encrypted'
@@ -228,7 +231,7 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 #     message,
 #     associated_plain_message
 # )
-# print('encrypted_message: ' + str(encrypted_message))
+# logging.debug('encrypted_message: ' + str(encrypted_message))
 
 # try:
 #     decrypted_message = gcm_decrypt(
@@ -238,18 +241,18 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 #         encrypted_message,
 #         tag
 #     )
-#     print ("Valid Tag.")
-#     print('decrypted_message: ' + str(decrypted_message))
+#     logging.debug ("Valid Tag.")
+#     logging.debug('decrypted_message: ' + str(decrypted_message))
 # except InvalidTag:
-#     print ("Invalid Tag.")
+#     logging.debug ("Invalid Tag.")
 
 
 # if(message == decrypted_message):
-#     print("Message is shared.")
+#     logging.debug("Message is shared.")
 # else:
-#     print("Some error.")
+#     logging.debug("Some error.")
 
-# print()
+# logging.debug("")
 
 # try:
 #     decrypted_message = gcm_decrypt(
@@ -259,8 +262,8 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 #         encrypted_message,
 #         b'wrong_tagggggggg'
 #     )
-#     print ("Valid Tag.")
+#     logging.debug ("Valid Tag.")
 # except InvalidTag:
-#     print ("Invalid Tag.")
+#     logging.debug ("Invalid Tag.")
 
-# print()
+# logging.debug("")

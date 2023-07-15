@@ -52,11 +52,11 @@ class TicketModule:
     # Display (Debug/Test)
     ######################################################
     def display_state(self):
-        if self.module_type == ticket.PRIVATE_ANTHENTICATOR:
+        if self.module_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.debug(
                 "####################################################################################################################################################"
             )
-            logging.debug("module_type: PRIVATE_ANTHENTICATOR")
+            logging.debug("module_type: USER-AGENT-OR-CLOUD-SERVER")
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
@@ -534,11 +534,11 @@ class TicketModule:
         pass
 
     ######################################################
-    # Initilize Private Authenticator (without using Ticket)
+    # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
-    def initialize_private_authenticator(self) -> bool:
-        if self.module_type != ticket.PRIVATE_ANTHENTICATOR:
-            logging.debug("ERROR: ONLY PRIVATE_ANTHENTICATOR CAN DO THIS OPERATION")
+    def one_time_intialization_command(self) -> bool:
+        if self.module_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
+            logging.debug("ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION")
             return False
 
         if self.ticket_mode:

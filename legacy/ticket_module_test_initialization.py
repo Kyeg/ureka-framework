@@ -1,21 +1,23 @@
-import sys
-import ticket_module
-import ticket
-import key_serialization
+# Ureka Module
+import legacy.ticket_module as ticket_module
+import legacy.ticket as ticket
+
+# Testing
+import logging
 
 ######################################################
 # Setup
 ######################################################
 
 # 2 ticket modules, seperately in Private Autenticator & IoT Device
-print()
+logging.debug("")
 private_authenticator_1 = ticket_module.TicketModule(
-    module_type=ticket.PRIVATE_ANTHENTICATOR,
+    module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
     module_name="private_authenticator_1",
     db_path="/secure_db/private_authenticator_1",
 )
 private_authenticator_2 = ticket_module.TicketModule(
-    module_type=ticket.PRIVATE_ANTHENTICATOR,
+    module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
     module_name="private_authenticator_2",
     db_path="/secure_db/private_authenticator_2",
 )
@@ -25,7 +27,7 @@ iot_device_1 = ticket_module.TicketModule(
     db_path="/secure_db/iot_device_1",
 )
 # iot_device_2 = ticket_module.TicketModule(module_type = ticket.IOT_DEVICE, module_name = "iot_device_2", db_path = '/secure_db/iot_device_2')
-print()
+logging.debug("")
 
 # Different features in initialization_mode & ticket_mode
 if (
@@ -33,7 +35,7 @@ if (
     or private_authenticator_2.ticket_mode
     or iot_device_1.ticket_mode
 ):
-    print("All devices have already initiziled...")
+    logging.debug("All devices have already initiziled...")
 
 
 ######################################################
@@ -45,7 +47,7 @@ if (
 # -----------------------------------------------------
 private_authenticator_1.display_module_name()
 
-private_authenticator_1.initialize_private_authenticator()
+private_authenticator_1.one_time_intialization_command()
 
 # -----------------------------------------------------
 # After Initialization...
@@ -63,7 +65,7 @@ priv_private_authenticator_1 = private_authenticator_1.device_priv_key
 # -----------------------------------------------------
 private_authenticator_2.display_module_name()
 
-private_authenticator_2.initialize_private_authenticator()
+private_authenticator_2.one_time_intialization_command()
 
 # -----------------------------------------------------
 # After Initialization...
@@ -92,7 +94,7 @@ test_ticket = private_authenticator_1.generate_boostrapping_ticket(
 # -----------------------------------------------------
 iot_device_1.display_module_name()
 
-print("Receive: " + str(test_ticket))
+logging.debug("Receive: " + str(test_ticket))
 iot_device_1.verify_xxx_ticket(test_ticket)
 
 # -----------------------------------------------------

@@ -1,5 +1,8 @@
 # Ureka Module
-import key_serialization
+import legacy.key_serialization as key_serialization
+
+# Testing
+import logging
 
 # ECC
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -53,10 +56,10 @@ def sign_signature(messageIn, privateKey):
 def verify_signature(signatureIn, messageIn, publicKey):
     try:
         publicKey.verify(signatureIn, messageIn, ec.ECDSA(hashes.SHA256()))
-        # print ("Valid Signature.")
+        # logging.debug ("Valid Signature.")
         return True
     except InvalidSignature:
-        # print ("Invalid Signature.")
+        # logging.debug ("Invalid Signature.")
         return False
 
 
@@ -81,13 +84,13 @@ def verify_signature(signatureIn, messageIn, publicKey):
 # public_key = key_serialization.byte_backto_key(public_key_byte, key_type = 'ecc-public-key')
 
 # # Test key_serialization
-# print('readable_private_key_str: ' + key_serialization.byte_to_str(private_key_byte))
-# print('readable_public_key_str: ' + key_serialization.byte_to_str(public_key_byte))
+# logging.debug('readable_private_key_str: ' + key_serialization.byte_to_str(private_key_byte))
+# logging.debug('readable_public_key_str: ' + key_serialization.byte_to_str(public_key_byte))
 
 # # Test key_serialization
-# print(key_serialization.key_to_byte(private_key, key_type = 'ecc-private-key') == private_key_byte)
-# print(key_serialization.key_to_byte(public_key, key_type = 'ecc-public-key') == public_key_byte)
-# print()
+# logging.debug(key_serialization.key_to_byte(private_key, key_type = 'ecc-private-key') == private_key_byte)
+# logging.debug(key_serialization.key_to_byte(public_key, key_type = 'ecc-public-key') == public_key_byte)
+# logging.debug("")
 
 
 ######################################################
@@ -103,22 +106,22 @@ def verify_signature(signatureIn, messageIn, publicKey):
 ######################################################
 # message_str = 'message to be signed'
 # message_byte = key_serialization.str_to_byte(message_str)
-# print('message_byte: ' + str(message_byte))
+# logging.debug('message_byte: ' + str(message_byte))
 
 # # Test key_serialization
-# print(key_serialization.byte_backto_str(message_byte) == message_str)
-# print()
+# logging.debug(key_serialization.byte_backto_str(message_byte) == message_str)
+# logging.debug("")
 
 # # Sign message
 # signature_byte = sign_signature(message_byte, private_key)
-# print('signature_byte: ' + str(signature_byte))
-# print('readable_signature_str: ' + key_serialization.byte_to_str(signature_byte))
+# logging.debug('signature_byte: ' + str(signature_byte))
+# logging.debug('readable_signature_str: ' + key_serialization.byte_to_str(signature_byte))
 
 # # Verify signature on message
 # if(verify_signature(signature_byte, message_byte, public_key)):
-#     print('Valid Signature for ' + str(message_byte))
+#     logging.debug('Valid Signature for ' + str(message_byte))
 # else:
-#     print('Invalid Signature')
+#     logging.debug('Invalid Signature')
 
 # # Test key_serialization
-# print(key_serialization.str_backto_byte(key_serialization.byte_to_str(signature_byte)) == signature_byte)
+# logging.debug(key_serialization.str_backto_byte(key_serialization.byte_to_str(signature_byte)) == signature_byte)
