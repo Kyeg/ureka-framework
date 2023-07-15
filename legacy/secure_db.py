@@ -1,13 +1,18 @@
 # Ureka Module
-import key_serialization
+import legacy.key_serialization as key_serialization
+
+# Testing
+import logging
 
 # File Path
 import os
+import shutil
 
 
 class SecureDB:
     def __init__(self, db_path=""):
         # File I/O
+        self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
         self.current_path = os.path.abspath(os.path.dirname(__file__)) + db_path
 
         self.path_device_priv = "/DeviceKey/PrivateKey.key"
@@ -29,12 +34,8 @@ class SecureDB:
         self.owner_pub_key_byte = b""
         self.owner_pub_key_str = ""
 
-    ######################################################
-    # Mode:
-    #   - Boot Mode
-    #   - Ticket Mode
-    ######################################################
     def loadSecureDB(self, debug_mode=False):
+        # False: Boot_mode / True: Ticket_mode
         ticket_mode = False
 
         if self.checkFileExist(self.path_device_priv):
@@ -56,9 +57,9 @@ class SecureDB:
                 )
 
                 if debug_mode:
-                    print("device_priv_key_str: %s" % self.device_priv_key_str)
-                    print("device_pub_key_str: %s" % self.device_pub_key_str)
-                    print()
+                    logging.debug("device_priv_key_str: %s" % self.device_priv_key_str)
+                    logging.debug("device_pub_key_str: %s" % self.device_pub_key_str)
+                    logging.debug("")
 
                 ticket_mode = True
 
@@ -72,8 +73,8 @@ class SecureDB:
             )
 
             if debug_mode:
-                print("owner_pub_key_str: %s" % self.owner_pub_key_str)
-                print()
+                logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str)
+                logging.debug("")
 
             ticket_mode = True
 
@@ -87,12 +88,21 @@ class SecureDB:
             self.owner_pub_key_str,
         )
 
+    # Teardown - Development Only Function
+    def deleteSecureDB(self, debug_mode=False):
+        # removing directory
+        try:
+            shutil.rmtree(self.secure_db_path)
+            logging.debug("SecureDB deleted.")
+        except OSError as e:
+            logging.debug("Error: %s - %s." % (e.filename, e.strerror))
+
     # Initialization
     def initDeviceId(self, device_priv_key_byte, device_pub_key_byte, debug_mode=False):
         self.storeFile(self.path_device_priv, device_priv_key_byte)
         self.storeFile(self.path_device_pub, device_pub_key_byte)
 
-    # Initialization / Owner-transfer
+    # Initialization / Ownership-transfer
     def storeOwnerKey(self, owner_pub_key_byte, debug_mode=False):
         self.storeFile(self.path_owner_pub, owner_pub_key_byte)
 
@@ -104,7 +114,7 @@ class SecureDB:
         abs_path = self.current_path + relative_path
 
         if debug_mode:
-            print("Data : %s" % data)
+            logging.debug("Data : %s" % data)
 
         # Create directory if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -113,7 +123,7 @@ class SecureDB:
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     if debug_mode:
-                        print("Directory not exist.")
+                        logging.debug("Directory not exist.")
                     raise
 
         # Open and write file
@@ -121,14 +131,14 @@ class SecureDB:
             f.write(data)
 
         if debug_mode:
-            print("Store Data in : %s" % abs_path)
+            logging.debug("Store Data in : %s" % abs_path)
 
     def loadFile(self, relative_path, debug_mode=False):
         # Get abs file path
         abs_path = self.current_path + relative_path
 
         if debug_mode:
-            print("Load Data from : %s" % abs_path)
+            logging.debug("Load Data from : %s" % abs_path)
 
         if self.checkFileExist(relative_path):
             # Open and read file
@@ -136,12 +146,12 @@ class SecureDB:
                 data = f.read()
 
             if debug_mode:
-                print("Data : %s" % data)
+                logging.debug("Data : %s" % data)
 
             return data
 
         if debug_mode:
-            print("File not exist.")
+            logging.debug("File not exist.")
 
     def checkFileExist(self, relative_path):
         # Get abs file path
@@ -158,17 +168,17 @@ class SecureDB:
 ######################################################
 
 # mSecureDB = SecureDB(db_path = '')
-# print('+++ Load SecureDB +++ \n')
+# logging.debug('+++ Load SecureDB +++ \n')
 
 
 # path = '/hello_file.txt'
 # data = b'abcd\n'
 # mSecureDB.storeFile(path, data, debug_mode = True)
-# print()
+# logging.debug("")
 
 # path = '/hello_file.txt'
 # mSecureDB.loadFile(path, debug_mode = True)
-# print()
+# logging.debug("")
 
 
 # mSecureDB.loadSecureDB(debug_mode = True)

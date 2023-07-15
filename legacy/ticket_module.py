@@ -1,9 +1,12 @@
 # Ureka Module
-import ticket
-import secure_db
-import ecc
-import ecdh
-import key_serialization
+import legacy.ticket as ticket
+import legacy.secure_db as secure_db
+import legacy.ecc as ecc
+import legacy.ecdh as ecdh
+import legacy.key_serialization as key_serialization
+
+# Testing
+import logging
 
 
 class TicketModule:
@@ -14,7 +17,7 @@ class TicketModule:
         # Module Name
         self.module_name = module_name
 
-        # Boot_mode / Ticket_mode
+        # False: Boot_mode / True: Ticket_mode
         self.ticket_mode = False
 
         # Device Id (Device can be Private Autenticator or IoT Device...)
@@ -37,57 +40,55 @@ class TicketModule:
             self.device_pub_key_str,
             self.owner_pub_key,
             self.owner_pub_key_str,
-        ) = self.mSecureDB.loadSecureDB(debug_mode=False)
+        ) = self.mSecureDB.loadSecureDB()
 
         if self.ticket_mode:
-            print("\n+++ Ticket module <%s> has been initailized +++" % module_name)
-            self.display_state()
+            logging.debug("+++ Ticket module <%s> was initailized +++" % module_name)
+            # self.display_state()
         else:
-            print(
-                "\n+++ Ticket module <%s> need to be initailized... +++" % module_name
-            )
+            logging.debug("+++ Ticket module <%s> was uninitailized +++" % module_name)
 
     ######################################################
     # Display (Debug/Test)
     ######################################################
     def display_state(self):
         if self.module_type == ticket.PRIVATE_ANTHENTICATOR:
-            print(
+            logging.debug(
                 "####################################################################################################################################################"
             )
-            print("module_type: PRIVATE_ANTHENTICATOR")
-            print()
-            print("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-            print("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-            # print('device_priv_key_str: %s' % self.device_priv_key_str)
-            # print('device_pub_key_str: %s' % self.device_pub_key_str)
-            print(
+            logging.debug("module_type: PRIVATE_ANTHENTICATOR")
+            logging.debug("")
+            logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
+            logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+            # logging.debug('device_priv_key_str: %s' % self.device_priv_key_str)
+            # logging.debug('device_pub_key_str: %s' % self.device_pub_key_str)
+            logging.debug(
                 "####################################################################################################################################################"
             )
 
         if self.module_type == ticket.IOT_DEVICE:
-            print(
+            logging.debug(
                 "####################################################################################################################################################"
             )
-            print("module_type: IOT_DEVICE")
-            print()
-            print("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-            print("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-            print()
-            print("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
-            # print('device_priv_key_str: %s' % self.device_priv_key_str)
-            # print('device_pub_key_str: %s' % self.device_pub_key_str)
-            # print()
-            # print('owner_pub_key_str: %s' % self.owner_pub_key_str)
-            print(
+            logging.debug("module_type: IOT_DEVICE")
+            logging.debug("")
+            logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
+            logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+            logging.debug("")
+            logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
+            # logging.debug('device_priv_key_str: %s' % self.device_priv_key_str)
+            # logging.debug('device_pub_key_str: %s' % self.device_pub_key_str)
+            # logging.debug("")
+            # logging.debug('owner_pub_key_str: %s' % self.owner_pub_key_str)
+            logging.debug(
                 "####################################################################################################################################################"
             )
 
     def display_module_name(self):
-        print()
-        print("------------------------------------")
-        print(self.module_name)
-        print("------------------------------------")
+        logging.debug("")
+        logging.debug("------------------------------------")
+        logging.debug(self.module_name)
+        logging.debug("------------------------------------")
 
     ######################################################
     # Generate Different Ticket Types
@@ -195,7 +196,7 @@ class TicketModule:
                 holder_id, key_type="ecc-public-key"
             ),
         )
-        print("session_key: " + str(session_key))
+        logging.debug("session_key: " + str(session_key))
 
         return new_ticket
 
@@ -217,42 +218,42 @@ class TicketModule:
     def verify_xxx_ticket(self, ticket_in):
         # (Z-1) Verify TICKET_PROTOCOL_VERSION
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
-            print(
+            logging.debug(
                 "(Z-1) PASS: TICKET_PROTOCOL_VERSION"
                 + " ("
                 + ticket.TICKET_PROTOCOL_VERSION
                 + ") "
             )
         else:
-            print("(Z-1) ERROR: TICKET_PROTOCOL_VERSION")
+            logging.debug("(Z-1) ERROR: TICKET_PROTOCOL_VERSION")
             return
 
         # (Z-2) Classify TICKET_TYPE
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            print("(Z-2) PASS: TYPE_INITIALIZATION_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_INITIALIZATION_TICKET")
 
         elif ticket_in.ticket_type == ticket.TYPE_QUERY_TICKET:
-            print("(Z-2) PASS: TYPE_QUERY_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_QUERY_TICKET")
 
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            print("(Z-2) PASS: TYPE_MANAGEMENT_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_MANAGEMENT_TICKET")
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            print("(Z-2) PASS: TYPE_ACCESS_PERMISSION_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_ACCESS_PERMISSION_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            print("(Z-2) PASS: TYPE_CHALLENGE_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_CHALLENGE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
-            print("(Z-2) PASS: TYPE_RESONSE_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_RESONSE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            print("(Z-2) PASS: TYPE_KEY_EXCHANGE_TICKET")
+            logging.debug("(Z-2) PASS: TYPE_KEY_EXCHANGE_TICKET")
         # elif (ticket_in.ticket_type == ticket.TYPE_COMMAND_TICKET):
-        #     print('(Z-2) PASS: TYPE_COMMAND_TICKET')
+        #     logging.debug('(Z-2) PASS: TYPE_COMMAND_TICKET')
 
         # elif (ticket_in.ticket_type == ticket.TYPE_RETURN_TICKET):
-        #     print('(Z-2) PASS: TYPE_RETURN_TICKET')
+        #     logging.debug('(Z-2) PASS: TYPE_RETURN_TICKET')
 
         else:
-            print("(Z-2) ERROR: WRONG_TICKET_TYPE")
+            logging.debug("(Z-2) ERROR: WRONG_TICKET_TYPE")
             return
 
         # (Z-3) Classify DEVICE_ID
@@ -262,92 +263,96 @@ class TicketModule:
         ):
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             # if (ticket_in.device_id == self.slave_pub_key_str):
-            print("(Z-3) PASS: DEVICE_ID")
+            logging.debug("(Z-3) PASS: DEVICE_ID")
         elif (
             ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET
             and ticket_in.ticket_type != ticket.TYPE_QUERY_TICKET
         ):
             if ticket_in.device_id == self.device_pub_key_str:
-                print("(Z-3) PASS: DEVICE_ID")
+                logging.debug("(Z-3) PASS: DEVICE_ID")
             else:
-                print("(Z-3) ERROR: DEVICE_ID")
+                logging.debug("(Z-3) ERROR: DEVICE_ID")
                 return
 
         # (Z-4) Verify ISSUER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             if self.verify_issuer_signature_on_ticket(ticket_in, self.owner_pub_key):
-                print("(Z-4) PASS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+                logging.debug("(Z-4) PASS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
             else:
-                print("(Z-4) ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+                logging.debug("(Z-4) ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
                 return
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self.verify_issuer_signature_on_ticket(ticket_in, self.owner_pub_key):
-                print("(Z-4) PASS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET")
+                logging.debug(
+                    "(Z-4) PASS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
+                )
             else:
-                print("(Z-4) ERROR: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET")
+                logging.debug(
+                    "(Z-4) ERROR: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
+                )
                 return
 
         # (N) Verify ISSUER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
-            print("(N-2) PASS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
+            logging.debug("(N-2) PASS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
 
         elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESONSE_TICKET is correct
 
             if self.verify_issuer_signature_on_ticket(ticket_in, self.owner_pub_key):
-                print("(N-3) PASS: ISSUER_SIGNATURE on RESONSE_TICKET")
+                logging.debug("(N-3) PASS: ISSUER_SIGNATURE on RESONSE_TICKET")
             else:
-                print("(N-3) ERROR: ISSUER_SIGNATURE on RESONSE_TICKET")
+                logging.debug("(N-3) ERROR: ISSUER_SIGNATURE on RESONSE_TICKET")
                 return
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
-            print("(N-4) PASS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
+            logging.debug("(N-4) PASS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
 
         # (E-Z) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            print("(E-Z) EXECUTE: INITIALIZATION_TICKET")
+            logging.debug("(E-Z) EXECUTE: INITIALIZATION_TICKET")
 
-            print("initialize_iot_device( )...")
+            logging.debug("initialize_iot_device( )...")
 
             self.initialize_iot_device(ticket_in)
 
         elif ticket_in.ticket_type == ticket.TYPE_QUERY_TICKET:
-            print("(E-Z) EXECUTE: QUERY_TICKET")
+            logging.debug("(E-Z) EXECUTE: QUERY_TICKET")
             self.query()
 
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            print("(E-Z) EXECUTE: MANAGEMENT_TICKET")
+            logging.debug("(E-Z) EXECUTE: MANAGEMENT_TICKET")
 
-            print("ownership_transfer( )...")
+            logging.debug("ownership_transfer( )...")
 
             self.ownership_transfer(ticket_in)
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            print("(E-Z) EXECUTE: ACCESS_PERMISSION_TICKET")
+            logging.debug("(E-Z) EXECUTE: ACCESS_PERMISSION_TICKET")
 
             # To-Do: Session
-            # print ("set_session_permission( )...")
+            # logging.debug ("set_session_permission( )...")
 
-            print("generate_challenge_ticket( )...")
+            logging.debug("generate_challenge_ticket( )...")
 
         # (E-N) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            print("(E-N) EXECUTE: CHALLENGE_TICKET")
+            logging.debug("(E-N) EXECUTE: CHALLENGE_TICKET")
 
-            print("generate_response_ticket( )...")
+            logging.debug("generate_response_ticket( )...")
 
         elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
-            print("(E-N) EXECUTE: RESONSE_TICKET")
+            logging.debug("(E-N) EXECUTE: RESONSE_TICKET")
 
-            print("generate_key_exchange_ticket( )...")
+            logging.debug("generate_key_exchange_ticket( )...")
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            print("(E-N) EXECUTE: KEY_EXCHANGE_TICKET")
+            logging.debug("(E-N) EXECUTE: KEY_EXCHANGE_TICKET")
 
             # Generate (temp) session_key
             session_key = self.generate_session_key(
@@ -358,13 +363,13 @@ class TicketModule:
                     ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
-            print("session_key: " + str(session_key))
+            logging.debug("session_key: " + str(session_key))
 
-            print("generate_command_ticket( )...")
+            logging.debug("generate_command_ticket( )...")
 
             # To-Do: Session
-            # print ("check_session_permission( )...")
-            # print ("get_session_command( )...")
+            # logging.debug ("check_session_permission( )...")
+            # logging.debug ("get_session_command( )...")
 
         # (AC) Return ticket
 
@@ -416,7 +421,7 @@ class TicketModule:
             return ecc.verify_signature(signature_byte, message_byte, public_key)
 
         except AttributeError:
-            print("ERROR: NO SIGNATURE")
+            logging.debug("ERROR: NO SIGNATURE")
             return False
 
     ######################################################
@@ -425,11 +430,11 @@ class TicketModule:
     ######################################################
     def initialize_iot_device(self, new_ticket):
         if self.module_type != ticket.IOT_DEVICE:
-            print("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+            logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
             return
 
         if self.ticket_mode:
-            print("ERROR: NOT INITIALIZATION_MODE")
+            logging.debug("ERROR: NOT INITIALIZATION_MODE")
             return
 
         ######################################################
@@ -465,8 +470,8 @@ class TicketModule:
         self.display_state()
 
     def query(self):
-        print("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-        print("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
+        logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+        logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
 
     def ownership_transfer(self, new_ticket):
         ######################################################
@@ -475,7 +480,7 @@ class TicketModule:
         request_body_dict = key_serialization.jsonstr_to_dict(
             new_ticket.request_body
         )  # sort_keys = True
-        print("request_body_dict = " + str(request_body_dict))
+        logging.debug("request_body_dict = " + str(request_body_dict))
 
         ######################################################
         # Update Permission Table (MANAGEMENT_OWNER)
@@ -531,14 +536,14 @@ class TicketModule:
     ######################################################
     # Initilize Private Authenticator (without using Ticket)
     ######################################################
-    def initialize_private_authenticator(self):
+    def initialize_private_authenticator(self) -> bool:
         if self.module_type != ticket.PRIVATE_ANTHENTICATOR:
-            print("ERROR: ONLY PRIVATE_ANTHENTICATOR CAN DO THIS OPERATION")
-            return
+            logging.debug("ERROR: ONLY PRIVATE_ANTHENTICATOR CAN DO THIS OPERATION")
+            return False
 
         if self.ticket_mode:
-            print("ERROR: NOT INITIALIZATION_MODE")
-            return
+            logging.debug("ERROR: ALREADY INITIALIZED")
+            return False
 
         ######################################################
         # Initialize Device Id
@@ -564,3 +569,11 @@ class TicketModule:
         ) = self.mSecureDB.loadSecureDB()
 
         self.display_state()
+        return True
+
+    ######################################################
+    # Reset Device (Teardown - Development Only Function)
+    ######################################################
+    def reset_device(self) -> bool:
+        self.mSecureDB.deleteSecureDB()
+        return True
