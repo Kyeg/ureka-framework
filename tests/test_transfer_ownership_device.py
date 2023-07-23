@@ -1,4 +1,3 @@
-# Ureka Module
 from legacy import key_serialization
 import legacy.ticket_module as ticket_module
 import legacy.ticket as ticket

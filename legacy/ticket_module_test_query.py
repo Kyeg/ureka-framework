@@ -10,7 +10,7 @@ import logging
 ######################################################
 
 # 2 ticket modules, seperately in Private Autenticator & IoT Device
-logging.debug("")
+print("")
 private_authenticator_1 = ticket_module.TicketModule(
     module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
     module_name="private_authenticator_1",
@@ -27,14 +27,14 @@ iot_device_1 = ticket_module.TicketModule(
     db_path="/secure_db/iot_device_1",
 )
 # iot_device_2 = ticket_module.TicketModule(module_type = ticket.IOT_DEVICE, module_name = "iot_device_2", db_path = '/secure_db/iot_device_2')
-logging.debug("")
+print("")
 
 if not (
     private_authenticator_1.is_initialized
     and private_authenticator_2.is_initialized
     and iot_device_1.is_initialized
 ):
-    logging.debug("All devices should be initiziled 1st...")
+    print("All devices should be initiziled 1st...")
 
 
 ######################################################
@@ -61,7 +61,7 @@ priv_iot_device_1 = iot_device_1.device_priv_key
 # -----------------------------------------------------
 private_authenticator_2.display_module_name()
 
-logging.debug("Query...")
+print("Query...")
 
 test_ticket = private_authenticator_2.generate_query_ticket()
 
@@ -71,5 +71,5 @@ test_ticket = private_authenticator_2.generate_query_ticket()
 # -----------------------------------------------------
 iot_device_1.display_module_name()
 
-logging.debug("Receive: " + str(test_ticket))
+print("Receive: " + str(test_ticket))
 iot_device_1.verify_xxx_ticket(test_ticket)

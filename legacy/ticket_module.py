@@ -30,6 +30,10 @@ class TicketModule:
         self.owner_pub_key = None
         self.owner_pub_key_str = ""
 
+        # Current Session (RAM-only)
+        self.current_holder_pub_key = None
+        self.current_session_key_byte = None
+
         # +++ Load SecureDB +++
         self.mSecureDB = secure_db.SecureDB(db_path=db_path)
         (
@@ -188,7 +192,7 @@ class TicketModule:
         )
 
         # Generate (temp) session_key
-        session_key = self.generate_session_key(
+        self.current_session_key_byte = self.generate_session_key(
             server_private_key_obj=self.device_priv_key,
             salt_byte=random_salt,
             info_byte=b"",
@@ -196,7 +200,7 @@ class TicketModule:
                 holder_id, key_type="ecc-public-key"
             ),
         )
-        logging.debug("session_key: " + str(session_key))
+        logging.debug("current_session_key_byte: " + str(self.current_session_key_byte))
 
         return new_ticket
 
@@ -284,6 +288,9 @@ class TicketModule:
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self.verify_issuer_signature_on_ticket(ticket_in, self.owner_pub_key):
+                self.current_holder_pub_key = key_serialization.str_backto_key(
+                    ticket_in.holder_id, key_type="ecc-public-key"
+                )
                 logging.debug(
                     "(Z-4) PASS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
                 )
@@ -293,7 +300,7 @@ class TicketModule:
                 )
                 return
 
-        # (N) Verify ISSUER_SIGNATURE
+        # (N) Verify HOLDER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
@@ -301,8 +308,9 @@ class TicketModule:
 
         elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESONSE_TICKET is correct
-
-            if self.verify_issuer_signature_on_ticket(ticket_in, self.owner_pub_key):
+            if self.verify_issuer_signature_on_ticket(
+                ticket_in, self.current_holder_pub_key
+            ):
                 logging.debug("(N-3) PASS: ISSUER_SIGNATURE on RESONSE_TICKET")
             else:
                 logging.debug("(N-3) ERROR: ISSUER_SIGNATURE on RESONSE_TICKET")
@@ -355,7 +363,7 @@ class TicketModule:
             logging.debug("(E-N) EXECUTE: KEY_EXCHANGE_TICKET")
 
             # Generate (temp) session_key
-            session_key = self.generate_session_key(
+            self.current_session_key_byte = self.generate_session_key(
                 server_private_key_obj=self.device_priv_key,
                 salt_byte=key_serialization.str_backto_byte(ticket_in.request_body),
                 info_byte=b"",
@@ -363,7 +371,9 @@ class TicketModule:
                     ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
-            logging.debug("session_key: " + str(session_key))
+            logging.debug(
+                "current_session_key_byte: " + str(self.current_session_key_byte)
+            )
 
             logging.debug("generate_command_ticket( )...")
 
