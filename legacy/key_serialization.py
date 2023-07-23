@@ -6,7 +6,6 @@ import logging
 
 # JSON Serialization
 import json
-from collections import OrderedDict
 
 # Base64 Serialization
 import base64
@@ -19,6 +18,12 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.serialization import PrivateFormat
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.backends.openssl.ec import (
+    _EllipticCurvePrivateKey,
+    _EllipticCurvePublicKey,
+)
+from legacy.ticket import Ticket
+from typing import Dict, Union
 
 
 ################################################################################
@@ -32,7 +37,10 @@ from cryptography.hazmat.primitives.serialization import Encoding
 ################################################################################
 
 
-def key_to_byte(key_obj, key_type="ecc-public-key"):
+def key_to_byte(
+    key_obj: Union[_EllipticCurvePublicKey, _EllipticCurvePrivateKey],
+    key_type: str = "ecc-public-key",
+) -> bytes:
     if key_type == "ecc-public-key":
         return key_obj.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
     elif key_type == "ecc-private-key":
@@ -44,7 +52,9 @@ def key_to_byte(key_obj, key_type="ecc-public-key"):
         return b""
 
 
-def byte_backto_key(key_byte, key_type="ecc-public-key"):
+def byte_backto_key(
+    key_byte: bytes, key_type: str = "ecc-public-key"
+) -> Union[_EllipticCurvePublicKey, _EllipticCurvePrivateKey]:
     if key_type == "ecc-public-key":
         return load_der_public_key(key_byte, backend=default_backend())
     elif key_type == "ecc-private-key":
@@ -54,7 +64,9 @@ def byte_backto_key(key_byte, key_type="ecc-public-key"):
         return None
 
 
-def str_backto_key(key_str, key_type="ecc-public-key"):
+def str_backto_key(
+    key_str: str, key_type: str = "ecc-public-key"
+) -> _EllipticCurvePublicKey:
     key_byte = str_backto_byte(key_str)
     return byte_backto_key(key_byte, key_type=key_type)
 
@@ -66,39 +78,39 @@ def str_backto_key(key_str, key_type="ecc-public-key"):
 #             (not always success...)) ||                                      #
 #                                      || base64.urlsafe_b64encode(.)          #
 #                                       v                                      #
-#                     < BASE64_byte (logging.debugable Characters) >                   #
+#                     < BASE64_byte (printable Characters) >                   #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
 #                                      ||(always success due to BASE64...)     #
 #                                       v                                      #
-#       < JSON_str (logging.debugable Key / Signature / Salt... in Ticket Field) >     #
+#       < JSON_str (printable Key / Signature / Salt... in Ticket Field) >     #
 ################################################################################
 
 
-def byte_to_str(byte):
+def byte_to_str(byte: bytes) -> str:
     base64_byte = base64.urlsafe_b64encode(byte)
     return base64_byte.decode("UTF-8")
 
 
-def str_backto_byte(string):
+def str_backto_byte(string: str) -> bytes:
     base64_byte = string.encode("UTF-8")
     return base64.urlsafe_b64decode(base64_byte)
 
 
 ################################################################################
-#                     < BASE64_byte (logging.debugable Characters) >                   #
+#                     < BASE64_byte (printable Characters) >                   #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
 #                                      ||(not always success...)               #
 #                                       v                                      #
-#                  < JSON_str (logging.debugable data Ticket Field) >                  #
+#                  < JSON_str (printable data Ticket Field) >                  #
 ################################################################################
 
 
 # str_to_byte
-def str_to_byte(string):
+def str_to_byte(string: str) -> bytes:
     return string.encode("UTF-8")
 
 
@@ -107,9 +119,9 @@ def byte_backto_str(byte):
     return byte.decode("UTF-8")
 
 
-######################################################
+################################################################################
 # Testing: base64.urlsafe_b64encode / base64.urlsafe_b64decode
-######################################################
+################################################################################
 
 # orig_byte = '你好嗎'.encode('UTF-8')
 # logging.debug('orig_byte: ' + str(orig_byte))
@@ -144,7 +156,7 @@ def dict_to_ticket(dict_obj):
     return ticket_obj
 
 
-def ticket_to_dict(ticket_obj):
+def ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     return ticket_obj.__dict__
 
 
@@ -153,17 +165,17 @@ def jsonstr_to_ticket(json_str):
 
 
 # sort_keys = True
-def ticket_to_jsonstr(ticket_obj):
+def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     # separators = (", ", ": ") in default
     return json.dumps(ticket_obj, default=ticket_to_dict, sort_keys=True)
 
 
-def jsonstr_to_dict(json_str):
+def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
     return json.loads(json_str)
 
 
 # sort_keys = True
-def dict_to_jsonstr(dict_obj):
+def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
     # separators = (", ", ": ") in default
     return json.dumps(dict_obj, sort_keys=True)
 

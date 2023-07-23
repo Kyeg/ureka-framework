@@ -5,7 +5,7 @@ import legacy.ticket as ticket
 
 class TestTransferOwnershipDevice:
     # Setup in every class method
-    def setup_method(self):
+    def setup_method(self) -> None:
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = ticket_module.TicketModule(
             module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -33,7 +33,7 @@ class TestTransferOwnershipDevice:
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
-    def test_apply_management_ticket(self):
+    def test_apply_management_ticket(self) -> None:
         # WHEN: apply_management_ticket()
         test_ticket = self.cloud_server_dm.generate_management_ticket(
             device_id=self.iot_device.device_pub_key_str,
@@ -51,7 +51,7 @@ class TestTransferOwnershipDevice:
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
         )
 
-    def test_apply_management_ticket_failed(self):
+    def test_apply_management_ticket_failed(self) -> None:
         # GIVEN: (B'') Initialized DO's IoTD
         test_ticket = self.cloud_server_dm.generate_management_ticket(
             device_id=self.iot_device.device_pub_key_str,
@@ -82,7 +82,7 @@ class TestTransferOwnershipDevice:
         )  # logging.debug("ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
 
     # Teardown in every class method
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
         self.cloud_server_dm.reset_device()
         self.user_agent_do.reset_device()

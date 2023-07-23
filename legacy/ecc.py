@@ -15,12 +15,17 @@ from cryptography.hazmat.primitives.serialization import Encoding
 # ECDSA
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends.openssl.ec import (
+    _EllipticCurvePrivateKey,
+    _EllipticCurvePublicKey,
+)
+from typing import Tuple
 
 
 ######################################################
 # ECC Key Factory
 ######################################################
-def generate_key_pair():
+def generate_key_pair() -> Tuple[bytes, bytes]:
     private_key = ec.generate_private_key(ec.SECP256K1(), default_backend())
     private_key_byte = key_serialization.key_to_byte(
         private_key, key_type="ecc-private-key"
@@ -41,7 +46,7 @@ def generate_key_pair():
 #
 #   return: byte
 ######################################################
-def sign_signature(messageIn, privateKey):
+def sign_signature(messageIn: bytes, privateKey: _EllipticCurvePrivateKey) -> bytes:
     return privateKey.sign(messageIn, ec.ECDSA(hashes.SHA256()))
 
 
@@ -53,7 +58,9 @@ def sign_signature(messageIn, privateKey):
 #
 #   return: True/False
 ######################################################
-def verify_signature(signatureIn, messageIn, publicKey):
+def verify_signature(
+    signatureIn: bytes, messageIn: bytes, publicKey: _EllipticCurvePublicKey
+) -> bool:
     try:
         publicKey.verify(signatureIn, messageIn, ec.ECDSA(hashes.SHA256()))
         # logging.debug ("Valid Signature.")

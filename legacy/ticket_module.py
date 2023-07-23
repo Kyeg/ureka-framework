@@ -7,10 +7,17 @@ import legacy.key_serialization as key_serialization
 
 # Testing
 import logging
+from cryptography.hazmat.backends.openssl.ec import (
+    _EllipticCurvePrivateKey,
+    _EllipticCurvePublicKey,
+)
+from legacy.ticket import Ticket
 
 
 class TicketModule:
-    def __init__(self, module_type="", module_name="", db_path=""):
+    def __init__(
+        self, module_type: str = "", module_name: str = "", db_path: str = ""
+    ) -> None:
         # Module Type
         self.module_type = module_type
 
@@ -55,7 +62,7 @@ class TicketModule:
     ######################################################
     # Display (Debug/Test)
     ######################################################
-    def display_state(self):
+    def display_state(self) -> None:
         if self.module_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.debug(
                 "####################################################################################################################################################"
@@ -98,7 +105,7 @@ class TicketModule:
     # Generate Different Ticket Types
     ######################################################
 
-    def generate_initialization_ticket(self, holder_id):
+    def generate_initialization_ticket(self, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_INITIALIZATION_TICKET
@@ -114,7 +121,9 @@ class TicketModule:
 
         return new_ticket
 
-    def generate_management_ticket(self, device_id, holder_id, request_body):
+    def generate_management_ticket(
+        self, device_id: str, holder_id: str, request_body: str
+    ) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_MANAGEMENT_TICKET
@@ -129,7 +138,9 @@ class TicketModule:
         return new_ticket
 
     # Similar format with management_ticket
-    def generate_access_permission_ticket(self, device_id, holder_id, request_body):
+    def generate_access_permission_ticket(
+        self, device_id: str, holder_id: str, request_body: str
+    ) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_ACCESS_PERMISSION_TICKET
@@ -144,7 +155,7 @@ class TicketModule:
         return new_ticket
 
     # Similar format with access_permission_ticket
-    def generate_challenge_ticket(self, device_id, holder_id):
+    def generate_challenge_ticket(self, device_id: str, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_CHALLENGE_TICKET
@@ -162,7 +173,7 @@ class TicketModule:
         return new_ticket
 
     # Similar format with access_permission_ticket
-    def generate_response_ticket(self, device_id, holder_id):
+    def generate_response_ticket(self, device_id: str, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_RESONSE_TICKET
@@ -176,7 +187,7 @@ class TicketModule:
         return new_ticket
 
     # Similar format with access_permission_ticket
-    def generate_key_exchange_ticket(self, device_id, holder_id):
+    def generate_key_exchange_ticket(self, device_id: str, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_KEY_EXCHANGE_TICKET
@@ -219,7 +230,7 @@ class TicketModule:
     ######################################################
     # Verify Different Ticket Types
     ######################################################
-    def verify_xxx_ticket(self, ticket_in):
+    def verify_xxx_ticket(self, ticket_in: Ticket) -> None:
         # (Z-1) Verify TICKET_PROTOCOL_VERSION
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
             logging.debug(
@@ -389,7 +400,9 @@ class TicketModule:
     #
     #   return: Ticket
     ######################################################
-    def add_issuer_signature_on_ticket(self, ticket_in, private_key):
+    def add_issuer_signature_on_ticket(
+        self, ticket_in: Ticket, private_key: _EllipticCurvePrivateKey
+    ) -> Ticket:
         # Message
         message_str = key_serialization.ticket_to_jsonstr(ticket_in)
         message_byte = key_serialization.str_to_byte(message_str)
@@ -411,7 +424,9 @@ class TicketModule:
     #
     #   return: True/False
     ######################################################
-    def verify_issuer_signature_on_ticket(self, ticket_in, public_key):
+    def verify_issuer_signature_on_ticket(
+        self, ticket_in: Ticket, public_key: _EllipticCurvePublicKey
+    ) -> bool:
         try:
             # Get Signature on Ticket
             signature_byte = key_serialization.str_backto_byte(
@@ -438,7 +453,7 @@ class TicketModule:
     # Ticket Handshake
     #   +++ Execute xxxTicket (E-Z) +++
     ######################################################
-    def initialize_iot_device(self, new_ticket) -> bool:
+    def initialize_iot_device(self, new_ticket: Ticket) -> bool:
         if self.module_type != ticket.IOT_DEVICE:
             logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
             return False
@@ -484,7 +499,7 @@ class TicketModule:
         logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
         logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
 
-    def ownership_transfer(self, new_ticket):
+    def ownership_transfer(self, new_ticket: Ticket) -> None:
         ######################################################
         # Decode Request Body
         ######################################################
@@ -529,8 +544,12 @@ class TicketModule:
     #   +++ Execute Command Ticket (E-N) +++
     ######################################################
     def generate_session_key(
-        self, server_private_key_obj, salt_byte, info_byte, peer_public_key_obj
-    ):
+        self,
+        server_private_key_obj: _EllipticCurvePrivateKey,
+        salt_byte: bytes,
+        info_byte: bytes,
+        peer_public_key_obj: _EllipticCurvePublicKey,
+    ) -> bytes:
         return ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
             salt=salt_byte,

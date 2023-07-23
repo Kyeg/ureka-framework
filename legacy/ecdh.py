@@ -14,13 +14,17 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.backends.openssl.ec import (
+    _EllipticCurvePrivateKey,
+    _EllipticCurvePublicKey,
+)
 
 
 ######################################################
 # Random Number Generation
 # (pyca/cryptography recommends using operating system’s provided random number generator)
 ######################################################
-def generate_random_byte(bytes_num):
+def generate_random_byte(bytes_num: int) -> bytes:
     return os.urandom(bytes_num)
 
 
@@ -34,7 +38,12 @@ def generate_random_byte(bytes_num):
 #
 #   return: True/False
 ######################################################
-def generate_ecdh_key(server_private_key, salt, info, peer_public_key):
+def generate_ecdh_key(
+    server_private_key: _EllipticCurvePrivateKey,
+    salt: bytes,
+    info: bytes,
+    peer_public_key: _EllipticCurvePublicKey,
+) -> bytes:
     # Perform ECDH
     shared_key = server_private_key.exchange(ec.ECDH(), peer_public_key)
 

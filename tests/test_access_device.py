@@ -6,7 +6,7 @@ import legacy.ticket as ticket
 
 class TestAccessDevice:
     # Setup in every class method
-    def setup_method(self):
+    def setup_method(self) -> None:
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = ticket_module.TicketModule(
             module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -54,7 +54,7 @@ class TestAccessDevice:
         )
         self.cloud_server_ep.one_time_intialization_command()
 
-    def test_apply_access_permission_ticket(self):
+    def test_apply_access_permission_ticket(self) -> None:
         # WHEN: apply_access_permission_ticket()
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
@@ -113,7 +113,7 @@ class TestAccessDevice:
         pass
 
     # Teardown in every class method
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
         self.cloud_server_dm.reset_device()
         self.user_agent_do.reset_device()

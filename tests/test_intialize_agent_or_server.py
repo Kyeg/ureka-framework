@@ -4,7 +4,7 @@ import legacy.ticket as ticket
 
 class TestIntializeAgentOrServer:
     # Setup in every class method
-    def setup_method(self):
+    def setup_method(self) -> None:
         # GIVEN: (A) Uninitialized CS
         self.cloud_server_1 = ticket_module.TicketModule(
             module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -12,7 +12,7 @@ class TestIntializeAgentOrServer:
             db_path="/secure_db/cloud_server_1",
         )
 
-    def test_one_time_intialization_command(self):
+    def test_one_time_intialization_command(self) -> None:
         # WHEN: one_time_intialization_command()
         assert self.cloud_server_1.one_time_intialization_command() == True
 
@@ -21,7 +21,7 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
 
-    def test_one_time_intialization_command_failed(self):
+    def test_one_time_intialization_command_failed(self) -> None:
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_1.one_time_intialization_command()
 
@@ -30,6 +30,6 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_1.one_time_intialization_command() == False
 
     # Teardown in every class method
-    def teardown_method(self):
+    def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
         self.cloud_server_1.reset_device()

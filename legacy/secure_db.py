@@ -7,10 +7,15 @@ import logging
 # File Path
 import os
 import shutil
+from cryptography.hazmat.backends.openssl.ec import (
+    _EllipticCurvePrivateKey,
+    _EllipticCurvePublicKey,
+)
+from typing import Tuple, Union
 
 
 class SecureDB:
-    def __init__(self, db_path=""):
+    def __init__(self, db_path: str = "") -> None:
         # File I/O
         # self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
         self.current_path = os.path.abspath(os.path.dirname(__file__)) + db_path
@@ -34,7 +39,23 @@ class SecureDB:
         self.owner_pub_key_byte = b""
         self.owner_pub_key_str = ""
 
-    def loadSecureDB(self, debug_mode=False):
+    def loadSecureDB(
+        self, debug_mode: bool = False
+    ) -> Union[
+        Tuple[bool, None, str, None, str, None, str],
+        Tuple[
+            bool, _EllipticCurvePrivateKey, str, _EllipticCurvePublicKey, str, None, str
+        ],
+        Tuple[
+            bool,
+            _EllipticCurvePrivateKey,
+            str,
+            _EllipticCurvePublicKey,
+            str,
+            _EllipticCurvePublicKey,
+            str,
+        ],
+    ]:
         # False: Uninitialized / True: Initialized
         is_initialized = False
 
@@ -89,7 +110,7 @@ class SecureDB:
         )
 
     # Teardown - Development Only Function
-    def deleteSecureDB(self, debug_mode=False):
+    def deleteSecureDB(self, debug_mode: bool = False) -> None:
         # removing directory
         try:
             # shutil.rmtree(self.secure_db_path)
@@ -99,18 +120,27 @@ class SecureDB:
             logging.debug(f"ERROR: {e.filename} - {e.strerror}.")
 
     # Initialization
-    def initDeviceId(self, device_priv_key_byte, device_pub_key_byte, debug_mode=False):
+    def initDeviceId(
+        self,
+        device_priv_key_byte: bytes,
+        device_pub_key_byte: bytes,
+        debug_mode: bool = False,
+    ) -> None:
         self.storeFile(self.path_device_priv, device_priv_key_byte)
         self.storeFile(self.path_device_pub, device_pub_key_byte)
 
     # Initialization / Ownership-transfer
-    def storeOwnerKey(self, owner_pub_key_byte, debug_mode=False):
+    def storeOwnerKey(
+        self, owner_pub_key_byte: bytes, debug_mode: bool = False
+    ) -> None:
         self.storeFile(self.path_owner_pub, owner_pub_key_byte)
 
     ######################################################
     # File I/O (byte)
     ######################################################
-    def storeFile(self, relative_path, data, debug_mode=False):
+    def storeFile(
+        self, relative_path: str, data: bytes, debug_mode: bool = False
+    ) -> None:
         # Get abs file path
         abs_path = self.current_path + relative_path
 
@@ -134,7 +164,7 @@ class SecureDB:
         if debug_mode:
             logging.debug("Store Data in : %s" % abs_path)
 
-    def loadFile(self, relative_path, debug_mode=False):
+    def loadFile(self, relative_path: str, debug_mode: bool = False) -> bytes:
         # Get abs file path
         abs_path = self.current_path + relative_path
 
@@ -154,7 +184,7 @@ class SecureDB:
         if debug_mode:
             logging.debug("File not exist.")
 
-    def checkFileExist(self, relative_path):
+    def checkFileExist(self, relative_path: str) -> bool:
         # Get abs file path
         abs_path = self.current_path + relative_path
 
