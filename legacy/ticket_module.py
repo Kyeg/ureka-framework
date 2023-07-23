@@ -56,7 +56,7 @@ class TicketModule:
             logging.debug(
                 "####################################################################################################################################################"
             )
-            logging.debug("module_type: USER-AGENT-OR-CLOUD-SERVER")
+            logging.debug("module_type: %s" % self.module_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
@@ -70,7 +70,7 @@ class TicketModule:
             logging.debug(
                 "####################################################################################################################################################"
             )
-            logging.debug("module_type: IOT_DEVICE")
+            logging.debug("module_type: %s" % self.module_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])

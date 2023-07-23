@@ -14,11 +14,10 @@ class TestIntializeAgentOrServer:
         )
 
     def test_one_time_intialization_command(self):
-        # GIVEN: (A) Uninitialized CS
-
         # WHEN: one_time_intialization_command()
-        # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.one_time_intialization_command() == True
+
+        # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.is_initialized == True
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
