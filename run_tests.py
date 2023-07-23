@@ -6,15 +6,15 @@ if __name__ == "__main__":
     # pytest.main(["-x"])
 
     # For example, qruit or verbose
-    pytest.main(["-q"])
+    # pytest.main(["-q"])
     # pytest.main(["-v"])
 
     # For example, add stdout/stderr/stdin (can be replaced by pytest-log)
-    # pytest.main(["-s"])
+    pytest.main(["-q", "-s"])
 
     # For example, select test case by selecting marker
     # pytest.main(["-m", "mark_name"])
-    # pytest.main(["-m", "not mark_name"])
+    # pytest.main(["-m", "not mark_name"])5
 
     # For example, add histogram from pytest-benchmark
     # pytest.main(["-m", "benchmark", "--benchmark-histogram"])
@@ -32,6 +32,7 @@ if __name__ == "__main__":
     #         "-m",
     #         "not benchmark",
     #         "--cov=ureka_framework/",
+    #         "--cov=legacy/",
     #         "--cov-report=html",
     #         "--cov-config=.coveragerc",
     #     ]

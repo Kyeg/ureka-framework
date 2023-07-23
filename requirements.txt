@@ -1,9 +1,12 @@
+cffi==1.15.1
 coverage==7.2.7
+cryptography==41.0.2
 iniconfig==2.0.0
 packaging==23.1
 pluggy==1.2.0
 py-cpuinfo==9.0.0
 pyclean==2.7.3
+pycparser==2.21
 pygal==3.0.0
 pytest==7.4.0
 pytest-benchmark==4.0.0

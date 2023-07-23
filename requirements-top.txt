@@ -4,3 +4,4 @@ pytest-cover
 pytest-benchmark
 pygal
 pyclean
+cryptography
