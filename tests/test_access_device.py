@@ -64,7 +64,7 @@ class TestAccessDevice:
             holder_id=self.cloud_server_ep.device_pub_key_str,
             request_body=key_serialization.dict_to_jsonstr(
                 {
-                    ticket.REQUEST_BODY_CCESS_PERMISSION_RESOURCE_TREE: key_serialization.dict_to_jsonstr(
+                    ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: key_serialization.dict_to_jsonstr(
                         {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
                     )  # sort_keys = True
                 }

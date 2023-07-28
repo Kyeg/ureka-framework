@@ -1,5 +1,6 @@
 # Ureka Module
 import legacy.ticket as ticket
+from legacy.ticket import Ticket
 
 # Testing
 import logging
@@ -22,7 +23,6 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
-from legacy.ticket import Ticket
 from typing import Dict, Union
 
 

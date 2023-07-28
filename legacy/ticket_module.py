@@ -1,17 +1,17 @@
 # Ureka Module
 import legacy.ticket as ticket
+from legacy.ticket import Ticket
 import legacy.secure_db as secure_db
 import legacy.ecc as ecc
 import legacy.ecdh as ecdh
 import legacy.key_serialization as key_serialization
-
-# Testing
-import logging
 from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
-from legacy.ticket import Ticket
+
+# Testing
+import logging
 
 
 class TicketModule:
@@ -176,7 +176,7 @@ class TicketModule:
     def generate_response_ticket(self, device_id: str, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
-        new_ticket.ticket_type = ticket.TYPE_RESONSE_TICKET
+        new_ticket.ticket_type = ticket.TYPE_RESPONSE_TICKET
         new_ticket.device_id = device_id
         new_ticket.holder_id = holder_id
 
@@ -257,7 +257,7 @@ class TicketModule:
             logging.debug("(Z-2) PASS: TYPE_ACCESS_PERMISSION_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             logging.debug("(Z-2) PASS: TYPE_CHALLENGE_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
+        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             logging.debug("(Z-2) PASS: TYPE_RESONSE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             logging.debug("(Z-2) PASS: TYPE_KEY_EXCHANGE_TICKET")
@@ -317,7 +317,7 @@ class TicketModule:
             # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
             logging.debug("(N-2) PASS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
 
-        elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
+        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESONSE_TICKET is correct
             if self.verify_issuer_signature_on_ticket(
                 ticket_in, self.current_holder_pub_key
@@ -365,7 +365,7 @@ class TicketModule:
 
             logging.debug("generate_response_ticket( )...")
 
-        elif ticket_in.ticket_type == ticket.TYPE_RESONSE_TICKET:
+        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             logging.debug("(E-N) EXECUTE: RESONSE_TICKET")
 
             logging.debug("generate_key_exchange_ticket( )...")
@@ -433,11 +433,14 @@ class TicketModule:
                 ticket_in.issuer_signature
             )
 
-            # Message = Remove Signature on Ticket
-            # Notice that we cannot simply set signature = '', but need to 'delete' the signature variable in object
-            del (
-                ticket_in.issuer_signature
-            )  # == ticket_in.__dict__.pop('issuer_signature')
+            # # Message = Remove Signature on Ticket
+            # # Notice that we cannot simply set signature = '', but need to 'delete' the signature variable in object
+            # del (
+            #     ticket_in.issuer_signature
+            # )  # == ticket_in.__dict__.pop('issuer_signature')
+
+            # No need to del issuer_signature in dataclass
+            ticket_in.issuer_signature = ""
 
             message_str = key_serialization.ticket_to_jsonstr(ticket_in)
             message_byte = key_serialization.str_to_byte(message_str)
