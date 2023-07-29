@@ -34,7 +34,7 @@ class SecureDB:
         self.owner_pub_key_str: str = ""
 
     def loadSecureDB(
-        self, debug_mode: bool = False
+        self,
     ) -> Union[
         Tuple[bool, None, str, None, str, None, str],
         Tuple[
@@ -77,11 +77,6 @@ class SecureDB:
                     self.device_pub_key_byte
                 )
 
-                if debug_mode:
-                    logging.debug("device_priv_key_str: %s" % self.device_priv_key_str)
-                    logging.debug("device_pub_key_str: %s" % self.device_pub_key_str)
-                    logging.debug("")
-
                 is_initialized = True
 
         if self.checkFileExist(self.path_owner_pub):
@@ -92,10 +87,6 @@ class SecureDB:
             self.owner_pub_key_str = key_serialization.byte_to_str(
                 self.owner_pub_key_byte
             )
-
-            if debug_mode:
-                logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str)
-                logging.debug("")
 
             is_initialized = True
 
@@ -110,7 +101,7 @@ class SecureDB:
         )
 
     # Teardown - Development Only Function
-    def deleteSecureDB(self, debug_mode: bool = False) -> None:
+    def deleteSecureDB(self) -> None:
         # removing directory
         try:
             # shutil.rmtree(self.secure_db_path)
@@ -124,28 +115,20 @@ class SecureDB:
         self,
         device_priv_key_byte: bytes,
         device_pub_key_byte: bytes,
-        debug_mode: bool = False,
     ) -> None:
         self.storeFile(self.path_device_priv, device_priv_key_byte)
         self.storeFile(self.path_device_pub, device_pub_key_byte)
 
     # Initialization / Ownership-transfer
-    def storeOwnerKey(
-        self, owner_pub_key_byte: bytes, debug_mode: bool = False
-    ) -> None:
+    def storeOwnerKey(self, owner_pub_key_byte: bytes) -> None:
         self.storeFile(self.path_owner_pub, owner_pub_key_byte)
 
     ######################################################
     # File I/O (byte)
     ######################################################
-    def storeFile(
-        self, relative_path: str, data: bytes, debug_mode: bool = False
-    ) -> None:
+    def storeFile(self, relative_path: str, data: bytes) -> None:
         # Get abs file path
         abs_path = self.current_path + relative_path
-
-        if debug_mode:
-            logging.debug("Data : %s" % data)
 
         # Create directory if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -153,36 +136,24 @@ class SecureDB:
                 os.makedirs(os.path.dirname(abs_path))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
-                    if debug_mode:
-                        logging.debug("Directory not exist.")
                     raise
 
         # Open and write file
         with open(abs_path, "wb") as f:
             f.write(data)
 
-        if debug_mode:
-            logging.debug("Store Data in : %s" % abs_path)
-
-    def loadFile(self, relative_path: str, debug_mode: bool = False) -> bytes:
+    def loadFile(self, relative_path: str) -> bytes:
         # Get abs file path
         abs_path = self.current_path + relative_path
-
-        if debug_mode:
-            logging.debug("Load Data from : %s" % abs_path)
 
         if self.checkFileExist(relative_path):
             # Open and read file
             with open(abs_path, "rb") as f:
                 data = f.read()
-
-            if debug_mode:
-                logging.debug("Data : %s" % data)
-
             return data
-
-        if debug_mode:
-            logging.debug("File not exist.")
+        else:
+            logging.debug(f"ERROR: {relative_path} does not exist.")
+            return b""
 
     def checkFileExist(self, relative_path: str) -> bool:
         # Get abs file path
@@ -204,12 +175,12 @@ class SecureDB:
 
 # path = '/hello_file.txt'
 # data = b'abcd\n'
-# mSecureDB.storeFile(path, data, debug_mode = True)
+# mSecureDB.storeFile(path, data)
 # logging.debug("")
 
 # path = '/hello_file.txt'
-# mSecureDB.loadFile(path, debug_mode = True)
+# mSecureDB.loadFile(path)
 # logging.debug("")
 
 
-# mSecureDB.loadSecureDB(debug_mode = True)
+# mSecureDB.loadSecureDB()
