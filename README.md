@@ -43,3 +43,14 @@ Always update the dependency files if you install new packages:
 vim requirements-top.txt
 pip3 freeze > requirements.txt
 ```
+
+## Optional Tools
+
+Apply MonkeyType to add type hints to the source code
+
+```
+monkeytype run run_tests.py
+monkeytype apply ureka_framework.module_name...
+monkeytype apply tests.testxxx...
+```
+

@@ -1,32 +1,32 @@
 import pytest
-from legacy import key_serialization
-import legacy.ticket_module as ticket_module
-import legacy.ticket as ticket
+from ureka_framework.resource.crypto import key_serialization
+import ureka_framework.controller.device_controller as device_controller
+import ureka_framework.data_model.ticket as ticket
 
 
 class TestAccessDevice:
     # Setup in every class method
     def setup_method(self) -> None:
         # GIVEN: (A') Initialized DM's CS
-        self.cloud_server_dm = ticket_module.TicketModule(
-            module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            module_name="cloud_server_dm",
+        self.cloud_server_dm = device_controller.DeviceController(
+            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="cloud_server_dm",
             db_path="/secure_db/cloud_server_dm",
         )
         self.cloud_server_dm.one_time_intialization_command()
 
         # GIVEN: (A') Initialized DO's UA
-        self.user_agent_do = ticket_module.TicketModule(
-            module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            module_name="user_agent_do",
+        self.user_agent_do = device_controller.DeviceController(
+            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="user_agent_do",
             db_path="/secure_db/user_agent_do",
         )
         self.user_agent_do.one_time_intialization_command()
 
         # GIVEN: (B') Initialized DM's IoTD
-        self.iot_device = ticket_module.TicketModule(
-            module_type=ticket.IOT_DEVICE,
-            module_name="iot_device",
+        self.iot_device = device_controller.DeviceController(
+            device_type=ticket.IOT_DEVICE,
+            device_name="iot_device",
             db_path="/secure_db/iot_device",
         )
         test_ticket = self.cloud_server_dm.generate_initialization_ticket(
@@ -47,9 +47,9 @@ class TestAccessDevice:
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # GIVEN: (A') Initialized EP's CS
-        self.cloud_server_ep = ticket_module.TicketModule(
-            module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            module_name="cloud_server_ep",
+        self.cloud_server_ep = device_controller.DeviceController(
+            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="cloud_server_ep",
             db_path="/secure_db/cloud_server_ep",
         )
         self.cloud_server_ep.one_time_intialization_command()

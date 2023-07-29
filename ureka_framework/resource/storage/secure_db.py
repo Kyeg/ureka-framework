@@ -1,9 +1,3 @@
-# Ureka Module
-import legacy.key_serialization as key_serialization
-
-# Testing
-import logging
-
 # File Path
 import os
 import shutil
@@ -11,6 +5,9 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
+
+import ureka_framework.resource.crypto.key_serialization as key_serialization
+import logging
 from typing import Tuple, Union
 
 

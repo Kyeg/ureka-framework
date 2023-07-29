@@ -1,22 +1,22 @@
-import legacy.ticket_module as ticket_module
-import legacy.ticket as ticket
+import ureka_framework.controller.device_controller as device_controller
+import ureka_framework.data_model.ticket as ticket
 
 
 class TestIntializeDevice:
     # Setup in every class method
     def setup_method(self) -> None:
         # GIVEN: (A') Initialized DM's CS
-        self.cloud_server_dm = ticket_module.TicketModule(
-            module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            module_name="cloud_server_dm",
+        self.cloud_server_dm = device_controller.DeviceController(
+            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="cloud_server_dm",
             db_path="/secure_db/cloud_server_dm",
         )
         self.cloud_server_dm.one_time_intialization_command()
 
         # GIVEN: (B) Uninitialized IoTD
-        self.iot_device = ticket_module.TicketModule(
-            module_type=ticket.IOT_DEVICE,
-            module_name="iot_device",
+        self.iot_device = device_controller.DeviceController(
+            device_type=ticket.IOT_DEVICE,
+            device_name="iot_device",
             db_path="/secure_db/iot_device",
         )
 

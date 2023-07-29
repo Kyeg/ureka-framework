@@ -1,28 +1,25 @@
-# Ureka Module
-import legacy.ticket as ticket
-from legacy.ticket import Ticket
-import legacy.secure_db as secure_db
-import legacy.ecc as ecc
-import legacy.ecdh as ecdh
-import legacy.key_serialization as key_serialization
+import ureka_framework.data_model.ticket as ticket
+from ureka_framework.data_model.ticket import Ticket
+import ureka_framework.resource.storage.secure_db as secure_db
+import ureka_framework.resource.crypto.ecc as ecc
+import ureka_framework.resource.crypto.ecdh as ecdh
+import ureka_framework.resource.crypto.key_serialization as key_serialization
 from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
-
-# Testing
 import logging
 
 
-class TicketModule:
+class DeviceController:
     def __init__(
-        self, module_type: str = "", module_name: str = "", db_path: str = ""
+        self, device_type: str = "", device_name: str = "", db_path: str = ""
     ) -> None:
-        # Module Type
-        self.module_type = module_type
+        # Device Type
+        self.device_type = device_type
 
-        # Module Name
-        self.module_name = module_name
+        # Device Name
+        self.device_name = device_name
 
         # False: Uninitialized / True: Initialized
         self.is_initialized = False
@@ -54,20 +51,24 @@ class TicketModule:
         ) = self.mSecureDB.loadSecureDB()
 
         if self.is_initialized:
-            logging.debug("+++ Ticket module <%s> was initailized +++" % module_name)
+            logging.debug(
+                "+++ Device controller <%s> was initailized +++" % device_name
+            )
             # self.display_state()
         else:
-            logging.debug("+++ Ticket module <%s> was uninitailized +++" % module_name)
+            logging.debug(
+                "+++ Device controller <%s> was uninitailized +++" % device_name
+            )
 
     ######################################################
     # Display (Debug/Test)
     ######################################################
     def display_state(self) -> None:
-        if self.module_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
+        if self.device_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.debug(
                 "####################################################################################################################################################"
             )
-            logging.debug("module_type: %s" % self.module_type)
+            logging.debug("device_type: %s" % self.device_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
@@ -77,11 +78,11 @@ class TicketModule:
                 "####################################################################################################################################################"
             )
 
-        if self.module_type == ticket.IOT_DEVICE:
+        if self.device_type == ticket.IOT_DEVICE:
             logging.debug(
                 "####################################################################################################################################################"
             )
-            logging.debug("module_type: %s" % self.module_type)
+            logging.debug("device_type: %s" % self.device_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
@@ -95,10 +96,10 @@ class TicketModule:
                 "####################################################################################################################################################"
             )
 
-    def display_module_name(self):
+    def display_device_name(self):
         logging.debug("")
         logging.debug("------------------------------------")
-        logging.debug(self.module_name)
+        logging.debug(self.device_name)
         logging.debug("------------------------------------")
 
     ######################################################
@@ -457,7 +458,7 @@ class TicketModule:
     #   +++ Execute xxxTicket (E-Z) +++
     ######################################################
     def initialize_iot_device(self, new_ticket: Ticket) -> bool:
-        if self.module_type != ticket.IOT_DEVICE:
+        if self.device_type != ticket.IOT_DEVICE:
             logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
             return False
 
@@ -570,7 +571,7 @@ class TicketModule:
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
     def one_time_intialization_command(self) -> bool:
-        if self.module_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
+        if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.debug(
                 "ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
             )

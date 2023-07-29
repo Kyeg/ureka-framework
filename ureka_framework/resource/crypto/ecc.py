@@ -1,9 +1,3 @@
-# Ureka Module
-import legacy.key_serialization as key_serialization
-
-# Testing
-import logging
-
 # ECC
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
@@ -19,6 +13,8 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
+
+import ureka_framework.resource.crypto.key_serialization as key_serialization
 from typing import Tuple
 
 

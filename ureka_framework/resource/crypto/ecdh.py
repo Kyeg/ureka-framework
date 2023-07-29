@@ -1,9 +1,3 @@
-# Testing
-import logging
-
-# Random Generator
-import os
-
 # ECDH
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -18,6 +12,8 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
+
+import os
 
 
 ######################################################

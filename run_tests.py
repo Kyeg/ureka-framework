@@ -32,7 +32,6 @@ if __name__ == "__main__":
     #         "-m",
     #         "not benchmark",
     #         "--cov=ureka_framework/",
-    #         "--cov=legacy/",
     #         "--cov-report=html",
     #         "--cov-config=.coveragerc",
     #     ]

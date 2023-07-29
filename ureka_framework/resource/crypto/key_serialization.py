@@ -1,16 +1,3 @@
-# Ureka Module
-import legacy.ticket as ticket
-from legacy.ticket import Ticket
-
-# Testing
-import logging
-
-# JSON Serialization
-import json
-
-# Base64 Serialization
-import base64
-
 # ECC Serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -23,8 +10,13 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
 )
-from typing import Dict, Union
 
+import ureka_framework.data_model.ticket as ticket
+from ureka_framework.data_model.ticket import Ticket
+import logging
+import json
+import base64
+from typing import Dict, Union
 
 ################################################################################
 #                        < ECC_Key_obj (Key in Program) >                      #
