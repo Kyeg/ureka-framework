@@ -39,6 +39,13 @@ def key_to_byte(
         return b""
 
 
+def key_to_str(
+    key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
+    key_type: str = "ecc-public-key",
+) -> bytes:
+    return byte_to_str(key_to_byte(key_obj, key_type=key_type))
+
+
 def byte_backto_key(
     key_byte: bytes, key_type: str = "ecc-public-key"
 ) -> Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey]:

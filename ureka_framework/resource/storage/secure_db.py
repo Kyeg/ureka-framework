@@ -5,7 +5,6 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 import ureka_framework.resource.crypto.key_serialization as key_serialization
 import logging
-from typing import Tuple, Union
 
 
 class SecureDB:
@@ -16,76 +15,29 @@ class SecureDB:
 
         self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
         self.path_device_pub: str = "/DeviceKey/PublicKey.key"
-
         self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
 
-        # Device Id
         self.device_priv_key: ec.EllipticCurvePrivateKey = None
-        self.device_priv_key_byte: bytes = b""
-        self.device_priv_key_str: str = ""
-
         self.device_pub_key: ec.EllipticCurvePublicKey = None
-        self.device_pub_key_byte: bytes = b""
-        self.device_pub_key_str: str = ""
-
-        # Permission Table (Owner, manager...)
         self.owner_pub_key: ec.EllipticCurvePublicKey = None
-        self.owner_pub_key_byte: bytes = b""
-        self.owner_pub_key_str: str = ""
 
-    def loadSecureDB(
-        self,
-    ) -> Union[
-        Tuple[bool, None, str, None, str, None, str],
-        Tuple[
-            bool,
-            ec.EllipticCurvePrivateKey,
-            str,
-            ec.EllipticCurvePublicKey,
-            str,
-            None,
-            str,
-        ],
-        Tuple[
-            bool,
-            ec.EllipticCurvePrivateKey,
-            str,
-            ec.EllipticCurvePublicKey,
-            str,
-            ec.EllipticCurvePublicKey,
-            str,
-        ],
-    ]:
+    def loadSecureDB(self):
         # False: Uninitialized / True: Initialized
         is_initialized = False
 
         if self.checkFileExist(self.path_device_priv):
             if self.checkFileExist(self.path_device_pub):
-                self.device_priv_key_byte = self.loadFile(self.path_device_priv)
                 self.device_priv_key = key_serialization.byte_backto_key(
-                    self.device_priv_key_byte, key_type="ecc-private-key"
+                    self.loadFile(self.path_device_priv), key_type="ecc-private-key"
                 )
-                self.device_priv_key_str = key_serialization.byte_to_str(
-                    self.device_priv_key_byte
-                )
-
-                self.device_pub_key_byte = self.loadFile(self.path_device_pub)
                 self.device_pub_key = key_serialization.byte_backto_key(
-                    self.device_pub_key_byte, key_type="ecc-public-key"
+                    self.loadFile(self.path_device_pub), key_type="ecc-public-key"
                 )
-                self.device_pub_key_str = key_serialization.byte_to_str(
-                    self.device_pub_key_byte
-                )
-
                 is_initialized = True
 
         if self.checkFileExist(self.path_owner_pub):
-            self.owner_pub_key_byte = self.loadFile(self.path_owner_pub)
             self.owner_pub_key = key_serialization.byte_backto_key(
-                self.owner_pub_key_byte, key_type="ecc-public-key"
-            )
-            self.owner_pub_key_str = key_serialization.byte_to_str(
-                self.owner_pub_key_byte
+                self.loadFile(self.path_owner_pub), key_type="ecc-public-key"
             )
 
             is_initialized = True
@@ -93,11 +45,8 @@ class SecureDB:
         return (
             is_initialized,
             self.device_priv_key,
-            self.device_priv_key_str,
             self.device_pub_key,
-            self.device_pub_key_str,
             self.owner_pub_key,
-            self.owner_pub_key_str,
         )
 
     # Teardown - Development Only Function

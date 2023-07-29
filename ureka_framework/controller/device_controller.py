@@ -12,24 +12,15 @@ class DeviceController:
     def __init__(
         self, device_type: str = "", device_name: str = "", db_path: str = ""
     ) -> None:
-        # Device Type
+        # Device Type (Device can be Private Autenticator or IoT Device...)
         self.device_type: str = device_type
-
-        # Device Name
         self.device_name: str = device_name
 
         # False: Uninitialized / True: Initialized
         self.is_initialized: bool = False
-
-        # Device Id (Device can be Private Autenticator or IoT Device...)
         self.device_priv_key: ec.EllipticCurvePrivateKey = None
-        self.device_priv_key_str: str = ""
         self.device_pub_key: ec.EllipticCurvePublicKey = None
-        self.device_pub_key_str: str = ""
-
-        # Permission Table (Owner, manager...)
         self.owner_pub_key: ec.EllipticCurvePublicKey = None
-        self.owner_pub_key_str: str = ""
 
         # Current Session (RAM-only)
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
@@ -40,64 +31,65 @@ class DeviceController:
         (
             self.is_initialized,
             self.device_priv_key,
-            self.device_priv_key_str,
             self.device_pub_key,
-            self.device_pub_key_str,
             self.owner_pub_key,
-            self.owner_pub_key_str,
         ) = self.mSecureDB.loadSecureDB()
 
         if self.is_initialized:
             logging.debug(
                 "+++ Device controller <%s> was initailized +++" % device_name
             )
-            # self.display_state()
+            self.display_state()
         else:
             logging.debug(
                 "+++ Device controller <%s> was uninitailized +++" % device_name
             )
+
+    @property
+    def device_priv_key_str(self) -> str:
+        if self.device_priv_key is None:
+            return ""
+        return key_serialization.key_to_str(
+            self.device_priv_key, key_type="ecc-private-key"
+        )
+
+    @property
+    def device_pub_key_str(self) -> str:
+        if self.device_pub_key is None:
+            return ""
+        return key_serialization.key_to_str(
+            self.device_pub_key, key_type="ecc-public-key"
+        )
+
+    @property
+    def owner_pub_key_str(self) -> str:
+        if self.owner_pub_key is None:
+            return ""
+        return key_serialization.key_to_str(
+            self.owner_pub_key, key_type="ecc-public-key"
+        )
 
     ######################################################
     # Display (Debug/Test)
     ######################################################
     def display_state(self) -> None:
         if self.device_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.debug(
-                "####################################################################################################################################################"
-            )
+            logging.debug("#" * 100)
             logging.debug("device_type: %s" % self.device_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-            # logging.debug('device_priv_key_str: %s' % self.device_priv_key_str)
-            # logging.debug('device_pub_key_str: %s' % self.device_pub_key_str)
-            logging.debug(
-                "####################################################################################################################################################"
-            )
+            logging.debug("#" * 100)
 
         if self.device_type == ticket.IOT_DEVICE:
-            logging.debug(
-                "####################################################################################################################################################"
-            )
+            logging.debug("#" * 100)
             logging.debug("device_type: %s" % self.device_type)
             logging.debug("")
             logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
             logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
             logging.debug("")
             logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
-            # logging.debug('device_priv_key_str: %s' % self.device_priv_key_str)
-            # logging.debug('device_pub_key_str: %s' % self.device_pub_key_str)
-            # logging.debug("")
-            # logging.debug('owner_pub_key_str: %s' % self.owner_pub_key_str)
-            logging.debug(
-                "####################################################################################################################################################"
-            )
-
-    def display_device_name(self):
-        logging.debug("")
-        logging.debug("------------------------------------")
-        logging.debug(self.device_name)
-        logging.debug("------------------------------------")
+            logging.debug("#" * 100)
 
     ######################################################
     # Generate Different Ticket Types
@@ -275,7 +267,6 @@ class DeviceController:
             or ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET
         ):
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            # if (ticket_in.device_id == self.slave_pub_key_str):
             logging.debug("(Z-3) PASS: DEVICE_ID")
         elif (
             ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET
@@ -312,7 +303,6 @@ class DeviceController:
         # (N) Verify HOLDER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
             logging.debug("(N-2) PASS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
 
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
@@ -327,7 +317,6 @@ class DeviceController:
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            # if self.verify_issuer_signature_on_ticket(ticket_in, self.slave_pub_key_str):
             logging.debug("(N-4) PASS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
 
         # (E-Z) Execute TICKET
@@ -486,11 +475,8 @@ class DeviceController:
         (
             self.is_initialized,
             self.device_priv_key,
-            self.device_priv_key_str,
             self.device_pub_key,
-            self.device_pub_key_str,
             self.owner_pub_key,
-            self.owner_pub_key_str,
         ) = self.mSecureDB.loadSecureDB()
 
         self.display_state()
@@ -528,11 +514,8 @@ class DeviceController:
         (
             self.is_initialized,
             self.device_priv_key,
-            self.device_priv_key_str,
             self.device_pub_key,
-            self.device_pub_key_str,
             self.owner_pub_key,
-            self.owner_pub_key_str,
         ) = self.mSecureDB.loadSecureDB()
 
         self.display_state()
@@ -594,11 +577,8 @@ class DeviceController:
         (
             self.is_initialized,
             self.device_priv_key,
-            self.device_priv_key_str,
             self.device_pub_key,
-            self.device_pub_key_str,
             self.owner_pub_key,
-            self.owner_pub_key_str,
         ) = self.mSecureDB.loadSecureDB()
 
         self.display_state()
