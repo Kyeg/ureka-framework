@@ -37,10 +37,6 @@ def generate_key_pair() -> Tuple[bytes, bytes]:
 
 ######################################################
 # Sign ECC Signature
-#   messageIn: byte
-#   privateKey: _EllipticCurvePrivateKey
-#
-#   return: byte
 ######################################################
 def sign_signature(messageIn: bytes, privateKey: _EllipticCurvePrivateKey) -> bytes:
     return privateKey.sign(messageIn, ec.ECDSA(hashes.SHA256()))
@@ -48,11 +44,6 @@ def sign_signature(messageIn: bytes, privateKey: _EllipticCurvePrivateKey) -> by
 
 ######################################################
 # Verify ECC Signature
-#   messageIn: byte
-#   signatureIn: byte
-#   publicKey: _EllipticCurvePublicKey
-#
-#   return: True/False
 ######################################################
 def verify_signature(
     signatureIn: bytes, messageIn: bytes, publicKey: _EllipticCurvePublicKey

@@ -13,6 +13,7 @@ from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePublicKey,
 )
 
+# Random
 import os
 
 
@@ -27,12 +28,6 @@ def generate_random_byte(bytes_num: int) -> bytes:
 ######################################################
 # ECDH Key Factory
 # (Further apply ECDHE (ECDH, ephemeral) if consider Forward Secrecy)
-#   server_private_key: _EllipticCurvePrivateKey
-#   salt: bytes
-#   info: bytes
-#   peer_public_key: _EllipticCurvePublicKey
-#
-#   return: True/False
 ######################################################
 def generate_ecdh_key(
     server_private_key: _EllipticCurvePrivateKey,

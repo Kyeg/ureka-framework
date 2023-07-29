@@ -16,27 +16,27 @@ class DeviceController:
         self, device_type: str = "", device_name: str = "", db_path: str = ""
     ) -> None:
         # Device Type
-        self.device_type = device_type
+        self.device_type: str = device_type
 
         # Device Name
-        self.device_name = device_name
+        self.device_name: str = device_name
 
         # False: Uninitialized / True: Initialized
-        self.is_initialized = False
+        self.is_initialized: bool = False
 
         # Device Id (Device can be Private Autenticator or IoT Device...)
-        self.device_priv_key = None
-        self.device_priv_key_str = ""
-        self.device_pub_key = None
-        self.device_pub_key_str = ""
+        self.device_priv_key: _EllipticCurvePrivateKey = None
+        self.device_priv_key_str: str = ""
+        self.device_pub_key: _EllipticCurvePublicKey = None
+        self.device_pub_key_str: str = ""
 
         # Permission Table (Owner, manager...)
-        self.owner_pub_key = None
-        self.owner_pub_key_str = ""
+        self.owner_pub_key: _EllipticCurvePublicKey = None
+        self.owner_pub_key_str: str = ""
 
         # Current Session (RAM-only)
-        self.current_holder_pub_key = None
-        self.current_session_key_byte = None
+        self.current_holder_pub_key: _EllipticCurvePublicKey = None
+        self.current_session_key_byte: bytes = None
 
         # +++ Load SecureDB +++
         self.mSecureDB = secure_db.SecureDB(db_path=db_path)

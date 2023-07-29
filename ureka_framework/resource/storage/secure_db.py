@@ -1,6 +1,7 @@
 # File Path
 import os
 import shutil
+import errno
 from cryptography.hazmat.backends.openssl.ec import (
     _EllipticCurvePrivateKey,
     _EllipticCurvePublicKey,
@@ -15,26 +16,26 @@ class SecureDB:
     def __init__(self, db_path: str = "") -> None:
         # File I/O
         # self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
-        self.current_path = os.path.abspath(os.path.dirname(__file__)) + db_path
+        self.current_path: str = os.path.abspath(os.path.dirname(__file__)) + db_path
 
-        self.path_device_priv = "/DeviceKey/PrivateKey.key"
-        self.path_device_pub = "/DeviceKey/PublicKey.key"
+        self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
+        self.path_device_pub: str = "/DeviceKey/PublicKey.key"
 
-        self.path_owner_pub = "/OwnerKey/PublicKey.key"
+        self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
 
         # Device Id
-        self.device_priv_key = None
-        self.device_priv_key_byte = b""
-        self.device_priv_key_str = ""
+        self.device_priv_key: _EllipticCurvePrivateKey = None
+        self.device_priv_key_byte: bytes = b""
+        self.device_priv_key_str: str = ""
 
-        self.device_pub_key = None
-        self.device_pub_key_byte = b""
-        self.device_pub_key_str = ""
+        self.device_pub_key: _EllipticCurvePublicKey = None
+        self.device_pub_key_byte: bytes = b""
+        self.device_pub_key_str: str = ""
 
         # Permission Table (Owner, manager...)
-        self.owner_pub_key = None
-        self.owner_pub_key_byte = b""
-        self.owner_pub_key_str = ""
+        self.owner_pub_key: _EllipticCurvePublicKey = None
+        self.owner_pub_key_byte: bytes = b""
+        self.owner_pub_key_str: str = ""
 
     def loadSecureDB(
         self, debug_mode: bool = False
