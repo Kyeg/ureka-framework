@@ -33,7 +33,7 @@ class DeviceController:
             self.device_priv_key,
             self.device_pub_key,
             self.owner_pub_key,
-        ) = self.mSecureDB.loadSecureDB()
+        ) = self.mSecureDB.load_secure_db()
 
         if self.is_initialized:
             logging.debug(
@@ -94,7 +94,6 @@ class DeviceController:
     ######################################################
     # Generate Different Ticket Types
     ######################################################
-
     def generate_initialization_ticket(self, holder_id: str) -> Ticket:
         new_ticket = ticket.Ticket()
 
@@ -455,29 +454,33 @@ class DeviceController:
         ######################################################
         # Initialize Device Id
         ######################################################
-        # Randomly generate device Id
+        # CRYPTO
         device_private_key_byte = b""
         device_public_key_byte = b""
         (device_private_key_byte, device_public_key_byte) = ecc.generate_key_pair()
 
-        self.mSecureDB.initDeviceId(device_private_key_byte, device_public_key_byte)
+        # RAM
+        self.is_initialized = True
+        self.device_priv_key = key_serialization.byte_backto_key(
+            device_private_key_byte, key_type="ecc-private-key"
+        )
+        self.device_pub_key = key_serialization.byte_backto_key(
+            device_public_key_byte, key_type="ecc-public-key"
+        )
+
+        # DB
+        self.mSecureDB.store_device_id(device_private_key_byte, device_public_key_byte)
 
         ######################################################
         # Update Permission Table (only for IoT Device)
         ######################################################
+
+        # RAM
+        self.owner_pub_key = key_serialization.str_backto_key(new_ticket.holder_id)
+
+        # DB
         owner_public_key_byte = key_serialization.str_backto_byte(new_ticket.holder_id)
-
-        self.mSecureDB.storeOwnerKey(owner_public_key_byte)
-
-        ######################################################
-        # Read-after-write Consistency
-        ######################################################
-        (
-            self.is_initialized,
-            self.device_priv_key,
-            self.device_pub_key,
-            self.owner_pub_key,
-        ) = self.mSecureDB.loadSecureDB()
+        self.mSecureDB.store_owner_id(owner_public_key_byte)
 
         self.display_state()
         return True
@@ -502,21 +505,16 @@ class DeviceController:
             task_scope_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
             == ticket.MANAGEMENT_OWNER
         ):
+            # RAM
+            self.owner_pub_key = key_serialization.str_backto_key(
+                new_ticket.holder_id, key_type="ecc-public-key"
+            )
+
+            # DB
             owner_public_key_byte = key_serialization.str_backto_byte(
                 new_ticket.holder_id
             )
-
-            self.mSecureDB.storeOwnerKey(owner_public_key_byte)
-
-        ######################################################
-        # Read-after-write Consistency
-        ######################################################
-        (
-            self.is_initialized,
-            self.device_priv_key,
-            self.device_pub_key,
-            self.owner_pub_key,
-        ) = self.mSecureDB.loadSecureDB()
+            self.mSecureDB.store_owner_id(owner_public_key_byte)
 
         self.display_state()
 
@@ -564,22 +562,22 @@ class DeviceController:
         ######################################################
         # Initialize Device Id
         ######################################################
-        # Randomly generate device Id
+        # CRYPTO
         device_private_key_byte = b""
         device_public_key_byte = b""
         (device_private_key_byte, device_public_key_byte) = ecc.generate_key_pair()
 
-        self.mSecureDB.initDeviceId(device_private_key_byte, device_public_key_byte)
+        # RAM
+        self.is_initialized = True
+        self.device_priv_key = key_serialization.byte_backto_key(
+            device_private_key_byte, key_type="ecc-private-key"
+        )
+        self.device_pub_key = key_serialization.byte_backto_key(
+            device_public_key_byte, key_type="ecc-public-key"
+        )
 
-        ######################################################
-        # Read-after-write Consistency
-        ######################################################
-        (
-            self.is_initialized,
-            self.device_priv_key,
-            self.device_pub_key,
-            self.owner_pub_key,
-        ) = self.mSecureDB.loadSecureDB()
+        # DB
+        self.mSecureDB.store_device_id(device_private_key_byte, device_public_key_byte)
 
         self.display_state()
         return True
@@ -588,5 +586,5 @@ class DeviceController:
     # Reset Device (Teardown - Development Only Function)
     ######################################################
     def reset_device(self) -> bool:
-        self.mSecureDB.deleteSecureDB()
+        self.mSecureDB.delete_secure_db()
         return True

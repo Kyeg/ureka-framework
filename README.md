@@ -3,6 +3,7 @@
 > The Ureka framework is a user-centric security framework that prioritizes the protection of user devices and data through comprehensive authentication, authorization, and auditing functions.
 
 ## Environment
++ Python: 3.11.4
 + Package Management: venv + pip
 + Formatter: Black
 + Testing: Pytest

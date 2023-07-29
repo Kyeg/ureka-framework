@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 import ureka_framework.resource.crypto.key_serialization as key_serialization
 import logging
+from typing import Tuple, Union
 
 
 class SecureDB:
@@ -21,25 +22,34 @@ class SecureDB:
         self.device_pub_key: ec.EllipticCurvePublicKey = None
         self.owner_pub_key: ec.EllipticCurvePublicKey = None
 
-    def loadSecureDB(self):
+    ######################################################
+    # Device Storage
+    ######################################################
+    def load_secure_db(
+        self,
+    ) -> Tuple[
+        bool,
+        ec.EllipticCurvePrivateKey | None,
+        ec.EllipticCurvePublicKey | None,
+        ec.EllipticCurvePublicKey | None,
+    ]:
         # False: Uninitialized / True: Initialized
         is_initialized = False
 
-        if self.checkFileExist(self.path_device_priv):
-            if self.checkFileExist(self.path_device_pub):
+        if self._check_file_exist(self.path_device_priv):
+            if self._check_file_exist(self.path_device_pub):
                 self.device_priv_key = key_serialization.byte_backto_key(
-                    self.loadFile(self.path_device_priv), key_type="ecc-private-key"
+                    self._load_file(self.path_device_priv), key_type="ecc-private-key"
                 )
                 self.device_pub_key = key_serialization.byte_backto_key(
-                    self.loadFile(self.path_device_pub), key_type="ecc-public-key"
+                    self._load_file(self.path_device_pub), key_type="ecc-public-key"
                 )
                 is_initialized = True
 
-        if self.checkFileExist(self.path_owner_pub):
+        if self._check_file_exist(self.path_owner_pub):
             self.owner_pub_key = key_serialization.byte_backto_key(
-                self.loadFile(self.path_owner_pub), key_type="ecc-public-key"
+                self._load_file(self.path_owner_pub), key_type="ecc-public-key"
             )
-
             is_initialized = True
 
         return (
@@ -50,7 +60,7 @@ class SecureDB:
         )
 
     # Teardown - Development Only Function
-    def deleteSecureDB(self) -> None:
+    def delete_secure_db(self) -> None:
         # removing directory
         try:
             # shutil.rmtree(self.secure_db_path)
@@ -60,22 +70,36 @@ class SecureDB:
             logging.debug(f"ERROR: {e.filename} - {e.strerror}.")
 
     # Initialization
-    def initDeviceId(
+    def store_device_id(
         self,
         device_priv_key_byte: bytes,
         device_pub_key_byte: bytes,
     ) -> None:
-        self.storeFile(self.path_device_priv, device_priv_key_byte)
-        self.storeFile(self.path_device_pub, device_pub_key_byte)
+        self._store_file(self.path_device_priv, device_priv_key_byte)
+        self._store_file(self.path_device_pub, device_pub_key_byte)
 
     # Initialization / Ownership-transfer
-    def storeOwnerKey(self, owner_pub_key_byte: bytes) -> None:
-        self.storeFile(self.path_owner_pub, owner_pub_key_byte)
+    def store_owner_id(self, owner_pub_key_byte: bytes) -> None:
+        self._store_file(self.path_owner_pub, owner_pub_key_byte)
 
     ######################################################
     # File I/O (byte)
     ######################################################
-    def storeFile(self, relative_path: str, data: bytes) -> None:
+
+    def _load_file(self, relative_path: str) -> bytes:
+        # Get abs file path
+        abs_path = self.current_path + relative_path
+
+        if self._check_file_exist(relative_path):
+            # Open and read file
+            with open(abs_path, "rb") as f:
+                data = f.read()
+            return data
+        else:
+            logging.debug(f"ERROR: {relative_path} does not exist.")
+            return b""
+
+    def _store_file(self, relative_path: str, data: bytes) -> None:
         # Get abs file path
         abs_path = self.current_path + relative_path
 
@@ -91,20 +115,7 @@ class SecureDB:
         with open(abs_path, "wb") as f:
             f.write(data)
 
-    def loadFile(self, relative_path: str) -> bytes:
-        # Get abs file path
-        abs_path = self.current_path + relative_path
-
-        if self.checkFileExist(relative_path):
-            # Open and read file
-            with open(abs_path, "rb") as f:
-                data = f.read()
-            return data
-        else:
-            logging.debug(f"ERROR: {relative_path} does not exist.")
-            return b""
-
-    def checkFileExist(self, relative_path: str) -> bool:
+    def _check_file_exist(self, relative_path: str) -> bool:
         # Get abs file path
         abs_path = self.current_path + relative_path
 
@@ -124,12 +135,12 @@ class SecureDB:
 
 # path = '/hello_file.txt'
 # data = b'abcd\n'
-# mSecureDB.storeFile(path, data)
+# mSecureDB._store_file(path, data)
 # logging.debug("")
 
 # path = '/hello_file.txt'
-# mSecureDB.loadFile(path)
+# mSecureDB._load_file(path)
 # logging.debug("")
 
 
-# mSecureDB.loadSecureDB()
+# mSecureDB.load_secure_db()

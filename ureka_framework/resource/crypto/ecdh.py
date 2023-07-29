@@ -114,38 +114,38 @@ def decrypt(ciphertext, key, iv):
 # private_key2 = ec.generate_private_key(ec.SECP256K1(), default_backend())
 # public_key2 = private_key2.public_key()
 
-# pre_shared_info = b''
+# pre_shared_info = b""
 
 # salt = generate_random_byte(32)
 
 # session_key1 = generate_ecdh_key(private_key1, salt, pre_shared_info, public_key2)
-# logging.debug('session_key1: ' + str(session_key1))
+# print("session_key1: " + str(session_key1))
 
 # session_key2 = generate_ecdh_key(private_key2, salt, pre_shared_info, public_key1)
-# logging.debug('session_key2: ' + str(session_key2))
+# print("session_key2: " + str(session_key2))
 
-# if(session_key1 == session_key2):
-#     logging.debug("Session Key is shared.")
+# if session_key1 == session_key2:
+#     print("Session Key is shared.")
 # else:
-#     logging.debug("Some error.")
+#     print("Some error.")
 
-# logging.debug("")
+# print("")
 
 
-# message = b'message to be encrypted'
+# message = b"message to be encrypted"
 
 # (iv, encrypted_message) = encrypt(message, session_key1)
-# logging.debug('encrypted_message: ' + str(encrypted_message))
+# print("encrypted_message: " + str(encrypted_message))
 
 # decrypted_message = decrypt(encrypted_message, session_key2, iv)
-# logging.debug('decrypted_message: ' + str(decrypted_message))
+# print("decrypted_message: " + str(decrypted_message))
 
-# if(message == decrypted_message):
-#     logging.debug("Message is shared.")
+# if message == decrypted_message:
+#     print("Message is shared.")
 # else:
-#     logging.debug("Some error.")
+#     print("Some error.")
 
-# logging.debug("")
+# print("")
 
 
 ######################################################
@@ -202,55 +202,50 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 # public_key2 = private_key2.public_key()
 
 
-# pre_shared_info = b''
+# pre_shared_info = b""
 
 # import os
+
 # salt = generate_random_byte(32)
 
 # session_key1 = generate_ecdh_key(private_key1, salt, pre_shared_info, public_key2)  # 32
-# logging.debug('session_key1: ' + str(session_key1))
+# print("session_key1: " + str(session_key1))
 
 # session_key2 = generate_ecdh_key(private_key2, salt, pre_shared_info, public_key1)  # 32
-# logging.debug('session_key2: ' + str(session_key2))
+# print("session_key2: " + str(session_key2))
 
-# if(session_key1 == session_key2):
-#     logging.debug("Session Key is shared.")
+# if session_key1 == session_key2:
+#     print("Session Key is shared.")
 # else:
-#     logging.debug("Some error.")
+#     print("Some error.")
 
-# logging.debug("")
+# print("")
 
 
-# message = b'message to be encrypted'
+# message = b"message to be encrypted"
 # associated_plain_message = b"authenticated but not encrypted payload"
 
 # (iv, encrypted_message, tag) = gcm_encrypt(
-#     session_key1,
-#     message,
-#     associated_plain_message
+#     session_key1, message, associated_plain_message
 # )
-# logging.debug('encrypted_message: ' + str(encrypted_message))
+# print("encrypted_message: " + str(encrypted_message))
 
 # try:
 #     decrypted_message = gcm_decrypt(
-#         session_key2,
-#         associated_plain_message,
-#         iv,
-#         encrypted_message,
-#         tag
+#         session_key2, associated_plain_message, iv, encrypted_message, tag
 #     )
-#     logging.debug ("Valid Tag.")
-#     logging.debug('decrypted_message: ' + str(decrypted_message))
+#     print("Valid Tag.")
+#     print("decrypted_message: " + str(decrypted_message))
 # except InvalidTag:
-#     logging.debug ("Invalid Tag.")
+#     print("Invalid Tag.")
 
 
-# if(message == decrypted_message):
-#     logging.debug("Message is shared.")
+# if message == decrypted_message:
+#     print("Message is shared.")
 # else:
-#     logging.debug("Some error.")
+#     print("Some error.")
 
-# logging.debug("")
+# print("")
 
 # try:
 #     decrypted_message = gcm_decrypt(
@@ -258,10 +253,10 @@ def gcm_decrypt(key, associated_data, iv, ciphertext, tag):
 #         associated_plain_message,
 #         iv,
 #         encrypted_message,
-#         b'wrong_tagggggggg'
+#         b"wrong_tagggggggg",
 #     )
-#     logging.debug ("Valid Tag.")
+#     print("Valid Tag.")
 # except InvalidTag:
-#     logging.debug ("Invalid Tag.")
+#     print("Invalid Tag.")
 
-# logging.debug("")
+# print("")
