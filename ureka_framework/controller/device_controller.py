@@ -4,10 +4,7 @@ import ureka_framework.resource.storage.secure_db as secure_db
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 import ureka_framework.resource.crypto.key_serialization as key_serialization
-from cryptography.hazmat.backends.openssl.ec import (
-    _EllipticCurvePrivateKey,
-    _EllipticCurvePublicKey,
-)
+from cryptography.hazmat.primitives.asymmetric import ec
 import logging
 
 
@@ -25,17 +22,17 @@ class DeviceController:
         self.is_initialized: bool = False
 
         # Device Id (Device can be Private Autenticator or IoT Device...)
-        self.device_priv_key: _EllipticCurvePrivateKey = None
+        self.device_priv_key: ec.EllipticCurvePrivateKey = None
         self.device_priv_key_str: str = ""
-        self.device_pub_key: _EllipticCurvePublicKey = None
+        self.device_pub_key: ec.EllipticCurvePublicKey = None
         self.device_pub_key_str: str = ""
 
         # Permission Table (Owner, manager...)
-        self.owner_pub_key: _EllipticCurvePublicKey = None
+        self.owner_pub_key: ec.EllipticCurvePublicKey = None
         self.owner_pub_key_str: str = ""
 
         # Current Session (RAM-only)
-        self.current_holder_pub_key: _EllipticCurvePublicKey = None
+        self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
         self.current_session_key_byte: bytes = None
 
         # +++ Load SecureDB +++
@@ -123,14 +120,14 @@ class DeviceController:
         return new_ticket
 
     def generate_management_ticket(
-        self, device_id: str, holder_id: str, request_body: str
+        self, device_id: str, holder_id: str, task_scope: str
     ) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_MANAGEMENT_TICKET
         new_ticket.device_id = device_id
         new_ticket.holder_id = holder_id
-        new_ticket.request_body = request_body
+        new_ticket.task_scope = task_scope
 
         new_ticket = self.add_issuer_signature_on_ticket(
             new_ticket, self.device_priv_key
@@ -140,14 +137,14 @@ class DeviceController:
 
     # Similar format with management_ticket
     def generate_access_permission_ticket(
-        self, device_id: str, holder_id: str, request_body: str
+        self, device_id: str, holder_id: str, task_scope: str
     ) -> Ticket:
         new_ticket = ticket.Ticket()
 
         new_ticket.ticket_type = ticket.TYPE_ACCESS_PERMISSION_TICKET
         new_ticket.device_id = device_id
         new_ticket.holder_id = holder_id
-        new_ticket.request_body = request_body
+        new_ticket.task_scope = task_scope
 
         new_ticket = self.add_issuer_signature_on_ticket(
             new_ticket, self.device_priv_key
@@ -165,7 +162,7 @@ class DeviceController:
 
         # Random Challenge
         random_challenge = ecdh.generate_random_byte(32)
-        new_ticket.request_body = key_serialization.byte_to_str(random_challenge)
+        new_ticket.task_scope = key_serialization.byte_to_str(random_challenge)
 
         new_ticket = self.add_issuer_signature_on_ticket(
             new_ticket, self.device_priv_key
@@ -197,7 +194,7 @@ class DeviceController:
 
         # Random Salt
         random_salt = ecdh.generate_random_byte(32)
-        new_ticket.request_body = key_serialization.byte_to_str(random_salt)
+        new_ticket.task_scope = key_serialization.byte_to_str(random_salt)
 
         new_ticket = self.add_issuer_signature_on_ticket(
             new_ticket, self.device_priv_key
@@ -217,7 +214,7 @@ class DeviceController:
         return new_ticket
 
     # Similar format with access_permission_ticket
-    def generate_command_ticket(self, device_id, holder_id, request_body):
+    def generate_command_ticket(self, device_id, holder_id, task_scope):
         pass
 
     def generate_return_ticket(self):
@@ -377,7 +374,7 @@ class DeviceController:
             # Generate (temp) session_key
             self.current_session_key_byte = self.generate_session_key(
                 server_private_key_obj=self.device_priv_key,
-                salt_byte=key_serialization.str_backto_byte(ticket_in.request_body),
+                salt_byte=key_serialization.str_backto_byte(ticket_in.task_scope),
                 info_byte=b"",
                 peer_public_key_obj=key_serialization.str_backto_key(
                     ticket_in.device_id, key_type="ecc-public-key"
@@ -402,7 +399,7 @@ class DeviceController:
     #   return: Ticket
     ######################################################
     def add_issuer_signature_on_ticket(
-        self, ticket_in: Ticket, private_key: _EllipticCurvePrivateKey
+        self, ticket_in: Ticket, private_key: ec.EllipticCurvePrivateKey
     ) -> Ticket:
         # Message
         message_str = key_serialization.ticket_to_jsonstr(ticket_in)
@@ -426,7 +423,7 @@ class DeviceController:
     #   return: True/False
     ######################################################
     def verify_issuer_signature_on_ticket(
-        self, ticket_in: Ticket, public_key: _EllipticCurvePublicKey
+        self, ticket_in: Ticket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
         try:
             # Get Signature on Ticket
@@ -507,16 +504,16 @@ class DeviceController:
         ######################################################
         # Decode Request Body
         ######################################################
-        request_body_dict = key_serialization.jsonstr_to_dict(
-            new_ticket.request_body
+        task_scope_dict = key_serialization.jsonstr_to_dict(
+            new_ticket.task_scope
         )  # sort_keys = True
-        logging.debug("request_body_dict = " + str(request_body_dict))
+        logging.debug("task_scope_dict = " + str(task_scope_dict))
 
         ######################################################
         # Update Permission Table (MANAGEMENT_OWNER)
         ######################################################
         if (
-            request_body_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
+            task_scope_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
             == ticket.MANAGEMENT_OWNER
         ):
             owner_public_key_byte = key_serialization.str_backto_byte(
@@ -549,10 +546,10 @@ class DeviceController:
     ######################################################
     def generate_session_key(
         self,
-        server_private_key_obj: _EllipticCurvePrivateKey,
+        server_private_key_obj: ec.EllipticCurvePrivateKey,
         salt_byte: bytes,
         info_byte: bytes,
-        peer_public_key_obj: _EllipticCurvePublicKey,
+        peer_public_key_obj: ec.EllipticCurvePublicKey,
     ) -> bytes:
         return ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,

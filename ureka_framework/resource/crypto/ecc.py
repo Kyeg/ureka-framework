@@ -1,18 +1,10 @@
 # ECC
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import PrivateFormat
-from cryptography.hazmat.primitives.serialization import PublicFormat
-from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives.asymmetric import ec
 
 # ECDSA
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.backends.openssl.ec import (
-    _EllipticCurvePrivateKey,
-    _EllipticCurvePublicKey,
-)
 
 import ureka_framework.resource.crypto.key_serialization as key_serialization
 from typing import Tuple
@@ -38,7 +30,7 @@ def generate_key_pair() -> Tuple[bytes, bytes]:
 ######################################################
 # Sign ECC Signature
 ######################################################
-def sign_signature(messageIn: bytes, privateKey: _EllipticCurvePrivateKey) -> bytes:
+def sign_signature(messageIn: bytes, privateKey: ec.EllipticCurvePrivateKey) -> bytes:
     return privateKey.sign(messageIn, ec.ECDSA(hashes.SHA256()))
 
 
@@ -46,7 +38,7 @@ def sign_signature(messageIn: bytes, privateKey: _EllipticCurvePrivateKey) -> by
 # Verify ECC Signature
 ######################################################
 def verify_signature(
-    signatureIn: bytes, messageIn: bytes, publicKey: _EllipticCurvePublicKey
+    signatureIn: bytes, messageIn: bytes, publicKey: ec.EllipticCurvePublicKey
 ) -> bool:
     try:
         publicKey.verify(signatureIn, messageIn, ec.ECDSA(hashes.SHA256()))

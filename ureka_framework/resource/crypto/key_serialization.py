@@ -1,15 +1,12 @@
 # ECC Serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.serialization import PrivateFormat
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.hazmat.backends.openssl.ec import (
-    _EllipticCurvePrivateKey,
-    _EllipticCurvePublicKey,
-)
+from cryptography.hazmat.primitives.serialization import NoEncryption
 
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
@@ -30,15 +27,13 @@ from typing import Dict, Union
 
 
 def key_to_byte(
-    key_obj: Union[_EllipticCurvePublicKey, _EllipticCurvePrivateKey],
+    key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
     key_type: str = "ecc-public-key",
 ) -> bytes:
     if key_type == "ecc-public-key":
         return key_obj.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
     elif key_type == "ecc-private-key":
-        return key_obj.private_bytes(
-            Encoding.DER, PrivateFormat.PKCS8, serialization.NoEncryption()
-        )
+        return key_obj.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
     else:
         logging.debug("Only support key_type = [ecc-public-key] or [ecc-private-key]")
         return b""
@@ -46,7 +41,7 @@ def key_to_byte(
 
 def byte_backto_key(
     key_byte: bytes, key_type: str = "ecc-public-key"
-) -> Union[_EllipticCurvePublicKey, _EllipticCurvePrivateKey]:
+) -> Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey]:
     if key_type == "ecc-public-key":
         return load_der_public_key(key_byte, backend=default_backend())
     elif key_type == "ecc-private-key":
@@ -58,7 +53,7 @@ def byte_backto_key(
 
 def str_backto_key(
     key_str: str, key_type: str = "ecc-public-key"
-) -> _EllipticCurvePublicKey:
+) -> ec.EllipticCurvePublicKey:
     key_byte = str_backto_byte(key_str)
     return byte_backto_key(key_byte, key_type=key_type)
 
@@ -176,7 +171,7 @@ def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
 # Testing: jsonstr_to_obj / obj_to_jsonstr
 ######################################################
 
-# ticket_str1 = '{"device_id": "1234", "holder_id": "abcd", "issuer_id": "efgh"}'
+# ticket_str1 = '{"device_id": "1234", "holder_id": "abcd"}'
 # ticket1 = jsonstr_to_ticket(ticket_str1)
 # logging.debug(ticket1)
 # logging.debug("")
@@ -184,7 +179,6 @@ def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
 # new_ticket1 = ticket.Ticket()
 # new_ticket1.device_id = "1234"
 # new_ticket1.holder_id = "abcd"
-# new_ticket1.issuer_id = "efgh"
 # new_ticket_str1 = ticket_to_jsonstr(new_ticket1)
 # logging.debug(new_ticket_str1)
 # logging.debug("")

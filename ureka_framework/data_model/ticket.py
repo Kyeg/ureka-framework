@@ -29,30 +29,16 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 
 @dataclass
 class Ticket:
-    # Explicit Field
     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
 
-    ticket_type: str = ""
+    # Not implemented yet
+    ticket_number: str = ""
+    transaction_number: str = ""
+
     device_id: str = ""
-    issuer_id: str = ""
+
+    ticket_type: str = ""
+    task_scope: str = ""
     holder_id: str = ""
 
-    request_body: str = ""
-    response_body: str = ""
-
     issuer_signature: str = ""
-
-
-# class Ticket:
-#     # Explicit Field
-#     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
-
-#     ticket_type: str = ""
-#     device_id: str = ""
-#     issuer_id: str = ""
-#     holder_id: str = ""
-
-#     request_body: str = ""
-#     response_body: str = ""
-
-#     issuer_signature: str = ""

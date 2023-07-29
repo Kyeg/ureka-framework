@@ -1,11 +1,7 @@
-# File Path
 import os
 import shutil
 import errno
-from cryptography.hazmat.backends.openssl.ec import (
-    _EllipticCurvePrivateKey,
-    _EllipticCurvePublicKey,
-)
+from cryptography.hazmat.primitives.asymmetric import ec
 
 import ureka_framework.resource.crypto.key_serialization as key_serialization
 import logging
@@ -24,16 +20,16 @@ class SecureDB:
         self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
 
         # Device Id
-        self.device_priv_key: _EllipticCurvePrivateKey = None
+        self.device_priv_key: ec.EllipticCurvePrivateKey = None
         self.device_priv_key_byte: bytes = b""
         self.device_priv_key_str: str = ""
 
-        self.device_pub_key: _EllipticCurvePublicKey = None
+        self.device_pub_key: ec.EllipticCurvePublicKey = None
         self.device_pub_key_byte: bytes = b""
         self.device_pub_key_str: str = ""
 
         # Permission Table (Owner, manager...)
-        self.owner_pub_key: _EllipticCurvePublicKey = None
+        self.owner_pub_key: ec.EllipticCurvePublicKey = None
         self.owner_pub_key_byte: bytes = b""
         self.owner_pub_key_str: str = ""
 
@@ -42,15 +38,21 @@ class SecureDB:
     ) -> Union[
         Tuple[bool, None, str, None, str, None, str],
         Tuple[
-            bool, _EllipticCurvePrivateKey, str, _EllipticCurvePublicKey, str, None, str
+            bool,
+            ec.EllipticCurvePrivateKey,
+            str,
+            ec.EllipticCurvePublicKey,
+            str,
+            None,
+            str,
         ],
         Tuple[
             bool,
-            _EllipticCurvePrivateKey,
+            ec.EllipticCurvePrivateKey,
             str,
-            _EllipticCurvePublicKey,
+            ec.EllipticCurvePublicKey,
             str,
-            _EllipticCurvePublicKey,
+            ec.EllipticCurvePublicKey,
             str,
         ],
     ]:
