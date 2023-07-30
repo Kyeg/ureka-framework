@@ -22,8 +22,8 @@ class TestIntializeDevice:
 
     def test_apply_initialization_ticket(self) -> None:
         # WHEN: apply_initialization_ticket()
-        test_ticket = self.cloud_server_dm.generate_initialization_ticket(
-            holder_id=self.cloud_server_dm.device_pub_key_str
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
@@ -37,14 +37,14 @@ class TestIntializeDevice:
 
     def test_apply_initialization_ticket_failed(self) -> None:
         # GIVEN: (B') Initialized DM's IoTD
-        test_ticket = self.cloud_server_dm.generate_initialization_ticket(
-            holder_id=self.cloud_server_dm.device_pub_key_str
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: apply_initialization_ticket()
-        test_ticket = self.cloud_server_dm.generate_initialization_ticket(
-            holder_id=self.cloud_server_dm.device_pub_key_str
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 

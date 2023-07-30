@@ -1,8 +1,24 @@
-from ureka_framework.controller.ticket_generator import TicketGenerator
-
 # Run/Debug experiments in top-level package
-if __name__ == "__main__":
-    f = TicketGenerator.generate_ticket("initialization")
-    print(f(holder_id="123"))
+from exp.thin_router_v2.command import (
+    CreateUserCommand,
+    DeleteUserCommand,
+    UpdateUserCommand,
+)
+from exp.thin_router_v2.thin_router import ThinRouter
 
-    print(TicketGenerator.generate_ticket("initialization")(holder_id="123"))
+
+if __name__ == "__main__":
+    router = ThinRouter()
+
+    # Map routes to business logic commands
+    router.add_route("/create", CreateUserCommand())
+    router.add_route("/update", UpdateUserCommand())
+    router.add_route("/delete", DeleteUserCommand())
+
+    # Simulate incoming requests
+    router.handle_request("/create", "JohnDoe", "john.doe@example.com")
+    router.handle_request("/update", user_id=42, new_data={"name": "JaneDoe"})
+    router.handle_request("/delete", user_id=42)
+    router.handle_request(
+        "/unknown_route"
+    )  # This will show a message that the route is not found.

@@ -28,14 +28,15 @@ class TestTransferOwnershipDevice:
             device_name="iot_device",
             db_path="/secure_db/iot_device",
         )
-        test_ticket = self.cloud_server_dm.generate_initialization_ticket(
-            holder_id=self.cloud_server_dm.device_pub_key_str
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
     def test_apply_management_ticket(self) -> None:
         # WHEN: apply_management_ticket()
-        test_ticket = self.cloud_server_dm.generate_management_ticket(
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "management",
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.user_agent_do.device_pub_key_str,
             task_scope=key_serialization.dict_to_jsonstr(
@@ -53,7 +54,8 @@ class TestTransferOwnershipDevice:
 
     def test_apply_management_ticket_failed(self) -> None:
         # GIVEN: (B'') Initialized DO's IoTD
-        test_ticket = self.cloud_server_dm.generate_management_ticket(
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "management",
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.user_agent_do.device_pub_key_str,
             task_scope=key_serialization.dict_to_jsonstr(
@@ -65,7 +67,8 @@ class TestTransferOwnershipDevice:
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: apply_management_ticket()
-        test_ticket = self.cloud_server_dm.generate_management_ticket(
+        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
+            "management",
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.user_agent_do.device_pub_key_str,
             task_scope=key_serialization.dict_to_jsonstr(

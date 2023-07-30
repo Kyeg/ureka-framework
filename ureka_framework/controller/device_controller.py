@@ -1,3 +1,7 @@
+import ureka_framework.controller.ticket_generation.generate_ticket as generate_ticket
+from ureka_framework.controller.ticket_generation.ticket_generation_router import (
+    TicketGenerationRouter,
+)
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.resource.storage.secure_db as secure_db
@@ -25,6 +29,10 @@ class DeviceController:
         # Current Session (RAM-only)
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
         self.current_session_key_byte: bytes = None
+
+        # Set Ticket Generation Router
+        self.ticket_generation_router: TicketGenerationRouter = None
+        self.set_ticket_generation_route()
 
         # +++ Load SecureDB +++
         self.mSecureDB = secure_db.SecureDB(db_path=db_path)
@@ -94,127 +102,35 @@ class DeviceController:
     ######################################################
     # Generate Different Ticket Types
     ######################################################
-    def generate_initialization_ticket(self, holder_id: str) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_INITIALIZATION_TICKET
-        # no device_id
-        new_ticket.holder_id = holder_id
-
-        return new_ticket
-
-    def generate_query_ticket(self):
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_QUERY_TICKET
-
-        return new_ticket
-
-    def generate_management_ticket(
-        self, device_id: str, holder_id: str, task_scope: str
-    ) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_MANAGEMENT_TICKET
-        new_ticket.device_id = device_id
-        new_ticket.holder_id = holder_id
-        new_ticket.task_scope = task_scope
-
-        new_ticket = self.add_issuer_signature_on_ticket(
-            new_ticket, self.device_priv_key
+    def set_ticket_generation_route(self) -> None:
+        self.ticket_generation_router = TicketGenerationRouter()
+        self.ticket_generation_router.add_ticket_type(
+            "intialization", generate_ticket.GenerateInitializationTicket(self)
         )
-
-        return new_ticket
-
-    # Similar format with management_ticket
-    def generate_access_permission_ticket(
-        self, device_id: str, holder_id: str, task_scope: str
-    ) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_ACCESS_PERMISSION_TICKET
-        new_ticket.device_id = device_id
-        new_ticket.holder_id = holder_id
-        new_ticket.task_scope = task_scope
-
-        new_ticket = self.add_issuer_signature_on_ticket(
-            new_ticket, self.device_priv_key
+        self.ticket_generation_router.add_ticket_type(
+            "query", generate_ticket.GenerateQueryTicket(self)
         )
-
-        return new_ticket
-
-    # Similar format with access_permission_ticket
-    def generate_challenge_ticket(self, device_id: str, holder_id: str) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_CHALLENGE_TICKET
-        new_ticket.device_id = device_id
-        new_ticket.holder_id = holder_id
-
-        # Random Challenge
-        random_challenge = ecdh.generate_random_byte(32)
-        new_ticket.task_scope = key_serialization.byte_to_str(random_challenge)
-
-        new_ticket = self.add_issuer_signature_on_ticket(
-            new_ticket, self.device_priv_key
+        self.ticket_generation_router.add_ticket_type(
+            "management", generate_ticket.GenerateManagementTicket(self)
         )
-
-        return new_ticket
-
-    # Similar format with access_permission_ticket
-    def generate_response_ticket(self, device_id: str, holder_id: str) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_RESPONSE_TICKET
-        new_ticket.device_id = device_id
-        new_ticket.holder_id = holder_id
-
-        new_ticket = self.add_issuer_signature_on_ticket(
-            new_ticket, self.device_priv_key
+        self.ticket_generation_router.add_ticket_type(
+            "access_permission", generate_ticket.GenerateAccessPermissionTicket(self)
         )
-
-        return new_ticket
-
-    # Similar format with access_permission_ticket
-    def generate_key_exchange_ticket(self, device_id: str, holder_id: str) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_KEY_EXCHANGE_TICKET
-        new_ticket.device_id = device_id
-        new_ticket.holder_id = holder_id
-
-        # Random Salt
-        random_salt = ecdh.generate_random_byte(32)
-        new_ticket.task_scope = key_serialization.byte_to_str(random_salt)
-
-        new_ticket = self.add_issuer_signature_on_ticket(
-            new_ticket, self.device_priv_key
+        self.ticket_generation_router.add_ticket_type(
+            "challenge", generate_ticket.GenerateChallengeTicket(self)
         )
-
-        # Generate (temp) session_key
-        self.current_session_key_byte = self.generate_session_key(
-            server_private_key_obj=self.device_priv_key,
-            salt_byte=random_salt,
-            info_byte=b"",
-            peer_public_key_obj=key_serialization.str_backto_key(
-                holder_id, key_type="ecc-public-key"
-            ),
+        self.ticket_generation_router.add_ticket_type(
+            "response", generate_ticket.GenerateResponseTicket(self)
         )
-        logging.debug("current_session_key_byte: " + str(self.current_session_key_byte))
-
-        return new_ticket
-
-    # Similar format with access_permission_ticket
-    def generate_command_ticket(self, device_id, holder_id, task_scope):
-        pass
-
-    def generate_return_ticket(self):
-        # Query Ticket: Return Device_ID
-        # Initialization Ticket: Return Device_ID
-
-        # Command Ticket: Return Data
-
-        pass
+        self.ticket_generation_router.add_ticket_type(
+            "key_exchange", generate_ticket.GenerateKeyExchangeTicket(self)
+        )
+        self.ticket_generation_router.add_ticket_type(
+            "command", generate_ticket.GenerateCommandTicket(self)
+        )
+        self.ticket_generation_router.add_ticket_type(
+            "return", generate_ticket.GenerateReturnTicket(self)
+        )
 
     ######################################################
     # Verify Different Ticket Types
@@ -381,34 +297,7 @@ class DeviceController:
         # (AC) Return ticket
 
     ######################################################
-    # Add ECC Signature on Ticket
-    #   ticket_in: Ticket
-    #
-    #   return: Ticket
-    ######################################################
-    def add_issuer_signature_on_ticket(
-        self, ticket_in: Ticket, private_key: ec.EllipticCurvePrivateKey
-    ) -> Ticket:
-        # Message
-        message_str = key_serialization.ticket_to_jsonstr(ticket_in)
-        message_byte = key_serialization.str_to_byte(message_str)
-
-        # Sign Signature
-        signature_byte = ecc.sign_signature(message_byte, private_key)
-
-        # Add Signature on Ticket
-        ticket_with_signature = ticket_in
-        ticket_with_signature.issuer_signature = key_serialization.byte_to_str(
-            signature_byte
-        )
-
-        return ticket_with_signature
-
-    ######################################################
     # Sign ECC Signature on Ticket
-    #   ticket_in: Ticket
-    #
-    #   return: True/False
     ######################################################
     def verify_issuer_signature_on_ticket(
         self, ticket_in: Ticket, public_key: ec.EllipticCurvePublicKey
