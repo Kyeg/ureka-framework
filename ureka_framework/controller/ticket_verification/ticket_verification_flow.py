@@ -32,9 +32,6 @@ class VerificationFlow:
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
             logging.debug("(Z-2) PASS: TYPE_INITIALIZATION_TICKET")
 
-        elif ticket_in.ticket_type == ticket.TYPE_QUERY_TICKET:
-            logging.debug("(Z-2) PASS: TYPE_QUERY_TICKET")
-
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             logging.debug("(Z-2) PASS: TYPE_MANAGEMENT_TICKET")
 
@@ -46,12 +43,6 @@ class VerificationFlow:
             logging.debug("(Z-2) PASS: TYPE_RESONSE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             logging.debug("(Z-2) PASS: TYPE_KEY_EXCHANGE_TICKET")
-        # elif (ticket_in.ticket_type == ticket.TYPE_COMMAND_TICKET):
-        #     logging.debug('(Z-2) PASS: TYPE_COMMAND_TICKET')
-
-        # elif (ticket_in.ticket_type == ticket.TYPE_RETURN_TICKET):
-        #     logging.debug('(Z-2) PASS: TYPE_RETURN_TICKET')
-
         else:
             logging.debug("(Z-2) ERROR: WRONG_TICKET_TYPE")
             # return
@@ -64,10 +55,7 @@ class VerificationFlow:
         ):
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.debug("(Z-3) PASS: DEVICE_ID")
-        elif (
-            ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET
-            and ticket_in.ticket_type != ticket.TYPE_QUERY_TICKET
-        ):
+        elif ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
             if ticket_in.device_id == device_pub_key_str:
                 logging.debug("(Z-3) PASS: DEVICE_ID")
             else:
@@ -133,11 +121,6 @@ class VerificationFlow:
             # (Side Effect)
             self.device_controller.execute_initialize_iot_device(ticket_in)
 
-        elif ticket_in.ticket_type == ticket.TYPE_QUERY_TICKET:
-            logging.debug("(E-Z) EXECUTE: QUERY_TICKET")
-            # (Side Effect)
-            self.device_controller.execute_query()
-
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             logging.debug("(E-Z) EXECUTE: MANAGEMENT_TICKET")
             # (Side Effect)
@@ -183,12 +166,6 @@ class VerificationFlow:
             signature_byte = key_serialization.str_backto_byte(
                 ticket_in.issuer_signature
             )
-
-            # # Message = Remove Signature on Ticket
-            # # Notice that we cannot simply set signature = '', but need to 'delete' the signature variable in object
-            # del (
-            #     ticket_in.issuer_signature
-            # )  # == ticket_in.__dict__.pop('issuer_signature')
 
             # No need to del issuer_signature in dataclass
             ticket_in.issuer_signature = ""

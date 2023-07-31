@@ -1,4 +1,6 @@
-import ureka_framework.controller.device_controller as device_controller
+from ureka_framework.controller.device_controller import (
+    DeviceController,
+)
 import ureka_framework.data_model.ticket as ticket
 
 
@@ -6,7 +8,7 @@ class TestIntializeAgentOrServer:
     # Setup in every class method
     def setup_method(self) -> None:
         # GIVEN: (A) Uninitialized CS
-        self.cloud_server_1 = device_controller.DeviceController(
+        self.cloud_server_1 = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_1",
             db_path="/secure_db/cloud_server_1",

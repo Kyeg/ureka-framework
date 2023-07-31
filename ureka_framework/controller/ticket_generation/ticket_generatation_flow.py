@@ -49,15 +49,6 @@ class GenerateInitializationTicket(GenerateXXXTicket):
         return new_ticket
 
 
-class GenerateQueryTicket(GenerateXXXTicket):
-    def execute(self) -> Ticket:
-        new_ticket = ticket.Ticket()
-
-        new_ticket.ticket_type = ticket.TYPE_QUERY_TICKET
-
-        return new_ticket
-
-
 class GenerateManagementTicket(GenerateXXXTicket):
     def execute(
         self,
@@ -149,17 +140,6 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
         new_ticket = self._add_issuer_signature_on_ticket(new_ticket, device_priv_key)
 
         # Generate (temp) session_key (Side Effect)
-        # execution_flow = ExecutionFlow(self.device_controller)
-        # self.device_controller.current_session_key_byte = (
-        #     execution_flow.generate_session_key(
-        #         server_private_key_obj=device_priv_key,
-        #         salt_byte=random_salt,
-        #         info_byte=b"",
-        #         peer_public_key_obj=key_serialization.str_backto_key(
-        #             holder_id, key_type="ecc-public-key"
-        #         ),
-        #     )
-        # )
         self.device_controller.execute_update_current_session_key_byte(
             server_private_key_obj=device_priv_key,
             salt_byte=random_salt,

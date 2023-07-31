@@ -7,7 +7,6 @@ from ureka_framework.controller.ticket_generation.ticket_generatation_flow impor
     GenerateInitializationTicket,
     GenerateKeyExchangeTicket,
     GenerateManagementTicket,
-    GenerateQueryTicket,
     GenerateResponseTicket,
 )
 from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
@@ -119,9 +118,6 @@ class DeviceController:
             "intialization", GenerateInitializationTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "query", GenerateQueryTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
             "management", GenerateManagementTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
@@ -152,7 +148,7 @@ class DeviceController:
         verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
 
     ######################################################
-    # Execute xxxTicket (E-Z)
+    # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
     def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
         if self.device_type != ticket.IOT_DEVICE:
@@ -197,10 +193,6 @@ class DeviceController:
         self.display_state()
         return True
 
-    def execute_query(self):
-        logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-        logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
-
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
         ######################################################
         # Decode Request Body
@@ -231,7 +223,7 @@ class DeviceController:
         self.display_state()
 
     ######################################################
-    # Execute Command Ticket (E-N)
+    # Execute Access Permission Ticket (E-N)
     ######################################################
     def execute_update_current_holder_pub_key(
         self,
