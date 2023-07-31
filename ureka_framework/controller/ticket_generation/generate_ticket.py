@@ -1,3 +1,4 @@
+from ureka_framework.controller.ticket_execution import ExecutionFlow
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.resource.crypto.ecc as ecc
@@ -9,9 +10,9 @@ import logging
 
 # Interface for the Command Object
 class GenerateXXXTicket:
-    # Better not have side effect on caller
-    def __init__(self, caller) -> None:
-        self.caller = caller
+    # Better not have side effect on device_controller
+    def __init__(self, device_controller) -> None:
+        self.device_controller = device_controller
 
     def execute(self, *args, **kwargs):
         pass
@@ -68,7 +69,7 @@ class GenerateManagementTicket(GenerateXXXTicket):
         new_ticket.task_scope = task_scope
 
         new_ticket = self._add_issuer_signature_on_ticket(
-            new_ticket, self.caller.device_priv_key
+            new_ticket, self.device_controller.device_priv_key
         )
 
         return new_ticket
@@ -84,7 +85,7 @@ class GenerateAccessPermissionTicket(GenerateXXXTicket):
         new_ticket.task_scope = task_scope
 
         new_ticket = self._add_issuer_signature_on_ticket(
-            new_ticket, self.caller.device_priv_key
+            new_ticket, self.device_controller.device_priv_key
         )
 
         return new_ticket
@@ -103,7 +104,7 @@ class GenerateChallengeTicket(GenerateXXXTicket):
         new_ticket.task_scope = key_serialization.byte_to_str(random_challenge)
 
         new_ticket = self._add_issuer_signature_on_ticket(
-            new_ticket, self.caller.device_priv_key
+            new_ticket, self.device_controller.device_priv_key
         )
 
         return new_ticket
@@ -118,7 +119,7 @@ class GenerateResponseTicket(GenerateXXXTicket):
         new_ticket.holder_id = holder_id
 
         new_ticket = self._add_issuer_signature_on_ticket(
-            new_ticket, self.caller.device_priv_key
+            new_ticket, self.device_controller.device_priv_key
         )
 
         return new_ticket
@@ -137,27 +138,31 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
         new_ticket.task_scope = key_serialization.byte_to_str(random_salt)
 
         new_ticket = self._add_issuer_signature_on_ticket(
-            new_ticket, self.caller.device_priv_key
+            new_ticket, self.device_controller.device_priv_key
         )
 
         # Generate (temp) session_key (Side Effect)
-        self.caller.current_session_key_byte = self.caller.generate_session_key(
-            server_private_key_obj=self.caller.device_priv_key,
-            salt_byte=random_salt,
-            info_byte=b"",
-            peer_public_key_obj=key_serialization.str_backto_key(
-                holder_id, key_type="ecc-public-key"
-            ),
+        execution_flow = ExecutionFlow(self.device_controller)
+        self.device_controller.current_session_key_byte = (
+            execution_flow.generate_session_key(
+                server_private_key_obj=self.device_controller.device_priv_key,
+                salt_byte=random_salt,
+                info_byte=b"",
+                peer_public_key_obj=key_serialization.str_backto_key(
+                    holder_id, key_type="ecc-public-key"
+                ),
+            )
         )
         logging.debug(
-            "current_session_key_byte: " + str(self.caller.current_session_key_byte)
+            "current_session_key_byte: "
+            + str(self.device_controller.current_session_key_byte)
         )
 
         return new_ticket
 
 
 class GenerateCommandTicket(GenerateXXXTicket):
-    def execute(self, device_id: str, holder_id: str, task_scope: str) -> Ticket:
+    def execute(self) -> Ticket:
         pass
 
 
