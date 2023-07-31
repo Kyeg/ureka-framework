@@ -30,13 +30,15 @@ class TestAccessDevice:
             db_path="/secure_db/iot_device",
         )
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
+            "intialization",
+            holder_id=self.cloud_server_dm.device_pub_key_str,
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # GIVEN: (B'') Initialized DO's IoTD
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "management",
+            device_priv_key=self.cloud_server_dm.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.user_agent_do.device_pub_key_str,
             task_scope=key_serialization.dict_to_jsonstr(
@@ -62,6 +64,7 @@ class TestAccessDevice:
         # -----------------------------------------------------
         test_ticket = self.user_agent_do.ticket_generation_router.generate_xxx_ticket(
             "access_permission",
+            device_priv_key=self.user_agent_do.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
             task_scope=key_serialization.dict_to_jsonstr(
@@ -79,6 +82,7 @@ class TestAccessDevice:
         # -----------------------------------------------------
         test_ticket = self.iot_device.ticket_generation_router.generate_xxx_ticket(
             "challenge",
+            device_priv_key=self.iot_device.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
         )
@@ -89,6 +93,7 @@ class TestAccessDevice:
         # -----------------------------------------------------
         test_ticket = self.cloud_server_ep.ticket_generation_router.generate_xxx_ticket(
             "response",
+            device_priv_key=self.cloud_server_ep.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
         )
@@ -99,6 +104,7 @@ class TestAccessDevice:
         # -----------------------------------------------------
         test_ticket = self.iot_device.ticket_generation_router.generate_xxx_ticket(
             "key_exchange",
+            device_priv_key=self.iot_device.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
         )

@@ -193,6 +193,7 @@ class VerificationFlow:
                 + str(self.device_controller.current_session_key_byte)
             )
 
+            # To-Do: Auto-Generate Command Ticket
             logging.debug("generate_command_ticket( )...")
 
             # To-Do: Session

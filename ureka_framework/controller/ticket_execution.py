@@ -29,22 +29,22 @@ class ExecutionFlow:
         # Initialize Device Id
         ######################################################
         # CRYPTO
-        device_private_key_byte = b""
-        device_public_key_byte = b""
-        (device_private_key_byte, device_public_key_byte) = ecc.generate_key_pair()
+        device_priv_key_byte = b""
+        device_pub_key_byte = b""
+        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
 
         # RAM
         self.device_controller.is_initialized = True
         self.device_controller.device_priv_key = key_serialization.byte_backto_key(
-            device_private_key_byte, key_type="ecc-private-key"
+            device_priv_key_byte, key_type="ecc-private-key"
         )
         self.device_controller.device_pub_key = key_serialization.byte_backto_key(
-            device_public_key_byte, key_type="ecc-public-key"
+            device_pub_key_byte, key_type="ecc-public-key"
         )
 
         # DB
         self.device_controller.mSecureDB.store_device_id(
-            device_private_key_byte, device_public_key_byte
+            device_priv_key_byte, device_pub_key_byte
         )
 
         ######################################################
