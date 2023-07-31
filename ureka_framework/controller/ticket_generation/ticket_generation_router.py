@@ -1,4 +1,4 @@
-from ureka_framework.controller.ticket_generation.generate_ticket import (
+from ureka_framework.controller.ticket_generation.ticket_generatation_flow import (
     GenerateXXXTicket,
 )
 from ureka_framework.data_model.ticket import Ticket

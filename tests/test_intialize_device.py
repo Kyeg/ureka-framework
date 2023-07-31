@@ -11,7 +11,7 @@ class TestIntializeDevice:
             device_name="cloud_server_dm",
             db_path="/secure_db/cloud_server_dm",
         )
-        self.cloud_server_dm.one_time_intialization_command()
+        self.cloud_server_dm.execute_one_time_intialization_command()
 
         # GIVEN: (B) Uninitialized IoTD
         self.iot_device = device_controller.DeviceController(
@@ -56,5 +56,5 @@ class TestIntializeDevice:
     # Teardown in every class method
     def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
-        self.cloud_server_dm.reset_device()
-        self.iot_device.reset_device()
+        self.cloud_server_dm.execute_reset_device()
+        self.iot_device.execute_reset_device()

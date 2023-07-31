@@ -1,9 +1,8 @@
-from ureka_framework.controller.ticket_execution import ExecutionFlow
-import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
+import ureka_framework.data_model.ticket as ticket
+import ureka_framework.resource.crypto.key_serialization as key_serialization
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
-import ureka_framework.resource.crypto.key_serialization as key_serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
 
@@ -150,30 +149,29 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
         new_ticket = self._add_issuer_signature_on_ticket(new_ticket, device_priv_key)
 
         # Generate (temp) session_key (Side Effect)
-        execution_flow = ExecutionFlow(self.device_controller)
-        self.device_controller.current_session_key_byte = (
-            execution_flow.generate_session_key(
-                server_private_key_obj=device_priv_key,
-                salt_byte=random_salt,
-                info_byte=b"",
-                peer_public_key_obj=key_serialization.str_backto_key(
-                    holder_id, key_type="ecc-public-key"
-                ),
-            )
+        # execution_flow = ExecutionFlow(self.device_controller)
+        # self.device_controller.current_session_key_byte = (
+        #     execution_flow.generate_session_key(
+        #         server_private_key_obj=device_priv_key,
+        #         salt_byte=random_salt,
+        #         info_byte=b"",
+        #         peer_public_key_obj=key_serialization.str_backto_key(
+        #             holder_id, key_type="ecc-public-key"
+        #         ),
+        #     )
+        # )
+        self.device_controller.execute_update_current_session_key_byte(
+            server_private_key_obj=device_priv_key,
+            salt_byte=random_salt,
+            info_byte=b"",
+            peer_public_key_obj=key_serialization.str_backto_key(
+                holder_id, key_type="ecc-public-key"
+            ),
         )
+
         logging.debug(
             "current_session_key_byte: "
             + str(self.device_controller.current_session_key_byte)
         )
 
         return new_ticket
-
-
-class GenerateCommandTicket(GenerateXXXTicket):
-    def execute(self) -> Ticket:
-        pass
-
-
-class GenerateReturnTicket(GenerateXXXTicket):
-    def execute(self) -> Ticket:
-        pass

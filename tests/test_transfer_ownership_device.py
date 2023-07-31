@@ -12,7 +12,7 @@ class TestTransferOwnershipDevice:
             device_name="cloud_server_dm",
             db_path="/secure_db/cloud_server_dm",
         )
-        self.cloud_server_dm.one_time_intialization_command()
+        self.cloud_server_dm.execute_one_time_intialization_command()
 
         # GIVEN: (A') Initialized DO's UA
         self.user_agent_do = device_controller.DeviceController(
@@ -20,7 +20,7 @@ class TestTransferOwnershipDevice:
             device_name="user_agent_do",
             db_path="/secure_db/user_agent_do",
         )
-        self.user_agent_do.one_time_intialization_command()
+        self.user_agent_do.execute_one_time_intialization_command()
 
         # GIVEN: (B') Initialized DM's IoTD
         self.iot_device = device_controller.DeviceController(
@@ -90,6 +90,6 @@ class TestTransferOwnershipDevice:
     # Teardown in every class method
     def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
-        self.cloud_server_dm.reset_device()
-        self.user_agent_do.reset_device()
-        self.iot_device.reset_device()
+        self.cloud_server_dm.execute_reset_device()
+        self.user_agent_do.execute_reset_device()
+        self.iot_device.execute_reset_device()

@@ -1,8 +1,7 @@
-from ureka_framework.controller.ticket_execution import ExecutionFlow
-import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
-import ureka_framework.resource.crypto.ecc as ecc
+import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.key_serialization as key_serialization
+import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
 
@@ -11,10 +10,6 @@ class VerificationFlow:
     # Better not have side effect on device_controller
     def __init__(self, device_controller) -> None:
         self.device_controller = device_controller
-        self.execution_flow = None
-
-    # def notify_observer(self):
-    #     self.device_controller.update()
 
     ######################################################
     # Verification Flow
@@ -87,16 +82,16 @@ class VerificationFlow:
     ) -> None:
         # (Z-4) Verify ISSUER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            if self.verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
+            if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
                 logging.debug("(Z-4) PASS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
             else:
                 logging.debug("(Z-4) ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
                 # return
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            if self.verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
+            if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
                 # (Side Effect)
-                self.device_controller.current_holder_pub_key = (
+                self.device_controller.execute_update_current_holder_pub_key(
                     key_serialization.str_backto_key(
                         ticket_in.holder_id, key_type="ecc-public-key"
                     )
@@ -117,7 +112,7 @@ class VerificationFlow:
 
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESONSE_TICKET is correct
-            if self.verify_issuer_signature_on_ticket(
+            if self._verify_issuer_signature_on_ticket(
                 ticket_in, current_holder_pub_key
             ):
                 logging.debug("(N-3) PASS: ISSUER_SIGNATURE on RESPONSE_TICKET")
@@ -133,77 +128,54 @@ class VerificationFlow:
         self, ticket_in: Ticket, device_priv_key: ec.EllipticCurvePrivateKey
     ) -> None:
         # (E-Z) Execute TICKET
-        self.execution_flow = ExecutionFlow(self.device_controller)
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
             logging.debug("(E-Z) EXECUTE: INITIALIZATION_TICKET")
-
-            logging.debug("initialize_iot_device( )...")
-
-            self.execution_flow.initialize_iot_device(ticket_in)
+            # (Side Effect)
+            self.device_controller.execute_initialize_iot_device(ticket_in)
 
         elif ticket_in.ticket_type == ticket.TYPE_QUERY_TICKET:
             logging.debug("(E-Z) EXECUTE: QUERY_TICKET")
-            self.execution_flow.query()
+            # (Side Effect)
+            self.device_controller.execute_query()
 
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             logging.debug("(E-Z) EXECUTE: MANAGEMENT_TICKET")
-
-            logging.debug("ownership_transfer( )...")
-
-            self.execution_flow.ownership_transfer(ticket_in)
+            # (Side Effect)
+            self.device_controller.execute_ownership_transfer(ticket_in)
 
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             logging.debug("(E-Z) EXECUTE: ACCESS_PERMISSION_TICKET")
-
             # To-Do: Session
-            # logging.debug ("set_session_permission( )...")
-
             # To-Do: Auto-Generate Challenge Ticket
             logging.debug("generate_challenge_ticket( )...")
 
         # (E-N) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             logging.debug("(E-N) EXECUTE: CHALLENGE_TICKET")
-
             # To-Do: Auto-Generate Response Ticket
-            logging.debug("generate_response_ticket( )...")
 
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             logging.debug("(E-N) EXECUTE: RESONSE_TICKET")
-
             # To-Do: Auto-Generate Key Exchange Ticket
-            logging.debug("generate_key_exchange_ticket( )...")
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             logging.debug("(E-N) EXECUTE: KEY_EXCHANGE_TICKET")
-
             # Generate (temp) session_key (Side Effect)
-            self.device_controller.current_session_key_byte = (
-                self.execution_flow.generate_session_key(
-                    server_private_key_obj=device_priv_key,
-                    salt_byte=key_serialization.str_backto_byte(ticket_in.task_scope),
-                    info_byte=b"",
-                    peer_public_key_obj=key_serialization.str_backto_key(
-                        ticket_in.device_id, key_type="ecc-public-key"
-                    ),
-                )
+            self.device_controller.execute_update_current_session_key_byte(
+                server_private_key_obj=device_priv_key,
+                salt_byte=key_serialization.str_backto_byte(ticket_in.task_scope),
+                info_byte=b"",
+                peer_public_key_obj=key_serialization.str_backto_key(
+                    ticket_in.device_id, key_type="ecc-public-key"
+                ),
             )
-            logging.debug(
-                "current_session_key_byte: "
-                + str(self.device_controller.current_session_key_byte)
-            )
-
             # To-Do: Auto-Generate Command Ticket
-            logging.debug("generate_command_ticket( )...")
-
             # To-Do: Session
-            # logging.debug ("check_session_permission( )...")
-            # logging.debug ("get_session_command( )...")
 
     ######################################################
-    # Sign ECC Signature on Ticket
+    # Verify ECC Signature on Ticket
     ######################################################
-    def verify_issuer_signature_on_ticket(
+    def _verify_issuer_signature_on_ticket(
         self, ticket_in: Ticket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
         try:

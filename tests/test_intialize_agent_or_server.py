@@ -14,7 +14,7 @@ class TestIntializeAgentOrServer:
 
     def test_one_time_intialization_command(self) -> None:
         # WHEN: one_time_intialization_command()
-        assert self.cloud_server_1.one_time_intialization_command() == True
+        assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
         # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.is_initialized == True
@@ -23,13 +23,13 @@ class TestIntializeAgentOrServer:
 
     def test_one_time_intialization_command_failed(self) -> None:
         # GIVEN: (A') Initialized DM's CS
-        self.cloud_server_1.one_time_intialization_command()
+        self.cloud_server_1.execute_one_time_intialization_command()
 
         # WHEN: one_time_intialization_command()
         # THEN: (A') Cannot re-initialize DM's CS
-        assert self.cloud_server_1.one_time_intialization_command() == False
+        assert self.cloud_server_1.execute_one_time_intialization_command() == False
 
     # Teardown in every class method
     def teardown_method(self) -> None:
         # RE-GIVEN: Remove the secure_db
-        self.cloud_server_1.reset_device()
+        self.cloud_server_1.execute_reset_device()

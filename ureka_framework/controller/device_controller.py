@@ -1,14 +1,24 @@
-import ureka_framework.controller.ticket_generation.generate_ticket as generate_ticket
 from ureka_framework.controller.ticket_generation.ticket_generation_router import (
     TicketGenerationRouter,
 )
-from ureka_framework.controller.ticket_verification import VerificationFlow
-import ureka_framework.data_model.ticket as ticket
+from ureka_framework.controller.ticket_generation.ticket_generatation_flow import (
+    GenerateAccessPermissionTicket,
+    GenerateChallengeTicket,
+    GenerateInitializationTicket,
+    GenerateKeyExchangeTicket,
+    GenerateManagementTicket,
+    GenerateQueryTicket,
+    GenerateResponseTicket,
+)
+from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
+    VerificationFlow,
+)
 from ureka_framework.data_model.ticket import Ticket
+import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.storage.secure_db as secure_db
+import ureka_framework.resource.crypto.key_serialization as key_serialization
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
-import ureka_framework.resource.crypto.key_serialization as key_serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
 
@@ -106,31 +116,26 @@ class DeviceController:
     def set_ticket_generation_route(self) -> None:
         self.ticket_generation_router = TicketGenerationRouter()
         self.ticket_generation_router.add_ticket_type(
-            "intialization", generate_ticket.GenerateInitializationTicket(self)
+            "intialization", GenerateInitializationTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "query", generate_ticket.GenerateQueryTicket(self)
+            "query", GenerateQueryTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "management", generate_ticket.GenerateManagementTicket(self)
+            "management", GenerateManagementTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "access_permission", generate_ticket.GenerateAccessPermissionTicket(self)
+            "access_permission",
+            GenerateAccessPermissionTicket(self),
         )
         self.ticket_generation_router.add_ticket_type(
-            "challenge", generate_ticket.GenerateChallengeTicket(self)
+            "challenge", GenerateChallengeTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "response", generate_ticket.GenerateResponseTicket(self)
+            "response", GenerateResponseTicket(self)
         )
         self.ticket_generation_router.add_ticket_type(
-            "key_exchange", generate_ticket.GenerateKeyExchangeTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "command", generate_ticket.GenerateCommandTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "return", generate_ticket.GenerateReturnTicket(self)
+            "key_exchange", GenerateKeyExchangeTicket(self)
         )
 
     ######################################################
@@ -146,21 +151,113 @@ class DeviceController:
         )
         verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
 
-    # ######################################################
-    # # Observer
-    # ######################################################
-    # def update_current_holder_pub_key(
-    #     new_current_holder_pub_key: ec.EllipticCurvePublicKey,
-    # ) -> None:
-    #     pass
+    ######################################################
+    # Execute xxxTicket (E-Z)
+    ######################################################
+    def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
+        if self.device_type != ticket.IOT_DEVICE:
+            logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+            return False
 
-    # def update_current_session_key_byte(new_current_session_key_byte: bytes) -> None:
-    #     pass
+        if self.is_initialized:
+            logging.debug("ERROR: ALREADY INITIALIZED")
+            return False
+
+        ######################################################
+        # Initialize Device Id
+        ######################################################
+        # CRYPTO
+        device_priv_key_byte = b""
+        device_pub_key_byte = b""
+        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+
+        # RAM
+        self.is_initialized = True
+        self.device_priv_key = key_serialization.byte_backto_key(
+            device_priv_key_byte, key_type="ecc-private-key"
+        )
+        self.device_pub_key = key_serialization.byte_backto_key(
+            device_pub_key_byte, key_type="ecc-public-key"
+        )
+
+        # DB
+        self.mSecureDB.store_device_id(device_priv_key_byte, device_pub_key_byte)
+
+        ######################################################
+        # Update Permission Table (only for IoT Device)
+        ######################################################
+
+        # RAM
+        self.owner_pub_key = key_serialization.str_backto_key(new_ticket.holder_id)
+
+        # DB
+        owner_public_key_byte = key_serialization.str_backto_byte(new_ticket.holder_id)
+        self.mSecureDB.store_owner_id(owner_public_key_byte)
+
+        self.display_state()
+        return True
+
+    def execute_query(self):
+        logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+        logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
+
+    def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
+        ######################################################
+        # Decode Request Body
+        ######################################################
+        task_scope_dict = key_serialization.jsonstr_to_dict(
+            new_ticket.task_scope
+        )  # sort_keys = True
+        logging.debug("task_scope_dict = " + str(task_scope_dict))
+
+        ######################################################
+        # Update Permission Table (MANAGEMENT_OWNER)
+        ######################################################
+        if (
+            task_scope_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
+            == ticket.MANAGEMENT_OWNER
+        ):
+            # RAM
+            self.owner_pub_key = key_serialization.str_backto_key(
+                new_ticket.holder_id, key_type="ecc-public-key"
+            )
+
+            # DB
+            owner_public_key_byte = key_serialization.str_backto_byte(
+                new_ticket.holder_id
+            )
+            self.mSecureDB.store_owner_id(owner_public_key_byte)
+
+        self.display_state()
+
+    ######################################################
+    # Execute Command Ticket (E-N)
+    ######################################################
+    def execute_update_current_holder_pub_key(
+        self,
+        new_current_holder_pub_key: ec.EllipticCurvePublicKey,
+    ) -> None:
+        self.current_holder_pub_key = new_current_holder_pub_key
+
+    def execute_update_current_session_key_byte(
+        self,
+        server_private_key_obj: ec.EllipticCurvePrivateKey,
+        salt_byte: bytes,
+        info_byte: bytes,
+        peer_public_key_obj: ec.EllipticCurvePublicKey,
+    ) -> None:
+        self.current_session_key_byte = ecdh.generate_ecdh_key(
+            server_private_key=server_private_key_obj,
+            salt=salt_byte,
+            info=info_byte,
+            peer_public_key=peer_public_key_obj,
+        )
+        logging.debug("current_session_key_byte: " + str(self.current_session_key_byte))
 
     ######################################################
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
-    def one_time_intialization_command(self) -> bool:
+    def execute_one_time_intialization_command(self) -> bool:
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.debug(
                 "ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
@@ -197,6 +294,6 @@ class DeviceController:
     ######################################################
     # Reset Device (Teardown - Development Only Function)
     ######################################################
-    def reset_device(self) -> bool:
+    def execute_reset_device(self) -> bool:
         self.mSecureDB.delete_secure_db()
         return True
