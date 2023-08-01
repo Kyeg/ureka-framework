@@ -66,9 +66,9 @@ class SecureDB:
         try:
             # shutil.rmtree(self.secure_db_path)
             shutil.rmtree(self.current_path)
-            logging.debug(f"{self.current_path} deleted.")
+            logging.debug(f"Delete: {self.current_path}")
         except OSError as e:
-            logging.error(f"ERROR: {e.filename} - {e.strerror}.")
+            logging.error(f"FAILURE: {e.filename} - {e.strerror}.")
 
     # Initialization
     def store_device_id(
@@ -97,7 +97,7 @@ class SecureDB:
                 data = f.read()
             return data
         else:
-            logging.error(f"ERROR: {relative_path} does not exist.")
+            logging.error(f"FAILURE: {relative_path} does not exist.")
             return b""
 
     def _store_file(self, relative_path: str, data: bytes) -> None:

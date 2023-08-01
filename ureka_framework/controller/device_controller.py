@@ -54,10 +54,10 @@ class DeviceController:
         ) = self.mSecureDB.load_secure_db()
 
         if self.is_initialized:
-            logging.info(f"Device controller {device_name} was initailized")
+            logging.info(f"+ Initailized device controller: {device_name}")
             self.display_state()
         else:
-            logging.info(f"Device controller {device_name} was uninitailized")
+            logging.info(f"+ Uninitailized device controller: {device_name}")
 
     @property
     def device_priv_key_str(self) -> str:
@@ -148,13 +148,13 @@ class DeviceController:
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
     def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
-        logging.info("(E) EXECUTE: INITIALIZATION_IOT_DEVICE")
+        logging.info("-> (E) EXECUTE: INITIALIZATION_IOT_DEVICE")
         if self.device_type != ticket.IOT_DEVICE:
-            logging.error("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+            logging.error("FAILURE: ONLY IOT_DEVICE CAN DO THIS OPERATION")
             return False
 
         if self.is_initialized:
-            logging.error("ERROR: ALREADY INITIALIZED")
+            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -192,14 +192,13 @@ class DeviceController:
         return True
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
-        logging.info("(E) EXECUTE: OWNERSHIP_TRANSFER")
+        logging.info("-> (E) EXECUTE: OWNERSHIP_TRANSFER")
         ######################################################
         # Decode Request Body
         ######################################################
         task_scope_dict = serialization_util.jsonstr_to_dict(
             new_ticket.task_scope
         )  # sort_keys = True
-        logging.debug("task_scope_dict = " + str(task_scope_dict))
 
         ######################################################
         # Update Permission Table (MANAGEMENT_OWNER)
@@ -226,7 +225,7 @@ class DeviceController:
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
     ) -> None:
-        logging.info("(E) EXECUTE: UPDATE_CURRENT_HOLDER_PUB_KEY")
+        logging.info("-> (E) EXECUTE: UPDATE_CURRENT_HOLDER_PUB_KEY")
         self.current_holder_pub_key = new_current_holder_pub_key
 
     def execute_update_current_session_key_byte(
@@ -236,28 +235,30 @@ class DeviceController:
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
     ) -> None:
-        logging.info("(E) EXECUTE: UPDATE_CURRENT_SESSION_KEY_BYTE")
+        logging.info("-> (E) EXECUTE: UPDATE_CURRENT_SESSION_KEY_BYTE")
         self.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
             salt=salt_byte,
             info=info_byte,
             peer_public_key=peer_public_key_obj,
         )
-        logging.debug("current_session_key_byte: " + str(self.current_session_key_byte))
+        logging.debug(
+            f"current_session_key_byte in {self.device_name}: {str(self.current_session_key_byte)}"
+        )
 
     ######################################################
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
     def execute_one_time_intialization_command(self) -> bool:
-        logging.info("(E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
+        logging.info("-> (E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.error(
-                "ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
+                "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
             )
             return False
 
         if self.is_initialized:
-            logging.error("ERROR: ALREADY INITIALIZED")
+            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -287,6 +288,6 @@ class DeviceController:
     # Reset Device (Teardown - Development Only Function)
     ######################################################
     def execute_reset_device(self) -> bool:
-        logging.info("(E) EXECUTE: RESET_DEVICE")
+        logging.info("-> (E) EXECUTE: RESET_DEVICE")
         self.mSecureDB.delete_secure_db()
         return True

@@ -8,11 +8,10 @@ import ureka_framework.data_model.ticket as ticket
 
 class TestIntializeAgentOrServer:
     @pytest.fixture(scope="function", autouse=True)
-    def setup_teardown(self, caplog):
-        caplog.set_level(logging.INFO)
-
+    def setup_teardown(self):
+        logging.info("")
         logging.info("*" * 50)
-        logging.info("TestIntializeAgentOrServer")
+        logging.info("Setup")
         logging.info("*" * 50)
 
         # GIVEN: (A) Uninitialized CS
@@ -25,12 +24,13 @@ class TestIntializeAgentOrServer:
         # (GIVEN)+WHEN:
         yield
 
+        logging.info("*" * 50)
+        logging.info("TearDown")
+        logging.info("*" * 50)
         # RE-GIVEN: Reset the test environment
         self.cloud_server_1.execute_reset_device()
 
-    def test_one_time_intialization_command(self, caplog) -> None:
-        caplog.set_level(logging.INFO)
-
+    def test_one_time_intialization_command(self) -> None:
         # WHEN: one_time_intialization_command()
         logging.info("*" * 50)
         logging.info("test_one_time_intialization_command")
@@ -42,9 +42,7 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
 
-    def test_one_time_intialization_command_failed(self, caplog) -> None:
-        caplog.set_level(logging.INFO)
-
+    def test_one_time_intialization_command_failed(self) -> None:
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_1.execute_one_time_intialization_command()
 
