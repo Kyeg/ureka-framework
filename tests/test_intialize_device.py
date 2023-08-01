@@ -7,15 +7,14 @@ import ureka_framework.data_model.ticket as ticket
 
 
 class TestIntializeDevice:
-    # Setup in every class method
-    def setup_method(self) -> None:
-        # @pytest.fixture(scope="function", autouse=True)
-        # def setup_teardown(self, caplog):
-        # caplog.set_level(logging.DEBUG)
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_teardown(self, caplog):
+        caplog.set_level(logging.INFO)
 
         logging.info("*" * 50)
         logging.info("TestIntializeDevice")
         logging.info("*" * 50)
+
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -31,7 +30,16 @@ class TestIntializeDevice:
             db_path="/secure_db/iot_device",
         )
 
-    def test_apply_initialization_ticket(self) -> None:
+        # (GIVEN)+WHEN:
+        yield
+
+        # RE-GIVEN: Reset the test environment
+        self.cloud_server_dm.execute_reset_device()
+        self.iot_device.execute_reset_device()
+
+    def test_apply_initialization_ticket(self, caplog) -> None:
+        caplog.set_level(logging.INFO)
+
         # WHEN: apply_initialization_ticket()
         logging.info("*" * 50)
         logging.info("test_apply_initialization_ticket")
@@ -49,7 +57,9 @@ class TestIntializeDevice:
             self.iot_device.owner_pub_key_str == self.cloud_server_dm.device_pub_key_str
         )
 
-    def test_apply_initialization_ticket_failed(self) -> None:
+    def test_apply_initialization_ticket_failed(self, caplog) -> None:
+        caplog.set_level(logging.INFO)
+
         # GIVEN: (B') Initialized DM's IoTD
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
@@ -70,9 +80,3 @@ class TestIntializeDevice:
             self.iot_device.is_initialized == True
         )  # logging.error("ERROR: ALREADY INITIALIZED")
         # assert 2 == 1
-
-    # Teardown in every class method
-    def teardown_method(self) -> None:
-        # RE-GIVEN: Remove the secure_db
-        self.cloud_server_dm.execute_reset_device()
-        self.iot_device.execute_reset_device()

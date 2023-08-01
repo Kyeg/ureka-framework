@@ -8,11 +8,14 @@ from ureka_framework.resource.crypto import serialization_util
 
 
 class TestAccessDevice:
-    # Setup in every class method
-    def setup_method(self) -> None:
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_teardown(self, caplog):
+        caplog.set_level(logging.INFO)
+
         logging.info("*" * 50)
         logging.info("TestAccessDevice")
         logging.info("*" * 50)
+
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -63,7 +66,18 @@ class TestAccessDevice:
         )
         self.cloud_server_ep.execute_one_time_intialization_command()
 
-    def test_apply_access_permission_ticket(self) -> None:
+        # (GIVEN)+WHEN:
+        yield
+
+        # RE-GIVEN: Reset the test environment
+        self.cloud_server_dm.execute_reset_device()
+        self.user_agent_do.execute_reset_device()
+        self.iot_device.execute_reset_device()
+        self.cloud_server_ep.execute_reset_device()
+
+    def test_apply_access_permission_ticket(self, caplog) -> None:
+        caplog.set_level(logging.INFO)
+
         # WHEN: apply_access_permission_ticket()
         logging.info("*" * 50)
         logging.info("test_apply_access_permission_ticket")
@@ -129,15 +143,9 @@ class TestAccessDevice:
         )
 
     @pytest.mark.skip(reason="Not Implemented")
-    def test_apply_access_permission_ticket_failed(self):
+    def test_apply_access_permission_ticket_failed(self, caplog):
+        caplog.set_level(logging.INFO)
+
         logging.info("*" * 50)
         logging.info("test_apply_access_permission_ticket_failed")
         logging.info("*" * 50)
-
-    # Teardown in every class method
-    def teardown_method(self) -> None:
-        # RE-GIVEN: Remove the secure_db
-        self.cloud_server_dm.execute_reset_device()
-        self.user_agent_do.execute_reset_device()
-        self.iot_device.execute_reset_device()
-        self.cloud_server_ep.execute_reset_device()
