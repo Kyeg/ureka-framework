@@ -3,7 +3,7 @@ from ureka_framework.controller.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.ticket as ticket
-from ureka_framework.resource.crypto import key_serialization
+from ureka_framework.resource.crypto import serialization_util
 
 
 class TestAccessDevice:
@@ -43,7 +43,7 @@ class TestAccessDevice:
             device_priv_key=self.cloud_server_dm.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.user_agent_do.device_pub_key_str,
-            task_scope=key_serialization.dict_to_jsonstr(
+            task_scope=serialization_util.dict_to_jsonstr(
                 {
                     ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER
                 }
@@ -69,9 +69,9 @@ class TestAccessDevice:
             device_priv_key=self.user_agent_do.device_priv_key,
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
-            task_scope=key_serialization.dict_to_jsonstr(
+            task_scope=serialization_util.dict_to_jsonstr(
                 {
-                    ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: key_serialization.dict_to_jsonstr(
+                    ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: serialization_util.dict_to_jsonstr(
                         {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
                     )  # sort_keys = True
                 }

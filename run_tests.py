@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # pytest.main(["-v"])
 
     # For example, add stdout/stderr/stdin (can be replaced by pytest-log)
-    pytest.main(["-q", "-s"])
+    # pytest.main(["-q", "-s"])
 
     # For example, select test case by selecting marker
     # pytest.main(["-m", "mark_name"])
@@ -25,14 +25,14 @@ if __name__ == "__main__":
 
     # For example, generate test report from pytest-cover
     # We can further omit some sources in .coveragerc
-    # pytest.main(
-    #     [
-    #         "-x",
-    #         "-q",
-    #         "-m",
-    #         "not benchmark",
-    #         "--cov=ureka_framework/",
-    #         "--cov-report=html",
-    #         "--cov-config=.coveragerc",
-    #     ]
-    # )
+    pytest.main(
+        [
+            "-x",
+            "-q",
+            "-m",
+            "not benchmark",
+            "--cov=ureka_framework/",
+            "--cov-report=html",
+            "--cov-config=.coveragerc",
+        ]
+    )

@@ -1,6 +1,6 @@
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
-import ureka_framework.resource.crypto.key_serialization as key_serialization
+import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
@@ -80,7 +80,7 @@ class VerificationFlow:
             if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
                 # (Side Effect)
                 self.device_controller.execute_update_current_holder_pub_key(
-                    key_serialization.str_backto_key(
+                    serialization_util.str_to_key(
                         ticket_in.holder_id, key_type="ecc-public-key"
                     )
                 )
@@ -146,9 +146,9 @@ class VerificationFlow:
             # Generate (temp) session_key (Side Effect)
             self.device_controller.execute_update_current_session_key_byte(
                 server_private_key_obj=device_priv_key,
-                salt_byte=key_serialization.str_backto_byte(ticket_in.task_scope),
+                salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
                 info_byte=b"",
-                peer_public_key_obj=key_serialization.str_backto_key(
+                peer_public_key_obj=serialization_util.str_to_key(
                     ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
@@ -163,15 +163,13 @@ class VerificationFlow:
     ) -> bool:
         try:
             # Get Signature on Ticket
-            signature_byte = key_serialization.str_backto_byte(
-                ticket_in.issuer_signature
-            )
+            signature_byte = serialization_util.str_to_byte(ticket_in.issuer_signature)
 
             # No need to del issuer_signature in dataclass
             ticket_in.issuer_signature = ""
 
-            message_str = key_serialization.ticket_to_jsonstr(ticket_in)
-            message_byte = key_serialization.str_to_byte(message_str)
+            message_str = serialization_util.ticket_to_jsonstr(ticket_in)
+            message_byte = serialization_util.str_to_byte(message_str)
 
             # Verify Signature
             return ecc.verify_signature(signature_byte, message_byte, public_key)

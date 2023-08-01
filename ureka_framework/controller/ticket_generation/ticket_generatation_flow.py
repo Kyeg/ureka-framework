@@ -1,6 +1,6 @@
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
-import ureka_framework.resource.crypto.key_serialization as key_serialization
+import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -23,15 +23,15 @@ class GenerateXXXTicket:
         self, ticket_in: Ticket, private_key: ec.EllipticCurvePrivateKey
     ) -> Ticket:
         # Message
-        message_str = key_serialization.ticket_to_jsonstr(ticket_in)
-        message_byte = key_serialization.str_to_byte(message_str)
+        message_str = serialization_util.ticket_to_jsonstr(ticket_in)
+        message_byte = serialization_util.str_to_byte(message_str)
 
         # Sign Signature
         signature_byte = ecc.sign_signature(message_byte, private_key)
 
         # Add Signature on Ticket
         ticket_with_signature = ticket_in
-        ticket_with_signature.issuer_signature = key_serialization.byte_to_str(
+        ticket_with_signature.issuer_signature = serialization_util.byte_to_str(
             signature_byte
         )
 
@@ -101,7 +101,7 @@ class GenerateChallengeTicket(GenerateXXXTicket):
 
         # Random Challenge
         random_challenge = ecdh.generate_random_byte(32)
-        new_ticket.task_scope = key_serialization.byte_to_str(random_challenge)
+        new_ticket.task_scope = serialization_util.byte_to_str(random_challenge)
 
         new_ticket = self._add_issuer_signature_on_ticket(new_ticket, device_priv_key)
 
@@ -135,7 +135,7 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
 
         # Random Salt
         random_salt = ecdh.generate_random_byte(32)
-        new_ticket.task_scope = key_serialization.byte_to_str(random_salt)
+        new_ticket.task_scope = serialization_util.byte_to_str(random_salt)
 
         new_ticket = self._add_issuer_signature_on_ticket(new_ticket, device_priv_key)
 
@@ -144,7 +144,7 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
             server_private_key_obj=device_priv_key,
             salt_byte=random_salt,
             info_byte=b"",
-            peer_public_key_obj=key_serialization.str_backto_key(
+            peer_public_key_obj=serialization_util.str_to_key(
                 holder_id, key_type="ecc-public-key"
             ),
         )

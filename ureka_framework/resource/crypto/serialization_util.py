@@ -15,6 +15,41 @@ import json
 import base64
 from typing import Dict, Union
 
+
+################################################################################
+#                        < Arbitrary_Byte (in File/DB) >                       #
+#                                      ^                                       #
+#          base64.urlsafe_b64decode(.) ||                                      #
+#             (not always success...)) ||                                      #
+#                                      || base64.urlsafe_b64encode(.)          #
+#                                       v                                      #
+#                     < BASE64_byte (Printable Characters) >                   #
+#                                      ^                                       #
+#                      encode('UTF-8') ||                                      #
+#                                      || decode('UTF-8')                      #
+#                                      ||(always success due to BASE64...)     #
+#                                       v                                      #
+#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
+################################################################################
+################################################################################
+#                     < BASE64_byte (Printable Characters) >                   #
+#                                      ^                                       #
+#                      encode('UTF-8') ||                                      #
+#                                      || decode('UTF-8')                      #
+#                                      ||(not always success...)               #
+#                                       v                                      #
+#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
+################################################################################
+def byte_to_str(byte: bytes) -> str:
+    base64_byte = base64.urlsafe_b64encode(byte)
+    return base64_byte.decode("UTF-8")
+
+
+def str_to_byte(string: str) -> bytes:
+    base64_byte = string.encode("UTF-8")
+    return base64.urlsafe_b64decode(base64_byte)
+
+
 ################################################################################
 #                        < ECC_Key_obj (Key in Program) >                      #
 #                                      ^                                       #
@@ -23,9 +58,13 @@ from typing import Dict, Union
 #                                      || public/private_bytes(.)              #
 #                                       v                                      #
 #                           < DER_byte (in File/DB) >                          #
+#                                      ^                                       #
+#                      encode('UTF-8') ||                                      #
+#                                      || decode('UTF-8')                      #
+#                                      ||(always success due to BASE64...)     #
+#                                       v                                      #
+#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
 ################################################################################
-
-
 def key_to_byte(
     key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
     key_type: str = "ecc-public-key",
@@ -39,14 +78,7 @@ def key_to_byte(
         return b""
 
 
-def key_to_str(
-    key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
-    key_type: str = "ecc-public-key",
-) -> bytes:
-    return byte_to_str(key_to_byte(key_obj, key_type=key_type))
-
-
-def byte_backto_key(
+def byte_to_key(
     key_byte: bytes, key_type: str = "ecc-public-key"
 ) -> Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey]:
     if key_type == "ecc-public-key":
@@ -58,59 +90,18 @@ def byte_backto_key(
         return None
 
 
-def str_backto_key(
+def key_to_str(
+    key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
+    key_type: str = "ecc-public-key",
+) -> bytes:
+    return byte_to_str(key_to_byte(key_obj, key_type=key_type))
+
+
+def str_to_key(
     key_str: str, key_type: str = "ecc-public-key"
 ) -> ec.EllipticCurvePublicKey:
-    key_byte = str_backto_byte(key_str)
-    return byte_backto_key(key_byte, key_type=key_type)
-
-
-################################################################################
-#                        < Arbitrary_Byte (in File/DB) >                       #
-#                                      ^                                       #
-#          base64.urlsafe_b64decode(.) ||                                      #
-#             (not always success...)) ||                                      #
-#                                      || base64.urlsafe_b64encode(.)          #
-#                                       v                                      #
-#                     < BASE64_byte (printable Characters) >                   #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      ||(always success due to BASE64...)     #
-#                                       v                                      #
-#       < JSON_str (printable Key / Signature / Salt... in Ticket Field) >     #
-################################################################################
-
-
-def byte_to_str(byte: bytes) -> str:
-    base64_byte = base64.urlsafe_b64encode(byte)
-    return base64_byte.decode("UTF-8")
-
-
-def str_backto_byte(string: str) -> bytes:
-    base64_byte = string.encode("UTF-8")
-    return base64.urlsafe_b64decode(base64_byte)
-
-
-################################################################################
-#                     < BASE64_byte (printable Characters) >                   #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      ||(not always success...)               #
-#                                       v                                      #
-#                  < JSON_str (printable data Ticket Field) >                  #
-################################################################################
-
-
-# str_to_byte
-def str_to_byte(string: str) -> bytes:
-    return string.encode("UTF-8")
-
-
-# byte_backto_str
-def byte_backto_str(byte):
-    return byte.decode("UTF-8")
+    key_byte = str_to_byte(key_str)
+    return byte_to_key(key_byte, key_type=key_type)
 
 
 ################################################################################
@@ -130,7 +121,7 @@ def byte_backto_str(byte):
 
 
 ################################################################################
-#                      < Custom Object (Ticket in Program) >                   #
+#                  < Custom_Ticket_obj (Ticket in Program) >                   #
 #                                      ^                                       #
 #                   __dict__.update(.) ||                                      #
 #                                      || __dict__                             #
@@ -140,28 +131,26 @@ def byte_backto_str(byte):
 #                        json.loads(.) ||                                      #
 #                                      || json.dumps(.)                        #
 #                                       v                                      #
-#                    < JSON_str (Interchangeable Format) >                     #
+#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
 ################################################################################
-
-
-def dict_to_ticket(dict_obj):
+def _dict_to_ticket(dict_obj):
     ticket_obj = ticket.Ticket()
     ticket_obj.__dict__.update(dict_obj)
     return ticket_obj
 
 
-def ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
+def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     return ticket_obj.__dict__
 
 
 def jsonstr_to_ticket(json_str):
-    return json.loads(json_str, object_hook=dict_to_ticket)
+    return json.loads(json_str, object_hook=_dict_to_ticket)
 
 
 # sort_keys = True
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     # separators = (", ", ": ") in default
-    return json.dumps(ticket_obj, default=ticket_to_dict, sort_keys=True)
+    return json.dumps(ticket_obj, default=_ticket_to_dict, sort_keys=True)
 
 
 def jsonstr_to_dict(json_str: str) -> Dict[str, str]:

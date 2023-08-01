@@ -15,7 +15,7 @@ from ureka_framework.controller.ticket_verification.ticket_verification_flow imp
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.storage.secure_db as secure_db
-import ureka_framework.resource.crypto.key_serialization as key_serialization
+import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -67,7 +67,7 @@ class DeviceController:
     def device_priv_key_str(self) -> str:
         if self.device_priv_key is None:
             return ""
-        return key_serialization.key_to_str(
+        return serialization_util.key_to_str(
             self.device_priv_key, key_type="ecc-private-key"
         )
 
@@ -75,7 +75,7 @@ class DeviceController:
     def device_pub_key_str(self) -> str:
         if self.device_pub_key is None:
             return ""
-        return key_serialization.key_to_str(
+        return serialization_util.key_to_str(
             self.device_pub_key, key_type="ecc-public-key"
         )
 
@@ -83,7 +83,7 @@ class DeviceController:
     def owner_pub_key_str(self) -> str:
         if self.owner_pub_key is None:
             return ""
-        return key_serialization.key_to_str(
+        return serialization_util.key_to_str(
             self.owner_pub_key, key_type="ecc-public-key"
         )
 
@@ -169,10 +169,10 @@ class DeviceController:
 
         # RAM
         self.is_initialized = True
-        self.device_priv_key = key_serialization.byte_backto_key(
+        self.device_priv_key = serialization_util.byte_to_key(
             device_priv_key_byte, key_type="ecc-private-key"
         )
-        self.device_pub_key = key_serialization.byte_backto_key(
+        self.device_pub_key = serialization_util.byte_to_key(
             device_pub_key_byte, key_type="ecc-public-key"
         )
 
@@ -184,10 +184,10 @@ class DeviceController:
         ######################################################
 
         # RAM
-        self.owner_pub_key = key_serialization.str_backto_key(new_ticket.holder_id)
+        self.owner_pub_key = serialization_util.str_to_key(new_ticket.holder_id)
 
         # DB
-        owner_public_key_byte = key_serialization.str_backto_byte(new_ticket.holder_id)
+        owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
         self.mSecureDB.store_owner_id(owner_public_key_byte)
 
         self.display_state()
@@ -197,7 +197,7 @@ class DeviceController:
         ######################################################
         # Decode Request Body
         ######################################################
-        task_scope_dict = key_serialization.jsonstr_to_dict(
+        task_scope_dict = serialization_util.jsonstr_to_dict(
             new_ticket.task_scope
         )  # sort_keys = True
         logging.debug("task_scope_dict = " + str(task_scope_dict))
@@ -210,14 +210,12 @@ class DeviceController:
             == ticket.MANAGEMENT_OWNER
         ):
             # RAM
-            self.owner_pub_key = key_serialization.str_backto_key(
+            self.owner_pub_key = serialization_util.str_to_key(
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 
             # DB
-            owner_public_key_byte = key_serialization.str_backto_byte(
-                new_ticket.holder_id
-            )
+            owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
             self.mSecureDB.store_owner_id(owner_public_key_byte)
 
         self.display_state()
@@ -270,10 +268,10 @@ class DeviceController:
 
         # RAM
         self.is_initialized = True
-        self.device_priv_key = key_serialization.byte_backto_key(
+        self.device_priv_key = serialization_util.byte_to_key(
             device_priv_key_byte, key_type="ecc-private-key"
         )
-        self.device_pub_key = key_serialization.byte_backto_key(
+        self.device_pub_key = serialization_util.byte_to_key(
             device_pub_key_byte, key_type="ecc-public-key"
         )
 

@@ -3,7 +3,7 @@ import os
 import shutil
 import errno
 
-import ureka_framework.resource.crypto.key_serialization as key_serialization
+import ureka_framework.resource.crypto.serialization_util as serialization_util
 from cryptography.hazmat.primitives.asymmetric import ec
 from typing import Tuple
 import logging
@@ -39,16 +39,16 @@ class SecureDB:
 
         if self._check_file_exist(self.path_device_priv):
             if self._check_file_exist(self.path_device_pub):
-                self.device_priv_key = key_serialization.byte_backto_key(
+                self.device_priv_key = serialization_util.byte_to_key(
                     self._load_file(self.path_device_priv), key_type="ecc-private-key"
                 )
-                self.device_pub_key = key_serialization.byte_backto_key(
+                self.device_pub_key = serialization_util.byte_to_key(
                     self._load_file(self.path_device_pub), key_type="ecc-public-key"
                 )
                 is_initialized = True
 
         if self._check_file_exist(self.path_owner_pub):
-            self.owner_pub_key = key_serialization.byte_backto_key(
+            self.owner_pub_key = serialization_util.byte_to_key(
                 self._load_file(self.path_owner_pub), key_type="ecc-public-key"
             )
             is_initialized = True
