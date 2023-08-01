@@ -1,3 +1,4 @@
+import logging
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -7,6 +8,9 @@ import ureka_framework.data_model.ticket as ticket
 class TestIntializeAgentOrServer:
     # Setup in every class method
     def setup_method(self) -> None:
+        logging.info("*" * 50)
+        logging.info("TestIntializeAgentOrServer")
+        logging.info("*" * 50)
         # GIVEN: (A) Uninitialized CS
         self.cloud_server_1 = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -16,6 +20,9 @@ class TestIntializeAgentOrServer:
 
     def test_one_time_intialization_command(self) -> None:
         # WHEN: one_time_intialization_command()
+        logging.info("*" * 50)
+        logging.info("test_one_time_intialization_command")
+        logging.info("*" * 50)
         assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
         # THEN: (A') Initialize DM's CS
@@ -28,6 +35,9 @@ class TestIntializeAgentOrServer:
         self.cloud_server_1.execute_one_time_intialization_command()
 
         # WHEN: one_time_intialization_command()
+        logging.info("*" * 50)
+        logging.info("test_one_time_intialization_command_failed")
+        logging.info("*" * 50)
         # THEN: (A') Cannot re-initialize DM's CS
         assert self.cloud_server_1.execute_one_time_intialization_command() == False
 

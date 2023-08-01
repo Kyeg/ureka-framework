@@ -149,9 +149,4 @@ class GenerateKeyExchangeTicket(GenerateXXXTicket):
             ),
         )
 
-        logging.debug(
-            "current_session_key_byte: "
-            + str(self.device_controller.current_session_key_byte)
-        )
-
         return new_ticket

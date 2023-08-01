@@ -1,3 +1,4 @@
+import logging
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -8,6 +9,9 @@ from ureka_framework.resource.crypto import serialization_util
 class TestTransferOwnershipDevice:
     # Setup in every class method
     def setup_method(self) -> None:
+        logging.info("*" * 50)
+        logging.info("TestTransferOwnershipDevice")
+        logging.info("*" * 50)
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -37,6 +41,9 @@ class TestTransferOwnershipDevice:
 
     def test_apply_management_ticket(self) -> None:
         # WHEN: apply_management_ticket()
+        logging.info("*" * 50)
+        logging.info("test_apply_management_ticket")
+        logging.info("*" * 50)
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "management",
             device_priv_key=self.cloud_server_dm.device_priv_key,
@@ -71,6 +78,9 @@ class TestTransferOwnershipDevice:
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: apply_management_ticket()
+        logging.info("*" * 50)
+        logging.info("test_apply_management_ticket_failed")
+        logging.info("*" * 50)
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "management",
             device_priv_key=self.cloud_server_dm.device_priv_key,
@@ -87,7 +97,7 @@ class TestTransferOwnershipDevice:
         # THEN: (B'') Initialized DO's IoTD
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
-        )  # logging.debug("ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+        )  # logging.info("ERROR: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
 
     # Teardown in every class method
     def teardown_method(self) -> None:

@@ -42,10 +42,10 @@ def verify_signature(
 ) -> bool:
     try:
         publicKey.verify(signatureIn, messageIn, ec.ECDSA(hashes.SHA256()))
-        # logging.debug ("Valid Signature.")
+        # logging.info ("Valid Signature.")
         return True
     except InvalidSignature:
-        # logging.debug ("Invalid Signature.")
+        # logging.info ("Invalid Signature.")
         return False
 
 
@@ -70,13 +70,13 @@ def verify_signature(
 # public_key = serialization_util.byte_to_key(public_key_byte, key_type = 'ecc-public-key')
 
 # # Test serialization_util
-# logging.debug('readable_private_key_str: ' + serialization_util.byte_to_str(private_key_byte))
-# logging.debug('readable_public_key_str: ' + serialization_util.byte_to_str(public_key_byte))
+# logging.info('readable_private_key_str: ' + serialization_util.byte_to_str(private_key_byte))
+# logging.info('readable_public_key_str: ' + serialization_util.byte_to_str(public_key_byte))
 
 # # Test serialization_util
-# logging.debug(serialization_util.key_to_byte(private_key, key_type = 'ecc-private-key') == private_key_byte)
-# logging.debug(serialization_util.key_to_byte(public_key, key_type = 'ecc-public-key') == public_key_byte)
-# logging.debug("")
+# logging.info(serialization_util.key_to_byte(private_key, key_type = 'ecc-private-key') == private_key_byte)
+# logging.info(serialization_util.key_to_byte(public_key, key_type = 'ecc-public-key') == public_key_byte)
+# logging.info("")
 
 
 ######################################################
@@ -92,22 +92,22 @@ def verify_signature(
 ######################################################
 # message_str = 'message to be signed'
 # message_byte = serialization_util.str_to_byte(message_str)
-# logging.debug('message_byte: ' + str(message_byte))
+# logging.info('message_byte: ' + str(message_byte))
 
 # # Test serialization_util
-# logging.debug(serialization_util.byte_to_str(message_byte) == message_str)
-# logging.debug("")
+# logging.info(serialization_util.byte_to_str(message_byte) == message_str)
+# logging.info("")
 
 # # Sign message
 # signature_byte = sign_signature(message_byte, private_key)
-# logging.debug('signature_byte: ' + str(signature_byte))
-# logging.debug('readable_signature_str: ' + serialization_util.byte_to_str(signature_byte))
+# logging.info('signature_byte: ' + str(signature_byte))
+# logging.info('readable_signature_str: ' + serialization_util.byte_to_str(signature_byte))
 
 # # Verify signature on message
 # if(verify_signature(signature_byte, message_byte, public_key)):
-#     logging.debug('Valid Signature for ' + str(message_byte))
+#     logging.info('Valid Signature for ' + str(message_byte))
 # else:
-#     logging.debug('Invalid Signature')
+#     logging.info('Invalid Signature')
 
 # # Test serialization_util
-# logging.debug(serialization_util.str_to_byte(serialization_util.byte_to_str(signature_byte)) == signature_byte)
+# logging.info(serialization_util.str_to_byte(serialization_util.byte_to_str(signature_byte)) == signature_byte)

@@ -74,7 +74,7 @@ def key_to_byte(
     elif key_type == "ecc-private-key":
         return key_obj.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
     else:
-        logging.debug("Only support key_type = [ecc-public-key] or [ecc-private-key]")
+        logging.info("Only support key_type = [ecc-public-key] or [ecc-private-key]")
         return b""
 
 
@@ -86,7 +86,7 @@ def byte_to_key(
     elif key_type == "ecc-private-key":
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
-        logging.debug("Only support key_type = [ecc-public-key] or [ecc-private-key]")
+        logging.info("Only support key_type = [ecc-public-key] or [ecc-private-key]")
         return None
 
 
@@ -109,15 +109,15 @@ def str_to_key(
 ################################################################################
 
 # orig_byte = '你好嗎'.encode('UTF-8')
-# logging.debug('orig_byte: ' + str(orig_byte))
+# logging.info('orig_byte: ' + str(orig_byte))
 # b64_byte = base64.urlsafe_b64encode(orig_byte)
-# logging.debug('b64_byte: ' + str(b64_byte))
+# logging.info('b64_byte: ' + str(b64_byte))
 # new_byte = base64.urlsafe_b64decode(b64_byte)
-# logging.debug('new_byte: ' + str(new_byte))
+# logging.info('new_byte: ' + str(new_byte))
 
-# logging.debug(orig_byte == new_byte)
+# logging.info(orig_byte == new_byte)
 
-# logging.debug("")
+# logging.info("")
 
 
 ################################################################################
@@ -169,26 +169,26 @@ def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
 
 # ticket_str1 = '{"device_id": "1234", "holder_id": "abcd"}'
 # ticket1 = jsonstr_to_ticket(ticket_str1)
-# logging.debug(ticket1)
-# logging.debug("")
+# logging.info(ticket1)
+# logging.info("")
 
 # new_ticket1 = ticket.Ticket()
 # new_ticket1.device_id = "1234"
 # new_ticket1.holder_id = "abcd"
 # new_ticket_str1 = ticket_to_jsonstr(new_ticket1)
-# logging.debug(new_ticket_str1)
-# logging.debug("")
+# logging.info(new_ticket_str1)
+# logging.info("")
 
 # # Notice that different setting order will generate different json string...
 # new_ticket2 = ticket.Ticket()
 # new_ticket2.holder_id = "abcd"
 # new_ticket2.device_id = "1234"
 # new_ticket_str2 = ticket_to_jsonstr(new_ticket2)
-# logging.debug(new_ticket_str2)
-# logging.debug("")
+# logging.info(new_ticket_str2)
+# logging.info("")
 
 # # Notice that wrong field will still be set in the object, but no error will be raised
 # ticket_str2 = '{"holder_id": "abcd", "wrong": "blablabla..."}'
 # ticket2 = jsonstr_to_ticket(ticket_str2)
-# logging.debug(ticket2)
-# logging.debug(ticket2.wrong)
+# logging.info(ticket2)
+# logging.info(ticket2.wrong)

@@ -20,13 +20,13 @@ pip3 install --upgrade pip
 pip3 install -r requirements-top.txt
 ```
 
-Test the source code through **pytest**
+Test the source code through **pytest** (& the log in the pytest.log)
 
 ```
 pytest
 ```
 
-or with more testing parameters
+or with more testing parameters (& the log in the pytest.log)
 
 ```
 python3 run_tests.py

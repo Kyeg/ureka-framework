@@ -44,7 +44,7 @@ class DeviceController:
         self.ticket_generation_router: TicketGenerationRouter = None
         self.set_ticket_generation_route()
 
-        # +++ Load SecureDB +++
+        # Load SecureDB
         self.mSecureDB = secure_db.SecureDB(db_path=db_path)
         (
             self.is_initialized,
@@ -54,14 +54,10 @@ class DeviceController:
         ) = self.mSecureDB.load_secure_db()
 
         if self.is_initialized:
-            logging.debug(
-                "+++ Device controller <%s> was initailized +++" % device_name
-            )
+            logging.info(f"Device controller {device_name} was initailized")
             self.display_state()
         else:
-            logging.debug(
-                "+++ Device controller <%s> was uninitailized +++" % device_name
-            )
+            logging.info(f"Device controller {device_name} was uninitailized")
 
     @property
     def device_priv_key_str(self) -> str:
@@ -91,23 +87,24 @@ class DeviceController:
     # Display (Debug/Test)
     ######################################################
     def display_state(self) -> None:
-        if self.device_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.debug("#" * 100)
-            logging.debug("device_type: %s" % self.device_type)
-            logging.debug("")
-            logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-            logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-            logging.debug("#" * 100)
+        # if self.device_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
+        #     logging.info("#" * 100)
+        #     logging.info("device_type: %s" % self.device_type)
+        #     logging.info("")
+        #     logging.info("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
+        #     logging.info("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+        #     logging.info("#" * 100)
 
-        if self.device_type == ticket.IOT_DEVICE:
-            logging.debug("#" * 100)
-            logging.debug("device_type: %s" % self.device_type)
-            logging.debug("")
-            logging.debug("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-            logging.debug("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-            logging.debug("")
-            logging.debug("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
-            logging.debug("#" * 100)
+        # if self.device_type == ticket.IOT_DEVICE:
+        #     logging.info("#" * 100)
+        #     logging.info("device_type: %s" % self.device_type)
+        #     logging.info("")
+        #     logging.info("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
+        #     logging.info("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
+        #     logging.info("")
+        #     logging.info("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
+        #     logging.info("#" * 100)
+        ...
 
     ######################################################
     # Generate Different Ticket Types
@@ -151,12 +148,13 @@ class DeviceController:
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
     def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
+        logging.info("(E) EXECUTE: INITIALIZATION_IOT_DEVICE")
         if self.device_type != ticket.IOT_DEVICE:
-            logging.debug("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+            logging.error("ERROR: ONLY IOT_DEVICE CAN DO THIS OPERATION")
             return False
 
         if self.is_initialized:
-            logging.debug("ERROR: ALREADY INITIALIZED")
+            logging.error("ERROR: ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -194,6 +192,7 @@ class DeviceController:
         return True
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
+        logging.info("(E) EXECUTE: OWNERSHIP_TRANSFER")
         ######################################################
         # Decode Request Body
         ######################################################
@@ -227,6 +226,7 @@ class DeviceController:
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
     ) -> None:
+        logging.info("(E) EXECUTE: UPDATE_CURRENT_HOLDER_PUB_KEY")
         self.current_holder_pub_key = new_current_holder_pub_key
 
     def execute_update_current_session_key_byte(
@@ -236,6 +236,7 @@ class DeviceController:
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
     ) -> None:
+        logging.info("(E) EXECUTE: UPDATE_CURRENT_SESSION_KEY_BYTE")
         self.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
             salt=salt_byte,
@@ -248,14 +249,15 @@ class DeviceController:
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
     def execute_one_time_intialization_command(self) -> bool:
+        logging.info("(E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.debug(
+            logging.error(
                 "ERROR: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
             )
             return False
 
         if self.is_initialized:
-            logging.debug("ERROR: ALREADY INITIALIZED")
+            logging.error("ERROR: ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -285,5 +287,6 @@ class DeviceController:
     # Reset Device (Teardown - Development Only Function)
     ######################################################
     def execute_reset_device(self) -> bool:
+        logging.info("(E) EXECUTE: RESET_DEVICE")
         self.mSecureDB.delete_secure_db()
         return True

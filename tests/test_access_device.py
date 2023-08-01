@@ -1,4 +1,5 @@
 import pytest
+import logging
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -9,6 +10,9 @@ from ureka_framework.resource.crypto import serialization_util
 class TestAccessDevice:
     # Setup in every class method
     def setup_method(self) -> None:
+        logging.info("*" * 50)
+        logging.info("TestAccessDevice")
+        logging.info("*" * 50)
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -61,6 +65,9 @@ class TestAccessDevice:
 
     def test_apply_access_permission_ticket(self) -> None:
         # WHEN: apply_access_permission_ticket()
+        logging.info("*" * 50)
+        logging.info("test_apply_access_permission_ticket")
+        logging.info("*" * 50)
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
         # -----------------------------------------------------
@@ -123,7 +130,9 @@ class TestAccessDevice:
 
     @pytest.mark.skip(reason="Not Implemented")
     def test_apply_access_permission_ticket_failed(self):
-        pass
+        logging.info("*" * 50)
+        logging.info("test_apply_access_permission_ticket_failed")
+        logging.info("*" * 50)
 
     # Teardown in every class method
     def teardown_method(self) -> None:
