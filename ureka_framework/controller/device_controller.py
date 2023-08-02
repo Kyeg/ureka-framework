@@ -53,7 +53,6 @@ class DeviceController:
 
         if self.is_initialized:
             logging.info(f"+ Initailized device controller: {device_name}")
-            self.display_state()
         else:
             logging.info(f"+ Uninitailized device controller: {device_name}")
 
@@ -80,29 +79,6 @@ class DeviceController:
         return serialization_util.key_to_str(
             self.owner_pub_key, key_type="ecc-public-key"
         )
-
-    ######################################################
-    # Display (Debug/Test)
-    ######################################################
-    def display_state(self) -> None:
-        # if self.device_type == ticket.USER_AGENT_OR_CLOUD_SERVER:
-        #     logging.info("#" * 100)
-        #     logging.info("device_type: %s" % self.device_type)
-        #     logging.info("")
-        #     logging.info("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-        #     logging.info("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-        #     logging.info("#" * 100)
-
-        # if self.device_type == ticket.IOT_DEVICE:
-        #     logging.info("#" * 100)
-        #     logging.info("device_type: %s" % self.device_type)
-        #     logging.info("")
-        #     logging.info("device_priv_key_str: %s" % self.device_priv_key_str[0:64])
-        #     logging.info("device_pub_key_str: %s" % self.device_pub_key_str[0:64])
-        #     logging.info("")
-        #     logging.info("owner_pub_key_str: %s" % self.owner_pub_key_str[0:64])
-        #     logging.info("#" * 100)
-        ...
 
     ######################################################
     # Generate Different Ticket Types
@@ -186,7 +162,6 @@ class DeviceController:
         owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
         self.mSecureDB.store_owner_id(owner_public_key_byte)
 
-        self.display_state()
         return True
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
@@ -213,8 +188,6 @@ class DeviceController:
             # DB
             owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
             self.mSecureDB.store_owner_id(owner_public_key_byte)
-
-        self.display_state()
 
     ######################################################
     # Execute Access Permission Ticket (E-N)
@@ -279,7 +252,6 @@ class DeviceController:
         # DB
         self.mSecureDB.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
-        self.display_state()
         return True
 
     ######################################################
