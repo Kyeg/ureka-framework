@@ -44,7 +44,7 @@ class DeviceController:
         self.set_ticket_generation_route()
 
         # Set SecureDB
-        self.secure_db = SecureDB(db_path=db_path)
+        self.secure_db = SecureDB(device_name=device_name)
 
         # Always load SecureDB after reboot
         (
@@ -265,12 +265,4 @@ class DeviceController:
         # DB
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
-        return True
-
-    ######################################################
-    # Reset Device (Teardown - Development Only Function)
-    ######################################################
-    def execute_reset_device(self) -> bool:
-        logging.info("-> (E) EXECUTE: RESET_DEVICE")
-        self.secure_db.delete_secure_db_in_device()
         return True

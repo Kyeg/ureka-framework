@@ -1,21 +1,19 @@
 import pytest
 import logging
+from tests.conftest import setup_log, teardown_log, test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.storage.secure_db import SecureDB
 
 
 class TestAccessDevice:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
-        logging.info("")
-        logging.info("*" * 50)
-        logging.info("Setup")
-        logging.info("*" * 50)
-
         # GIVEN: (A') Initialized DM's CS
+        setup_log()
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
@@ -68,21 +66,13 @@ class TestAccessDevice:
         # (GIVEN)+WHEN:
         yield
 
-        logging.info("*" * 50)
-        logging.info("TearDown")
-        logging.info("*" * 50)
-
         # RE-GIVEN: Reset the test environment
-        self.cloud_server_dm.execute_reset_device()
-        self.user_agent_do.execute_reset_device()
-        self.iot_device.execute_reset_device()
-        self.cloud_server_ep.execute_reset_device()
+        teardown_log()
+        SecureDB.delete_secure_db_in_test()
 
     def test_apply_access_permission_ticket(self) -> None:
         # WHEN: apply_access_permission_ticket()
-        logging.info("*" * 50)
-        logging.info("test_apply_access_permission_ticket")
-        logging.info("*" * 50)
+        test_log()
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
         # -----------------------------------------------------
@@ -145,6 +135,4 @@ class TestAccessDevice:
 
     @pytest.mark.skip(reason="Not Implemented")
     def test_apply_access_permission_ticket_failed(self):
-        logging.info("*" * 50)
-        logging.info("test_apply_access_permission_ticket_failed")
-        logging.info("*" * 50)
+        test_log()

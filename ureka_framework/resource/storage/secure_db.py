@@ -10,12 +10,13 @@ import logging
 
 
 class SecureDB:
-    def __init__(self, db_path: str = "") -> None:
-        # File I/O
-        # self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
-        self.current_path: str = os.path.abspath(os.path.dirname(__file__)) + db_path
+    # Class Variables
+    secure_db_path: str = os.path.abspath(os.path.dirname(__file__)) + "/SecureDB"
 
-        # self.db_path: str = db_path
+    # Instance Variables
+    def __init__(self, device_name: str = "") -> None:
+        self.device_controller_path: str = self.secure_db_path + "/" + device_name
+
         # self.path_device_type: str = "DeviceType.txt"
         # self.path_device_name: str = "DeviceName.txt"
         self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
@@ -64,14 +65,15 @@ class SecureDB:
         )
 
     # Teardown - Development Only Function
-    def delete_secure_db_in_device(self) -> None:
+    @classmethod
+    def delete_secure_db_in_test(cls) -> None:
         # removing directory
         try:
-            # shutil.rmtree(self.secure_db_path)
-            shutil.rmtree(self.current_path)
-            logging.debug(f"Delete: {self.current_path}")
+            shutil.rmtree(cls.secure_db_path)
+            logging.debug(f"Delete: {cls.secure_db_path}")
         except OSError as e:
-            logging.error(f"FAILURE: {e.filename} - {e.strerror}.")
+            # logging.error(f"FAILURE: {e.filename} - {e.strerror}.")
+            pass
 
     # Initialization
     def store_device_id(
@@ -92,7 +94,7 @@ class SecureDB:
 
     def _load_file(self, relative_path: str) -> bytes:
         # Get abs file path
-        abs_path = self.current_path + relative_path
+        abs_path = self.device_controller_path + relative_path
 
         if self._check_file_exist(relative_path):
             # Open and read file
@@ -105,7 +107,7 @@ class SecureDB:
 
     def _store_file(self, relative_path: str, data: bytes) -> None:
         # Get abs file path
-        abs_path = self.current_path + relative_path
+        abs_path = self.device_controller_path + relative_path
 
         # Create directory if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -121,7 +123,7 @@ class SecureDB:
 
     def _check_file_exist(self, relative_path: str) -> bool:
         # Get abs file path
-        abs_path = self.current_path + relative_path
+        abs_path = self.device_controller_path + relative_path
 
         if not os.path.exists(os.path.dirname(abs_path)):
             return False

@@ -1,20 +1,18 @@
 import pytest
 import logging
+from tests.conftest import setup_log, teardown_log, test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.ticket as ticket
+from ureka_framework.resource.storage.secure_db import SecureDB
 
 
 class TestIntializeAgentOrServer:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
-        logging.info("")
-        logging.info("*" * 50)
-        logging.info("Setup")
-        logging.info("*" * 50)
-
         # GIVEN: (A) Uninitialized CS
+        setup_log()
         self.cloud_server_1 = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_1",
@@ -24,17 +22,13 @@ class TestIntializeAgentOrServer:
         # (GIVEN)+WHEN:
         yield
 
-        logging.info("*" * 50)
-        logging.info("TearDown")
-        logging.info("*" * 50)
         # RE-GIVEN: Reset the test environment
-        self.cloud_server_1.execute_reset_device()
+        teardown_log()
+        SecureDB.delete_secure_db_in_test()
 
     def test_one_time_intialization_command(self) -> None:
         # WHEN: DM apply one_time_intialization_command() on Uninitialized CS
-        logging.info("*" * 50)
-        logging.info(f"test_one_time_intialization_command")
-        logging.info("*" * 50)
+        test_log()
         assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
         # THEN: (A') Initialize DM's CS
@@ -47,9 +41,7 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
         # WHEN: DM reboot the CS
-        logging.info("*" * 50)
-        logging.info(f"test_one_time_intialization_command_with_reboot")
-        logging.info("*" * 50)
+        test_log()
         self.cloud_server_1.reboot_device()
 
         # THEN: (A') Initialized DM's CS
@@ -62,9 +54,7 @@ class TestIntializeAgentOrServer:
         self.cloud_server_1.execute_one_time_intialization_command()
 
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
-        logging.info("*" * 50)
-        logging.info(f"test_one_time_intialization_command_reintialized_failed")
-        logging.info("*" * 50)
+        test_log()
         # THEN: (A') Cannot re-initialize DM's CS
         assert self.cloud_server_1.execute_one_time_intialization_command() == False
         # logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
@@ -79,9 +69,7 @@ class TestIntializeAgentOrServer:
         )
 
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
-        logging.info("*" * 50)
-        logging.info(f"test_one_time_intialization_command_initialize_device_failed")
-        logging.info("*" * 50)
+        test_log()
         # THEN: (A') Cannot initialize IoTD
         assert self.iot_device.execute_one_time_intialization_command() == False
         # logging.error("FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION")
