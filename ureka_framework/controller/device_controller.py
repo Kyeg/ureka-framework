@@ -12,7 +12,7 @@ from ureka_framework.controller.ticket_verification.ticket_verification_flow imp
 )
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
-import ureka_framework.resource.storage.secure_db as secure_db
+from ureka_framework.resource.storage.secure_db import SecureDB
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
@@ -27,6 +27,7 @@ class DeviceController:
         # Device Type (Device can be Private Autenticator or IoT Device...)
         self.device_type: str = device_type
         self.device_name: str = device_name
+        self.db_path: str = db_path
 
         # False: Uninitialized / True: Initialized
         self.is_initialized: bool = False
@@ -42,19 +43,21 @@ class DeviceController:
         self.ticket_generation_router: TicketGenerationRouter = None
         self.set_ticket_generation_route()
 
-        # Load SecureDB
-        self.mSecureDB = secure_db.SecureDB(db_path=db_path)
+        # Set SecureDB
+        self.secure_db = SecureDB(db_path=db_path)
+
+        # Always load SecureDB after reboot
         (
             self.is_initialized,
             self.device_priv_key,
             self.device_pub_key,
             self.owner_pub_key,
-        ) = self.mSecureDB.load_secure_db()
+        ) = self.secure_db.load_secure_db()
 
         if self.is_initialized:
-            logging.info(f"+ Initailized device controller: {device_name}")
+            logging.info(f"+ Initialized device controller: {self.device_name}")
         else:
-            logging.info(f"+ Uninitailized device controller: {device_name}")
+            logging.info(f"+ Uninitialized device controller: {self.device_name}")
 
     @property
     def device_priv_key_str(self) -> str:
@@ -78,6 +81,16 @@ class DeviceController:
             return ""
         return serialization_util.key_to_str(
             self.owner_pub_key, key_type="ecc-public-key"
+        )
+
+    ######################################################
+    # Device Activity Cycle
+    ######################################################
+    def reboot_device(self) -> None:
+        self.__init__(
+            device_type=self.device_type,
+            device_name=self.device_name,
+            db_path=self.db_path,
         )
 
     ######################################################
@@ -149,7 +162,7 @@ class DeviceController:
         )
 
         # DB
-        self.mSecureDB.store_device_id(device_priv_key_byte, device_pub_key_byte)
+        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
         ######################################################
         # Update Permission Table (only for IoT Device)
@@ -160,7 +173,7 @@ class DeviceController:
 
         # DB
         owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-        self.mSecureDB.store_owner_id(owner_public_key_byte)
+        self.secure_db.store_owner_id(owner_public_key_byte)
 
         return True
 
@@ -187,7 +200,7 @@ class DeviceController:
 
             # DB
             owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-            self.mSecureDB.store_owner_id(owner_public_key_byte)
+            self.secure_db.store_owner_id(owner_public_key_byte)
 
     ######################################################
     # Execute Access Permission Ticket (E-N)
@@ -250,7 +263,7 @@ class DeviceController:
         )
 
         # DB
-        self.mSecureDB.store_device_id(device_priv_key_byte, device_pub_key_byte)
+        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
         return True
 
@@ -259,5 +272,5 @@ class DeviceController:
     ######################################################
     def execute_reset_device(self) -> bool:
         logging.info("-> (E) EXECUTE: RESET_DEVICE")
-        self.mSecureDB.delete_secure_db()
+        self.secure_db.delete_secure_db_in_device()
         return True

@@ -15,6 +15,9 @@ class SecureDB:
         # self.secure_db_path = os.path.abspath(os.path.dirname(__file__)) + "/secure_db"
         self.current_path: str = os.path.abspath(os.path.dirname(__file__)) + db_path
 
+        # self.db_path: str = db_path
+        # self.path_device_type: str = "DeviceType.txt"
+        # self.path_device_name: str = "DeviceName.txt"
         self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
         self.path_device_pub: str = "/DeviceKey/PublicKey.key"
         self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
@@ -61,7 +64,7 @@ class SecureDB:
         )
 
     # Teardown - Development Only Function
-    def delete_secure_db(self) -> None:
+    def delete_secure_db_in_device(self) -> None:
         # removing directory
         try:
             # shutil.rmtree(self.secure_db_path)

@@ -54,7 +54,7 @@ class TestTransferOwnershipDevice:
         self.iot_device.execute_reset_device()
 
     def test_apply_management_ticket(self) -> None:
-        # WHEN: apply_management_ticket()
+        # WHEN: DM's CS apply_management_ticket() on DM's IoTD
         logging.info("*" * 50)
         logging.info("test_apply_management_ticket")
         logging.info("*" * 50)
@@ -91,7 +91,7 @@ class TestTransferOwnershipDevice:
         )
         self.iot_device.verify_xxx_ticket(test_ticket)
 
-        # WHEN: apply_management_ticket()
+        # WHEN: DM's CS apply_management_ticket() on DO's IoTD
         logging.info("*" * 50)
         logging.info("test_apply_management_ticket_failed")
         logging.info("*" * 50)
@@ -111,4 +111,5 @@ class TestTransferOwnershipDevice:
         # THEN: (B'') Initialized DO's IoTD
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
-        )  # logging.info("FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+        )
+        # logging.error("FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")

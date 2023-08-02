@@ -31,9 +31,9 @@ class TestIntializeAgentOrServer:
         self.cloud_server_1.execute_reset_device()
 
     def test_one_time_intialization_command(self) -> None:
-        # WHEN: one_time_intialization_command()
+        # WHEN: DM apply one_time_intialization_command() on Uninitialized CS
         logging.info("*" * 50)
-        logging.info("test_one_time_intialization_command")
+        logging.info(f"test_one_time_intialization_command")
         logging.info("*" * 50)
         assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
@@ -42,13 +42,46 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
 
-    def test_one_time_intialization_command_failed(self) -> None:
+    def test_one_time_intialization_command_with_reboot(self) -> None:
+        # GIVEN: (A') Initialized DM's CS
+        assert self.cloud_server_1.execute_one_time_intialization_command() == True
+
+        # WHEN: DM reboot the CS
+        logging.info("*" * 50)
+        logging.info(f"test_one_time_intialization_command_with_reboot")
+        logging.info("*" * 50)
+        self.cloud_server_1.reboot_device()
+
+        # THEN: (A') Initialized DM's CS
+        assert self.cloud_server_1.is_initialized == True
+        assert self.cloud_server_1.device_priv_key_str != ""
+        assert self.cloud_server_1.device_pub_key_str != ""
+
+    def test_one_time_intialization_command_reintialized_failed(self) -> None:
         # GIVEN: (A') Initialized DM's CS
         self.cloud_server_1.execute_one_time_intialization_command()
 
-        # WHEN: one_time_intialization_command()
+        # WHEN: DM apply one_time_intialization_command() on Initialized CS
         logging.info("*" * 50)
-        logging.info("test_one_time_intialization_command_failed")
+        logging.info(f"test_one_time_intialization_command_reintialized_failed")
         logging.info("*" * 50)
         # THEN: (A') Cannot re-initialize DM's CS
         assert self.cloud_server_1.execute_one_time_intialization_command() == False
+        # logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
+
+    # @pytest.mark.skip(reason="WIP")
+    def test_one_time_intialization_command_initialize_device_failed(self) -> None:
+        # GIVEN: (A) Uninitialized IoTD
+        self.iot_device = DeviceController(
+            device_type=ticket.IOT_DEVICE,
+            device_name="iot_device",
+            db_path="/secure_db/iot_device",
+        )
+
+        # WHEN: DM apply one_time_intialization_command() on Initialized CS
+        logging.info("*" * 50)
+        logging.info(f"test_one_time_intialization_command_initialize_device_failed")
+        logging.info("*" * 50)
+        # THEN: (A') Cannot initialize IoTD
+        assert self.iot_device.execute_one_time_intialization_command() == False
+        # logging.error("FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION")
