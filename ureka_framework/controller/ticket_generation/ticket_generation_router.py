@@ -3,15 +3,17 @@ import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
+from abc import ABC, abstractmethod
 from cryptography.hazmat.primitives.asymmetric import ec
 
 
 # Interface for the Command Object
-class GenerateXXXTicket:
+class GenerateXXXTicket(ABC):
     # Better not have side effect on device_controller
     def __init__(self, device_controller) -> None:
         self.device_controller = device_controller
 
+    @abstractmethod
     def execute(self, *args, **kwargs):
         pass
 
