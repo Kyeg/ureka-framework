@@ -14,26 +14,24 @@ class TestAccessDevice:
     def setup_teardown(self):
         # GIVEN: (A') Initialized DM's CS
         setup_log()
+        SecureDB.delete_secure_db_in_test()
         self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
-            db_path="/secure_db/cloud_server_dm",
         )
-        self.cloud_server_dm.execute_one_time_intialization_command()
+        self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
 
         # GIVEN: (A') Initialized DO's UA
         self.user_agent_do = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="user_agent_do",
-            db_path="/secure_db/user_agent_do",
         )
-        self.user_agent_do.execute_one_time_intialization_command()
+        self.user_agent_do.execute_one_time_intialize_agent_or_server()
 
         # GIVEN: (B') Initialized DM's IoTD
         self.iot_device = DeviceController(
             device_type=ticket.IOT_DEVICE,
             device_name="iot_device",
-            db_path="/secure_db/iot_device",
         )
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization",
@@ -59,9 +57,8 @@ class TestAccessDevice:
         self.cloud_server_ep = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_ep",
-            db_path="/secure_db/cloud_server_ep",
         )
-        self.cloud_server_ep.execute_one_time_intialization_command()
+        self.cloud_server_ep.execute_one_time_intialize_agent_or_server()
 
         # (GIVEN)+WHEN:
         yield

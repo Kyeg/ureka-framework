@@ -21,15 +21,13 @@ import logging
 
 
 class DeviceController:
-    def __init__(
-        self, device_type: str = "", device_name: str = "", db_path: str = ""
-    ) -> None:
+    def __init__(self, device_type: str = "", device_name: str = "") -> None:
         # Device Type (Device can be Private Autenticator or IoT Device...)
-        self.device_type: str = device_type
-        self.device_name: str = device_name
-        self.db_path: str = db_path
+        self.device_type: str = ""
+        self.device_name: str = ""
 
         # False: Uninitialized / True: Initialized
+        self.has_device_type: bool = False
         self.is_initialized: bool = False
         self.device_priv_key: ec.EllipticCurvePrivateKey = None
         self.device_pub_key: ec.EllipticCurvePublicKey = None
@@ -48,11 +46,18 @@ class DeviceController:
 
         # Always load SecureDB after reboot
         (
+            self.has_device_type,
             self.is_initialized,
+            self.device_type,
+            self.device_name,
             self.device_priv_key,
             self.device_pub_key,
             self.owner_pub_key,
         ) = self.secure_db.load_secure_db()
+
+        # Set Device Type
+        if self.has_device_type is False:
+            self.execute_one_time_device_type_and_name(device_type, device_name)
 
         if self.is_initialized:
             logging.info(f"+ Initialized device controller: {self.device_name}")
@@ -87,11 +92,7 @@ class DeviceController:
     # Device Activity Cycle
     ######################################################
     def reboot_device(self) -> None:
-        self.__init__(
-            device_type=self.device_type,
-            device_name=self.device_name,
-            db_path=self.db_path,
-        )
+        self.__init__(device_type=self.device_type, device_name=self.device_name)
 
     ######################################################
     # Generate Different Ticket Types
@@ -132,6 +133,59 @@ class DeviceController:
         verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
 
     ######################################################
+    # Set Device Type
+    ######################################################
+    def execute_one_time_device_type_and_name(
+        self, device_type: str, device_name: str
+    ) -> bool:
+        # Determine device type name, but still be initialized
+        # Determine device name (for test)
+        self.is_initialized = False
+        self.device_type = device_type
+        self.device_name = device_name
+
+        # DB
+        self.secure_db.store_device_type_and_name(device_type, device_name)
+
+    ######################################################
+    # Initilize User Agent or Cloud Server (without using Ticket)
+    ######################################################
+    def execute_one_time_intialize_agent_or_server(self) -> bool:
+        logging.info("-> (E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
+        if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
+            logging.error(
+                "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
+            )
+            return False
+
+        if self.is_initialized:
+            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
+            return False
+
+        ######################################################
+        # Initialize Device Id
+        ######################################################
+        # CRYPTO
+        device_priv_key_byte = b""
+        device_pub_key_byte = b""
+        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+
+        # RAM
+        self.is_initialized = True
+        self.device_priv_key = serialization_util.byte_to_key(
+            device_priv_key_byte, key_type="ecc-private-key"
+        )
+        self.device_pub_key = serialization_util.byte_to_key(
+            device_pub_key_byte, key_type="ecc-public-key"
+        )
+
+        # DB
+        self.secure_db.store_is_initialized()
+        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
+
+        return True
+
+    ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
     def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
@@ -162,6 +216,7 @@ class DeviceController:
         )
 
         # DB
+        self.secure_db.store_is_initialized()
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
         ######################################################
@@ -229,40 +284,3 @@ class DeviceController:
         logging.debug(
             f"current_session_key_byte in {self.device_name}: {str(self.current_session_key_byte)}"
         )
-
-    ######################################################
-    # Initilize User Agent or Cloud Server (without using Ticket)
-    ######################################################
-    def execute_one_time_intialization_command(self) -> bool:
-        logging.info("-> (E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
-        if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.error(
-                "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
-            )
-            return False
-
-        if self.is_initialized:
-            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
-            return False
-
-        ######################################################
-        # Initialize Device Id
-        ######################################################
-        # CRYPTO
-        device_priv_key_byte = b""
-        device_pub_key_byte = b""
-        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
-
-        # RAM
-        self.is_initialized = True
-        self.device_priv_key = serialization_util.byte_to_key(
-            device_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.device_pub_key = serialization_util.byte_to_key(
-            device_pub_key_byte, key_type="ecc-public-key"
-        )
-
-        # DB
-        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
-
-        return True
