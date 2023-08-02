@@ -3,6 +3,7 @@
 > The Ureka framework is a user-centric security framework that prioritizes the protection of user devices and data through comprehensive authentication, authorization, and auditing functions.
 
 ## Environment
++ Python: 3.11.4
 + Package Management: venv + pip
 + Formatter: Black
 + Testing: Pytest
@@ -19,13 +20,13 @@ pip3 install --upgrade pip
 pip3 install -r requirements-top.txt
 ```
 
-Test the source code through **pytest**
+Test the source code through **pytest** (& the log in the pytest.log)
 
 ```
 pytest
 ```
 
-or with more testing parameters
+or with more testing parameters (& the log in the pytest.log)
 
 ```
 python3 run_tests.py
@@ -43,3 +44,14 @@ Always update the dependency files if you install new packages:
 vim requirements-top.txt
 pip3 freeze > requirements.txt
 ```
+
+## Optional Tools
+
+Apply MonkeyType to add type hints to the source code
+
+```
+monkeytype run run_tests.py
+monkeytype apply ureka_framework.module_name...
+monkeytype apply tests.testxxx...
+```
+

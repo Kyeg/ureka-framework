@@ -1,35 +1,54 @@
-import legacy.ticket_module as ticket_module
-import legacy.ticket as ticket
+import pytest
+import logging
+from ureka_framework.controller.device_controller import (
+    DeviceController,
+)
+import ureka_framework.data_model.ticket as ticket
 
 
 class TestIntializeAgentOrServer:
-    # Setup in every class method
-    def setup_method(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_teardown(self):
+        logging.info("")
+        logging.info("*" * 50)
+        logging.info("Setup")
+        logging.info("*" * 50)
+
         # GIVEN: (A) Uninitialized CS
-        self.cloud_server_1 = ticket_module.TicketModule(
-            module_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            module_name="cloud_server_1",
+        self.cloud_server_1 = DeviceController(
+            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="cloud_server_1",
             db_path="/secure_db/cloud_server_1",
         )
 
-    def test_one_time_intialization_command(self):
+        # (GIVEN)+WHEN:
+        yield
+
+        logging.info("*" * 50)
+        logging.info("TearDown")
+        logging.info("*" * 50)
+        # RE-GIVEN: Reset the test environment
+        self.cloud_server_1.execute_reset_device()
+
+    def test_one_time_intialization_command(self) -> None:
         # WHEN: one_time_intialization_command()
-        assert self.cloud_server_1.one_time_intialization_command() == True
+        logging.info("*" * 50)
+        logging.info("test_one_time_intialization_command")
+        logging.info("*" * 50)
+        assert self.cloud_server_1.execute_one_time_intialization_command() == True
 
         # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.is_initialized == True
         assert self.cloud_server_1.device_priv_key_str != ""
         assert self.cloud_server_1.device_pub_key_str != ""
 
-    def test_one_time_intialization_command_failed(self):
+    def test_one_time_intialization_command_failed(self) -> None:
         # GIVEN: (A') Initialized DM's CS
-        self.cloud_server_1.one_time_intialization_command()
+        self.cloud_server_1.execute_one_time_intialization_command()
 
         # WHEN: one_time_intialization_command()
+        logging.info("*" * 50)
+        logging.info("test_one_time_intialization_command_failed")
+        logging.info("*" * 50)
         # THEN: (A') Cannot re-initialize DM's CS
-        assert self.cloud_server_1.one_time_intialization_command() == False
-
-    # Teardown in every class method
-    def teardown_method(self):
-        # RE-GIVEN: Remove the secure_db
-        self.cloud_server_1.reset_device()
+        assert self.cloud_server_1.execute_one_time_intialization_command() == False

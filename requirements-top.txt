@@ -5,3 +5,5 @@ pytest-benchmark
 pygal
 pyclean
 cryptography
+monkeytype
+mypy
