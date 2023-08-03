@@ -65,7 +65,7 @@ class TestIntializeDevice:
 
         # THEN: (B') Cannot re-initialize DM's IoTD
         assert self.iot_device.is_initialized == True
-        # logging.error("FAILURE: ALREADY INITIALIZED")
+        # logging.error("FAILURE: IOT_DEVICE ALREADY INITIALIZED")
 
     # @pytest.mark.skip(reason="WIP")
     def test_apply_initialization_ticket_initialize_user_or_server_failed(self) -> None:
@@ -85,4 +85,4 @@ class TestIntializeDevice:
 
         # THEN: (B') Cannot initialize CS or UA
         assert self.user_agent_do.is_initialized == True
-        # logging.error("FAILURE: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+        # logging.error("FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION")

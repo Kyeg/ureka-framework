@@ -15,44 +15,44 @@ class VerificationFlow:
     # Verification Flow
     ######################################################
     def verify_ticket_protocol_verision(self, ticket_in: Ticket) -> None:
-        # (Z-1) Verify TICKET_PROTOCOL_VERSION
+        # Verify TICKET_PROTOCOL_VERSION
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
-            logging.info("-> (Z-1) SUCCESS: TICKET_PROTOCOL_VERSION")
+            logging.info("-> SUCCESS: TICKET_PROTOCOL_VERSION")
         else:
-            logging.error("-> (Z-1) FAILURE: TICKET_PROTOCOL_VERSION")
+            logging.error("-> FAILURE: TICKET_PROTOCOL_VERSION")
             # return
 
     def verify_ticket_type(self, ticket_in: Ticket) -> None:
-        # (Z-2) Classify TICKET_TYPE
+        # Classify TICKET_TYPE
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_INITIALIZATION_TICKET")
+            logging.info("-> SUCCESS: TYPE_INITIALIZATION_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_MANAGEMENT_TICKET")
+            logging.info("-> SUCCESS: TYPE_MANAGEMENT_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_ACCESS_PERMISSION_TICKET")
+            logging.info("-> SUCCESS: TYPE_ACCESS_PERMISSION_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_CHALLENGE_TICKET")
+            logging.info("-> SUCCESS: TYPE_CHALLENGE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_RESONSE_TICKET")
+            logging.info("-> SUCCESS: TYPE_RESPONSE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            logging.info("-> (Z-2) SUCCESS: TYPE_KEY_EXCHANGE_TICKET")
+            logging.info("-> SUCCESS: TYPE_KEY_EXCHANGE_TICKET")
         else:
-            logging.error("-> (Z-2) FAILURE: WRONG_TICKET_TYPE")
+            logging.error("-> FAILURE: TICKET_TYPE")
             # return
 
     def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> None:
-        # (Z-3) Classify DEVICE_ID
+        # Classify DEVICE_ID
         if (
             ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET
             or ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET
         ):
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> (Z-3) SUCCESS: DEVICE_ID")
+            logging.info("-> SUCCESS: DEVICE_ID")
         elif ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
             if ticket_in.device_id == device_pub_key_str:
-                logging.info("-> (Z-3) SUCCESS: DEVICE_ID")
+                logging.info("-> SUCCESS: DEVICE_ID")
             else:
-                logging.error("-> (Z-3) FAILURE: DEVICE_ID")
+                logging.error("-> FAILURE: DEVICE_ID")
                 # return
 
     def verify_issuer_signature(
@@ -61,12 +61,12 @@ class VerificationFlow:
         owner_pub_key: ec.EllipticCurvePrivateKey,
         current_holder_pub_key: ec.EllipticCurvePublicKey,
     ) -> None:
-        # (Z-4) Verify ISSUER_SIGNATURE
+        # Verify ISSUER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
-                logging.info("-> (Z-4) SUCCESS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+                logging.info("-> SUCCESS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
             else:
-                logging.error("-> (Z-4) FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+                logging.error("-> FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
                 # return
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
@@ -76,59 +76,53 @@ class VerificationFlow:
                         ticket_in.holder_id, key_type="ecc-public-key"
                     )
                 )
-                logging.info(
-                    "-> (Z-4) SUCCESS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
-                )
+                logging.info("-> SUCCESS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET")
             else:
                 logging.error(
-                    "-> (Z-4) FAILURE: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
+                    "-> FAILURE: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
                 )
                 # return
 
         # (N) Verify HOLDER_SIGNATURE
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> (N-1) SUCCESS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
+            logging.info("-> SUCCESS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
-            # To-Do: Need to check whether the CHALLENGE in the RESONSE_TICKET is correct
+            # To-Do: Need to check whether the CHALLENGE in the RESPONSE_TICKET is correct
             if self._verify_issuer_signature_on_ticket(
                 ticket_in, current_holder_pub_key
             ):
-                logging.info("-> (N-2) SUCCESS: ISSUER_SIGNATURE on RESPONSE_TICKET")
+                logging.info("-> SUCCESS: ISSUER_SIGNATURE on RESPONSE_TICKET")
             else:
-                logging.error("-> (N-2) FAILURE: ISSUER_SIGNATURE on RESPONSE_TICKET")
+                logging.error("-> FAILURE: ISSUER_SIGNATURE on RESPONSE_TICKET")
                 # return
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> (N-3) SUCCESS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
+            logging.info("-> SUCCESS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
 
     def execute_ticket_operation(
         self, ticket_in: Ticket, device_priv_key: ec.EllipticCurvePrivateKey
     ) -> None:
         # (E-Z) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            logging.info("-> (E-Z) EXECUTE: INITIALIZATION_TICKET")
             # (Side Effect)
             self.device_controller.execute_initialize_iot_device(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            logging.info("-> (E-Z) EXECUTE: MANAGEMENT_TICKET")
             # (Side Effect)
             self.device_controller.execute_ownership_transfer(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            logging.info("-> (E-Z) EXECUTE: ACCESS_PERMISSION_TICKET")
-            # To-Do: Session
             # To-Do: Auto-Generate Challenge Ticket
+            pass
 
         # (E-N) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            logging.info("-> (E-N) EXECUTE: CHALLENGE_TICKET")
             # To-Do: Auto-Generate Response Ticket
+            pass
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
-            logging.info("-> (E-N) EXECUTE: RESONSE_TICKET")
             # To-Do: Auto-Generate Key Exchange Ticket
+            pass
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            logging.info("-> (E-N) EXECUTE: KEY_EXCHANGE_TICKET")
-            # Generate (temp) session_key (Side Effect)
+            # (Side Effect)
             self.device_controller.execute_update_current_session_key_byte(
                 server_private_key_obj=device_priv_key,
                 salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
@@ -137,8 +131,8 @@ class VerificationFlow:
                     ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
+            # To-Do: Create Session
             # To-Do: Auto-Generate Command Ticket
-            # To-Do: Session
 
     ######################################################
     # Verify ECC Signature on Ticket

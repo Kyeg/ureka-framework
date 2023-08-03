@@ -4,6 +4,6 @@ pytest-cover
 pytest-benchmark
 pygal
 pyclean
-cryptography
 monkeytype
 mypy
+cryptography

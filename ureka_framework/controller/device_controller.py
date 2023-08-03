@@ -59,11 +59,6 @@ class DeviceController:
         if self.has_device_type is False:
             self.execute_one_time_device_type_and_name(device_type, device_name)
 
-        if self.is_initialized:
-            logging.info(f"+ Initialized device controller: {self.device_name}")
-        else:
-            logging.info(f"+ Uninitialized device controller: {self.device_name}")
-
     @property
     def device_priv_key_str(self) -> str:
         if self.device_priv_key is None:
@@ -123,6 +118,8 @@ class DeviceController:
     # Verify Different Ticket Types
     ######################################################
     def verify_xxx_ticket(self, ticket_in: Ticket) -> None:
+        logging.info(f"+ {self.device_name} is verifying ticket...")
+
         verification_flow = VerificationFlow(self)
         verification_flow.verify_ticket_protocol_verision(ticket_in)
         verification_flow.verify_ticket_type(ticket_in)
@@ -151,15 +148,16 @@ class DeviceController:
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
     def execute_one_time_intialize_agent_or_server(self) -> bool:
-        logging.info("-> (E) EXECUTE: ONE_TIME_INTIALIZATION_COMMAND")
+        logging.info(f"+ {self.device_name} is initializing...")
+
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
             logging.error(
-                "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS OPERATION"
+                f"FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             )
             return False
 
         if self.is_initialized:
-            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
+            logging.error(f"FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -189,13 +187,16 @@ class DeviceController:
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
     def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
-        logging.info("-> (E) EXECUTE: INITIALIZATION_IOT_DEVICE")
+        logging.info(f"+ {self.device_name} is intializing...")
+
         if self.device_type != ticket.IOT_DEVICE:
-            logging.error("FAILURE: ONLY IOT_DEVICE CAN DO THIS OPERATION")
+            logging.error(
+                f"FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
+            )
             return False
 
         if self.is_initialized:
-            logging.error(f"FAILURE: {self.device_name} ALREADY INITIALIZED")
+            logging.error(f"FAILURE: IOT_DEVICE ALREADY INITIALIZED")
             return False
 
         ######################################################
@@ -233,7 +234,8 @@ class DeviceController:
         return True
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
-        logging.info("-> (E) EXECUTE: OWNERSHIP_TRANSFER")
+        logging.info(f"+ {self.device_name} is transferring ownership...")
+
         ######################################################
         # Decode Request Body
         ######################################################
@@ -264,7 +266,9 @@ class DeviceController:
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
     ) -> None:
-        logging.info("-> (E) EXECUTE: UPDATE_CURRENT_HOLDER_PUB_KEY")
+        logging.info(f"+ {self.device_name} is updating current holder pub key...")
+
+        # RAM
         self.current_holder_pub_key = new_current_holder_pub_key
 
     def execute_update_current_session_key_byte(
@@ -274,7 +278,9 @@ class DeviceController:
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
     ) -> None:
-        logging.info("-> (E) EXECUTE: UPDATE_CURRENT_SESSION_KEY_BYTE")
+        logging.info(f"+ {self.device_name} is updating current session key byte...")
+
+        # RAM
         self.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
             salt=salt_byte,
