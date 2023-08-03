@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
@@ -14,60 +15,84 @@ class VerificationFlow:
     ######################################################
     # Verification Flow
     ######################################################
-    def verify_ticket_protocol_verision(self, ticket_in: Ticket) -> None:
-        # Verify TICKET_PROTOCOL_VERSION
+    def verify_ticket_protocol_version(self, ticket_in: Ticket):
+        success_msg = "-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION"
+        failure_msg = "-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION"
+
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
-            logging.info("-> SUCCESS: TICKET_PROTOCOL_VERSION")
+            logging.info(success_msg)
+            return Success(ticket_in)
+            # return ticket_in
         else:
-            logging.error("-> FAILURE: TICKET_PROTOCOL_VERSION")
-            # return
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
+            # return ticket_in
 
-    def verify_ticket_type(self, ticket_in: Ticket) -> None:
-        # Classify TICKET_TYPE
+    def verify_ticket_type(self, ticket_in: Ticket):
+        success_msg = f"-> SUCCESS: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
+        failure_msg = f"-> FAILURE: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
+
+        if ticket_in.ticket_type in ticket.LEGAL_TICKET_TYPES:
+            logging.info(success_msg)
+            return Success(ticket_in)
+            # return ticket_in
+        else:
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
+            # return ticket_in
+
+    def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str):
+        success_msg = "-> SUCCESS: VERIFY_DEVICE_ID"
+        failure_msg = "-> FAILURE: VERIFY_DEVICE_ID"
+
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            logging.info("-> SUCCESS: TYPE_INITIALIZATION_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            logging.info("-> SUCCESS: TYPE_MANAGEMENT_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
-            logging.info("-> SUCCESS: TYPE_ACCESS_PERMISSION_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            logging.info("-> SUCCESS: TYPE_CHALLENGE_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
-            logging.info("-> SUCCESS: TYPE_RESPONSE_TICKET")
-        elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            logging.info("-> SUCCESS: TYPE_KEY_EXCHANGE_TICKET")
-        else:
-            logging.error("-> FAILURE: TICKET_TYPE")
-            # return
-
-    def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> None:
-        # Classify DEVICE_ID
-        if (
+            # No need to verify DEVICE_ID
+            logging.info(success_msg)
+            return Success(ticket_in)
+        elif (
             ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET
             or ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET
         ):
+            # No need to verify DEVICE_ID
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> SUCCESS: DEVICE_ID")
-        elif ticket_in.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
+            logging.info(success_msg)
+            return Success(ticket_in)
+            # return ticket_in
+        else:
             if ticket_in.device_id == device_pub_key_str:
-                logging.info("-> SUCCESS: DEVICE_ID")
+                logging.info(success_msg)
+                return Success(ticket_in)
+                # return ticket_in
             else:
-                logging.error("-> FAILURE: DEVICE_ID")
-                # return
+                logging.error(failure_msg)
+                return Failure(RuntimeError(failure_msg))
+                # return ticket_in
 
     def verify_issuer_signature(
         self,
         ticket_in: Ticket,
         owner_pub_key: ec.EllipticCurvePrivateKey,
         current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> None:
-        # Verify ISSUER_SIGNATURE
-        if ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
+    ):
+        success_msg = (
+            f"-> SUCCESS: VERIFY_ISSUER_SIGNATURE on {ticket_in.ticket_type} TICKET"
+        )
+        failure_msg = (
+            f"-> FAILURE: VERIFY_ISSUER_SIGNATURE on {ticket_in.ticket_type} TICKET"
+        )
+
+        # (Z) Verify ISSUER_SIGNATURE
+        if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
+            # No need to verify ISSUER_SIGNATURE
+            logging.info(success_msg)
+            return Success(ticket_in)
+        elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
-                logging.info("-> SUCCESS: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+                logging.info(success_msg)
+                return Success(ticket_in)
             else:
-                logging.error("-> FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
-                # return
+                logging.error(failure_msg)
+                return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self._verify_issuer_signature_on_ticket(ticket_in, owner_pub_key):
                 # (Side Effect)
@@ -76,54 +101,61 @@ class VerificationFlow:
                         ticket_in.holder_id, key_type="ecc-public-key"
                     )
                 )
-                logging.info("-> SUCCESS: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET")
+                logging.info(success_msg)
+                return Success(ticket_in)
             else:
-                logging.error(
-                    "-> FAILURE: ISSUER_SIGNATURE on ACCESS_PERMISSION_TICKET"
-                )
-                # return
-
+                logging.error(failure_msg)
+                return Failure(RuntimeError(failure_msg))
         # (N) Verify HOLDER_SIGNATURE
-        if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
+        elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> SUCCESS: ISSUER_SIGNATURE on CHALLENGE_TICKET")
+            logging.info(success_msg)
+            return Success(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESPONSE_TICKET is correct
             if self._verify_issuer_signature_on_ticket(
                 ticket_in, current_holder_pub_key
             ):
-                logging.info("-> SUCCESS: ISSUER_SIGNATURE on RESPONSE_TICKET")
+                logging.info(success_msg)
+                return Success(ticket_in)
             else:
-                logging.error("-> FAILURE: ISSUER_SIGNATURE on RESPONSE_TICKET")
-                # return
+                logging.error(failure_msg)
+                return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
-            logging.info("-> SUCCESS: ISSUER_SIGNATURE on KEY_EXCHANGE_TICKET")
+            logging.info(success_msg)
+            return Success(ticket_in)
+        else:
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def execute_ticket_operation(
         self, ticket_in: Ticket, device_priv_key: ec.EllipticCurvePrivateKey
-    ) -> None:
+    ):
+        failure_msg = f"-> FAILURE: WIRED TICKET TYPE {ticket_in.ticket_type}"
+
         # (E-Z) Execute TICKET
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
             # (Side Effect)
-            self.device_controller.execute_initialize_iot_device(ticket_in)
+            result = self.device_controller.execute_one_time_initialize_iot_device(
+                ticket_in
+            )
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             # (Side Effect)
-            self.device_controller.execute_ownership_transfer(ticket_in)
+            result = self.device_controller.execute_ownership_transfer(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             # To-Do: Auto-Generate Challenge Ticket
-            pass
-
+            result = Success(None)
         # (E-N) Execute TICKET
-        if ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
+        elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             # To-Do: Auto-Generate Response Ticket
-            pass
+            result = Success(None)
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             # To-Do: Auto-Generate Key Exchange Ticket
-            pass
+            result = Success(None)
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # (Side Effect)
-            self.device_controller.execute_update_current_session_key_byte(
+            result = self.device_controller.execute_update_current_session_key_byte(
                 server_private_key_obj=device_priv_key,
                 salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
                 info_byte=b"",
@@ -133,6 +165,11 @@ class VerificationFlow:
             )
             # To-Do: Create Session
             # To-Do: Auto-Generate Command Ticket
+        else:
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+        return result
 
     ######################################################
     # Verify ECC Signature on Ticket

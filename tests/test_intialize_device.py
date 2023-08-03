@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 import pytest
 import logging
 from tests.conftest import setup_log, teardown_log, test_log
@@ -39,9 +40,10 @@ class TestIntializeDevice:
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Initialized DM's IoTD
+        assert type(result) == Success
         assert self.iot_device.is_initialized == True
         assert self.iot_device.device_priv_key_str != ""
         assert self.iot_device.device_pub_key_str != ""
@@ -61,11 +63,10 @@ class TestIntializeDevice:
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Cannot re-initialize DM's IoTD
-        assert self.iot_device.is_initialized == True
-        # logging.error("FAILURE: IOT_DEVICE ALREADY INITIALIZED")
+        assert type(result) == Failure
 
     def test_apply_initialization_ticket_initialize_user_or_server_failed(self) -> None:
         # GIVEN: (B') A CS or UA
@@ -80,8 +81,7 @@ class TestIntializeDevice:
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
-        self.user_agent_do.verify_xxx_ticket(test_ticket)
+        result = self.user_agent_do.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Cannot initialize CS or UA
-        assert self.user_agent_do.is_initialized == True
-        # logging.error("FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION")
+        assert type(result) == Failure

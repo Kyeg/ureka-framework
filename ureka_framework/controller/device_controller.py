@@ -1,3 +1,5 @@
+from returns.pipeline import flow, pipe
+from returns.pointfree import bind
 from returns.result import Result, Success, Failure
 from ureka_framework.controller.ticket_generation.ticket_generation_router import (
     TicketGenerationRouter,
@@ -23,12 +25,12 @@ import logging
 
 class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
-        # Device Type (Device can be Private Autenticator or IoT Device...)
+        # Device Type (Device can be User Agent, Cloud Server, or IoT Device...)
         self.device_type: str = ""
         self.device_name: str = ""
-
-        # False: Uninitialized / True: Initialized
         self.has_device_type: bool = False
+
+        # Generate Keys after Intialization
         self.is_initialized: bool = False
         self.device_priv_key: ec.EllipticCurvePrivateKey = None
         self.device_pub_key: ec.EllipticCurvePublicKey = None
@@ -38,14 +40,14 @@ class DeviceController:
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
         self.current_session_key_byte: bytes = None
 
-        # Set Ticket Generation Router
+        # Set Ticket Generation Router based on Ticket Protocol
         self.ticket_generation_router: TicketGenerationRouter = None
         self.set_ticket_generation_route()
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
 
-        # Always load SecureDB after reboot
+        # Always load SecureDB after Reboot
         (
             self.has_device_type,
             self.is_initialized,
@@ -58,7 +60,9 @@ class DeviceController:
 
         # Set Device Type
         if self.has_device_type is False:
-            self.execute_one_set_time_device_type_and_name(device_type, device_name)
+            self.execute_one_time_set_time_device_type_and_name(
+                device_type, device_name
+            )
 
     @property
     def device_priv_key_str(self) -> str:
@@ -118,22 +122,51 @@ class DeviceController:
     ######################################################
     # Verify Different Ticket Types
     ######################################################
-    def verify_xxx_ticket(self, ticket_in: Ticket) -> None:
+    def verify_xxx_ticket(self, ticket_in: Ticket):
         logging.info(f"+ {self.device_name} is verifying ticket...")
 
+        # verification_flow = VerificationFlow(self)
+        # verification_flow.verify_ticket_protocol_version(ticket_in)
+        # verification_flow.verify_ticket_type(ticket_in)
+        # verification_flow.verify_device_id(ticket_in, self.device_pub_key_str)
+        # verification_flow.verify_issuer_signature(
+        #     ticket_in, self.owner_pub_key, self.current_holder_pub_key
+        # )
+        # verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
+
         verification_flow = VerificationFlow(self)
-        verification_flow.verify_ticket_protocol_verision(ticket_in)
-        verification_flow.verify_ticket_type(ticket_in)
-        verification_flow.verify_device_id(ticket_in, self.device_pub_key_str)
-        verification_flow.verify_issuer_signature(
-            ticket_in, self.owner_pub_key, self.current_holder_pub_key
+        verification_result = flow(
+            ticket_in,
+            lambda ticket_in_flow: verification_flow.verify_ticket_protocol_version(
+                ticket_in_flow
+            ),
+            bind(
+                lambda ticket_in_flow: verification_flow.verify_ticket_type(
+                    ticket_in_flow
+                )
+            ),
+            bind(
+                lambda ticket_in_flow: verification_flow.verify_device_id(
+                    ticket_in_flow, self.device_pub_key_str
+                )
+            ),
+            bind(
+                lambda ticket_in_flow: verification_flow.verify_issuer_signature(
+                    ticket_in_flow, self.owner_pub_key, self.current_holder_pub_key
+                )
+            ),
+            bind(
+                lambda ticket_in_flow: verification_flow.execute_ticket_operation(
+                    ticket_in_flow, self.device_priv_key
+                )
+            ),
         )
-        verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
+        return verification_result
 
     ######################################################
     # Set Device Type
     ######################################################
-    def execute_one_set_time_device_type_and_name(
+    def execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
         # Determine device type name, but still be uninitialized
@@ -145,6 +178,8 @@ class DeviceController:
         # DB
         self.secure_db.store_device_type_and_name(device_type, device_name)
 
+        return Success(None)
+
     ######################################################
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
@@ -152,12 +187,14 @@ class DeviceController:
         logging.info(f"+ {self.device_name} is initializing...")
 
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
-            error_msg = f"FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
-            return Failure(RuntimeError(error_msg))
+            failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
         if self.is_initialized:
-            error_msg = f"FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
-            return Failure(RuntimeError(error_msg))
+            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
         ######################################################
         # Initialize Device Id
@@ -185,18 +222,20 @@ class DeviceController:
     ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
-    def execute_initialize_iot_device(self, new_ticket: Ticket):
+    def execute_one_time_initialize_iot_device(self, new_ticket: Ticket):
         logging.info(f"+ {self.device_name} is intializing...")
 
         if self.device_type != ticket.IOT_DEVICE:
-            error_msg = f"FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
-            logging.error(error_msg)
-            return Failure(RuntimeError(error_msg))
+            failure_msg = (
+                "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
+            )
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
         if self.is_initialized:
-            error_msg = f"FAILURE: IOT_DEVICE ALREADY INITIALIZED"
-            logging.error(error_msg)
-            return Failure(RuntimeError(error_msg))
+            failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
         ######################################################
         # Initialize Device Id
@@ -258,17 +297,21 @@ class DeviceController:
             owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
             self.secure_db.store_owner_id(owner_public_key_byte)
 
+        return Success(None)
+
     ######################################################
     # Execute Access Permission Ticket (E-N)
     ######################################################
     def execute_update_current_holder_pub_key(
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> None:
+    ):
         logging.info(f"+ {self.device_name} is updating current holder pub key...")
 
         # RAM
         self.current_holder_pub_key = new_current_holder_pub_key
+
+        return Success(None)
 
     def execute_update_current_session_key_byte(
         self,
@@ -276,7 +319,7 @@ class DeviceController:
         salt_byte: bytes,
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
-    ) -> None:
+    ):
         logging.info(f"+ {self.device_name} is updating current session key byte...")
 
         # RAM
@@ -289,3 +332,5 @@ class DeviceController:
         logging.debug(
             f"current_session_key_byte in {self.device_name}: {str(self.current_session_key_byte)}"
         )
+
+        return Success(None)

@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 import pytest
 import logging
 from tests.conftest import setup_log, teardown_log, test_log
@@ -119,9 +120,10 @@ class TestAccessDevice:
             device_id=self.iot_device.device_pub_key_str,
             holder_id=self.cloud_server_ep.device_pub_key_str,
         )
-        self.cloud_server_ep.verify_xxx_ticket(test_ticket)
+        result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') EP's CS can Limitedly Access DO's IoTD
+        assert type(result) == Success
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
         )

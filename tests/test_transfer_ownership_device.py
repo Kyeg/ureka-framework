@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 import pytest
 import logging
 from tests.conftest import setup_log, teardown_log, test_log
@@ -59,9 +60,10 @@ class TestTransferOwnershipDevice:
                 }
             ),
         )
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD
+        assert type(result) == Success
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
         )
@@ -94,10 +96,7 @@ class TestTransferOwnershipDevice:
                 }
             ),
         )
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD
-        assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
-        )
-        # logging.error("FAILURE: ISSUER_SIGNATURE on MANAGEMENT_TICKET")
+        assert type(result) == Failure
