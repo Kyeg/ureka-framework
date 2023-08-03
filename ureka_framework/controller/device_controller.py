@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 from ureka_framework.controller.ticket_generation.ticket_generation_router import (
     TicketGenerationRouter,
     GenerateAccessPermissionTicket,
@@ -57,7 +58,7 @@ class DeviceController:
 
         # Set Device Type
         if self.has_device_type is False:
-            self.execute_one_time_device_type_and_name(device_type, device_name)
+            self.execute_one_set_time_device_type_and_name(device_type, device_name)
 
     @property
     def device_priv_key_str(self) -> str:
@@ -132,10 +133,10 @@ class DeviceController:
     ######################################################
     # Set Device Type
     ######################################################
-    def execute_one_time_device_type_and_name(
+    def execute_one_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
-        # Determine device type name, but still be initialized
+        # Determine device type name, but still be uninitialized
         # Determine device name (for test)
         self.is_initialized = False
         self.device_type = device_type
@@ -147,18 +148,16 @@ class DeviceController:
     ######################################################
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
-    def execute_one_time_intialize_agent_or_server(self) -> bool:
+    def execute_one_time_intialize_agent_or_server(self):
         logging.info(f"+ {self.device_name} is initializing...")
 
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
-            logging.error(
-                f"FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
-            )
-            return False
+            error_msg = f"FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+            return Failure(RuntimeError(error_msg))
 
         if self.is_initialized:
-            logging.error(f"FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED")
-            return False
+            error_msg = f"FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            return Failure(RuntimeError(error_msg))
 
         ######################################################
         # Initialize Device Id
@@ -181,23 +180,23 @@ class DeviceController:
         self.secure_db.store_is_initialized()
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
-        return True
+        return Success(None)
 
     ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
-    def execute_initialize_iot_device(self, new_ticket: Ticket) -> bool:
+    def execute_initialize_iot_device(self, new_ticket: Ticket):
         logging.info(f"+ {self.device_name} is intializing...")
 
         if self.device_type != ticket.IOT_DEVICE:
-            logging.error(
-                f"FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
-            )
-            return False
+            error_msg = f"FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
+            logging.error(error_msg)
+            return Failure(RuntimeError(error_msg))
 
         if self.is_initialized:
-            logging.error(f"FAILURE: IOT_DEVICE ALREADY INITIALIZED")
-            return False
+            error_msg = f"FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+            logging.error(error_msg)
+            return Failure(RuntimeError(error_msg))
 
         ######################################################
         # Initialize Device Id
@@ -231,7 +230,7 @@ class DeviceController:
         owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
         self.secure_db.store_owner_id(owner_public_key_byte)
 
-        return True
+        return Success(None)
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
         logging.info(f"+ {self.device_name} is transferring ownership...")

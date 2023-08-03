@@ -1,3 +1,4 @@
+from returns.result import Result, Success, Failure
 import pytest
 import logging
 from tests.conftest import setup_log, teardown_log, test_log
@@ -29,7 +30,8 @@ class TestIntializeAgentOrServer:
     def test_one_time_intialization_command(self) -> None:
         # WHEN: DM apply one_time_intialization_command() on Uninitialized CS
         test_log()
-        assert self.cloud_server_1.execute_one_time_intialize_agent_or_server() == True
+        result = self.cloud_server_1.execute_one_time_intialize_agent_or_server()
+        assert type(result) == Success
 
         # THEN: (A') Initialize DM's CS
         assert self.cloud_server_1.is_initialized == True
@@ -38,7 +40,7 @@ class TestIntializeAgentOrServer:
 
     def test_one_time_intialization_command_with_reboot(self) -> None:
         # GIVEN: (A') Initialized DM's CS
-        assert self.cloud_server_1.execute_one_time_intialize_agent_or_server() == True
+        self.cloud_server_1.execute_one_time_intialize_agent_or_server()
 
         # WHEN: DM reboot the CS
         test_log()
@@ -56,10 +58,10 @@ class TestIntializeAgentOrServer:
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
         test_log()
         # THEN: (A') Cannot re-initialize DM's CS
-        assert self.cloud_server_1.execute_one_time_intialize_agent_or_server() == False
-        # logging.error(f"FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED")
+        result = self.cloud_server_1.execute_one_time_intialize_agent_or_server()
+        assert type(result) == Failure
+        logging.error(result.failure().args[0])
 
-    # @pytest.mark.skip(reason="WIP")
     def test_one_time_intialization_command_initialize_device_failed(self) -> None:
         # GIVEN: (A) Uninitialized IoTD
         self.iot_device = DeviceController(
@@ -70,5 +72,6 @@ class TestIntializeAgentOrServer:
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
         test_log()
         # THEN: (A') Cannot initialize IoTD
-        assert self.iot_device.execute_one_time_intialize_agent_or_server() == False
-        # logging.error("FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION")
+        result = self.iot_device.execute_one_time_intialize_agent_or_server()
+        assert type(result) == Failure
+        logging.error(result.failure().args[0])

@@ -67,7 +67,6 @@ class TestIntializeDevice:
         assert self.iot_device.is_initialized == True
         # logging.error("FAILURE: IOT_DEVICE ALREADY INITIALIZED")
 
-    # @pytest.mark.skip(reason="WIP")
     def test_apply_initialization_ticket_initialize_user_or_server_failed(self) -> None:
         # GIVEN: (B') A CS or UA
         self.user_agent_do = DeviceController(
