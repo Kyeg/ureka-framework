@@ -30,18 +30,18 @@ def generate_key_pair() -> Tuple[bytes, bytes]:
 ######################################################
 # Sign ECC Signature
 ######################################################
-def sign_signature(messageIn: bytes, privateKey: ec.EllipticCurvePrivateKey) -> bytes:
-    return privateKey.sign(messageIn, ec.ECDSA(hashes.SHA256()))
+def sign_signature(message_in: bytes, private_key: ec.EllipticCurvePrivateKey) -> bytes:
+    return private_key.sign(message_in, ec.ECDSA(hashes.SHA256()))
 
 
 ######################################################
 # Verify ECC Signature
 ######################################################
 def verify_signature(
-    signatureIn: bytes, messageIn: bytes, publicKey: ec.EllipticCurvePublicKey
+    signatureIn: bytes, message_in: bytes, public_key: ec.EllipticCurvePublicKey
 ) -> bool:
     try:
-        publicKey.verify(signatureIn, messageIn, ec.ECDSA(hashes.SHA256()))
+        public_key.verify(signatureIn, message_in, ec.ECDSA(hashes.SHA256()))
         # logging.info ("Valid Signature.")
         return True
     except InvalidSignature:

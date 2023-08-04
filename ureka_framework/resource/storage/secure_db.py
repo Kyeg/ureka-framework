@@ -150,6 +150,7 @@ class SecureDB:
         if not os.path.exists(os.path.dirname(abs_path)):
             try:
                 os.makedirs(os.path.dirname(abs_path))
+                # logging.debug(f"Create: {abs_path}")
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
@@ -166,6 +167,7 @@ class SecureDB:
         if not os.path.exists(os.path.dirname(abs_path)):
             try:
                 os.makedirs(os.path.dirname(abs_path))
+                # logging.debug(f"Create: {abs_path}")
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise

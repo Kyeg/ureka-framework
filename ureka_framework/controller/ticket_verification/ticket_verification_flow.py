@@ -1,3 +1,4 @@
+import copy
 from returns.result import Result, Success, Failure
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
@@ -175,20 +176,25 @@ class VerificationFlow:
     # Verify ECC Signature on Ticket
     ######################################################
     def _verify_issuer_signature_on_ticket(
-        self, ticket_in: Ticket, public_key: ec.EllipticCurvePublicKey
+        self, signed_ticket: Ticket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
         try:
             # Get Signature on Ticket
-            signature_byte = serialization_util.str_to_byte(ticket_in.issuer_signature)
+            signature_byte = serialization_util.str_to_byte(
+                signed_ticket.issuer_signature
+            )
 
-            # No need to del issuer_signature in dataclass
-            ticket_in.issuer_signature = ""
+            # Verify Signature on Signed Ticket, but Prevent Side Effect on Signed Ticket
+            unsigned_ticket = copy.deepcopy(signed_ticket)
+            unsigned_ticket.issuer_signature = ""
 
-            message_str = serialization_util.ticket_to_jsonstr(ticket_in)
-            message_byte = serialization_util.str_to_byte(message_str)
+            unsigned_ticket_str = serialization_util.ticket_to_jsonstr(unsigned_ticket)
+            unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
             # Verify Signature
-            return ecc.verify_signature(signature_byte, message_byte, public_key)
+            return ecc.verify_signature(
+                signature_byte, unsigned_ticket_byte, public_key
+            )
 
         except AttributeError:
             logging.error("FAILURE: NO SIGNATURE")
