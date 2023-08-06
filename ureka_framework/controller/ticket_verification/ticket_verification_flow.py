@@ -6,6 +6,7 @@ import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
+from typing import Union
 
 
 class VerificationFlow:
@@ -16,7 +17,7 @@ class VerificationFlow:
     ######################################################
     # Verification Flow
     ######################################################
-    def verify_ticket_protocol_version(self, ticket_in: Ticket):
+    def verify_ticket_protocol_version(self, ticket_in: Ticket) -> Success:
         success_msg = "-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION"
         failure_msg = "-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION"
 
@@ -29,7 +30,7 @@ class VerificationFlow:
             return Failure(RuntimeError(failure_msg))
             # return ticket_in
 
-    def verify_ticket_type(self, ticket_in: Ticket):
+    def verify_ticket_type(self, ticket_in: Ticket) -> Success:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
 
@@ -42,7 +43,7 @@ class VerificationFlow:
             return Failure(RuntimeError(failure_msg))
             # return ticket_in
 
-    def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str):
+    def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> Success:
         success_msg = "-> SUCCESS: VERIFY_DEVICE_ID"
         failure_msg = "-> FAILURE: VERIFY_DEVICE_ID"
 
@@ -74,7 +75,7 @@ class VerificationFlow:
         ticket_in: Ticket,
         owner_pub_key: ec.EllipticCurvePrivateKey,
         current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ):
+    ) -> Union[Success, Failure]:
         success_msg = (
             f"-> SUCCESS: VERIFY_ISSUER_SIGNATURE on {ticket_in.ticket_type} TICKET"
         )
@@ -132,7 +133,7 @@ class VerificationFlow:
 
     def execute_ticket_operation(
         self, ticket_in: Ticket, device_priv_key: ec.EllipticCurvePrivateKey
-    ):
+    ) -> Union[Success, Failure]:
         failure_msg = f"-> FAILURE: WIRED TICKET TYPE {ticket_in.ticket_type}"
 
         # (E-Z) Execute TICKET
