@@ -2,6 +2,7 @@ from returns.pipeline import flow, pipe
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
 from ureka_framework.controller.ticket_generation.ticket_generation_router import (
+    GenerateArbitraryTicket,
     TicketGenerationRouter,
     GenerateAccessPermissionTicket,
     GenerateChallengeTicket,
@@ -21,7 +22,6 @@ import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey, EllipticCurvePublicKey
 from typing import Union
 
 
@@ -101,6 +101,9 @@ class DeviceController:
     ######################################################
     def set_ticket_generation_route(self) -> None:
         self.ticket_generation_router = TicketGenerationRouter()
+        self.ticket_generation_router.add_ticket_type(
+            "arbitrary", GenerateArbitraryTicket(self)
+        )
         self.ticket_generation_router.add_ticket_type(
             "intialization", GenerateInitializationTicket(self)
         )
@@ -224,7 +227,9 @@ class DeviceController:
     ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
-    def execute_one_time_initialize_iot_device(self, new_ticket: Ticket) -> Union[Failure, Success]:
+    def execute_one_time_initialize_iot_device(
+        self, new_ticket: Ticket
+    ) -> Union[Failure, Success]:
         logging.info(f"+ {self.device_name} is intializing...")
 
         if self.device_type != ticket.IOT_DEVICE:

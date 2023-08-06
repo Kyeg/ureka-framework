@@ -1,7 +1,7 @@
 from returns.result import Result, Success, Failure
 import pytest
 import logging
-from tests.conftest import setup_log, teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -13,7 +13,7 @@ class TestIntializeAgentOrServer:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
         # GIVEN: (A) Uninitialized CS
-        setup_log()
+        current_setup_log()
         SecureDB.delete_secure_db_in_test()
         self.cloud_server = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -24,7 +24,7 @@ class TestIntializeAgentOrServer:
         yield
 
         # RE-GIVEN: Reset the test environment
-        teardown_log()
+        current_teardown_log()
         SecureDB.delete_secure_db_in_test()
 
     def test_one_time_intialization_command(self) -> None:

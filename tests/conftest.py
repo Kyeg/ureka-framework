@@ -22,7 +22,7 @@ def get_current_function_name() -> str:
             return frame_info.function
 
 
-def setup_log() -> None:
+def current_setup_log() -> None:
     # Log
     if get_current_class_name() != None:
         logging.info("")
@@ -42,7 +42,7 @@ def test_log() -> None:
         logging.info("*" * 50)
 
 
-def teardown_log() -> None:
+def current_teardown_log() -> None:
     # Log
     if get_current_class_name() != None:
         logging.info("*" * 50)

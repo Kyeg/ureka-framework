@@ -15,7 +15,7 @@ class VerificationFlow:
         self.device_controller = device_controller
 
     ######################################################
-    # Verification Flow
+    # Message Verification Flow
     ######################################################
     def verify_ticket_protocol_version(self, ticket_in: Ticket) -> Success:
         success_msg = "-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION"

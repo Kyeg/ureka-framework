@@ -1,5 +1,6 @@
 from returns.result import Result, Success, Failure
 import pytest
+import logging
 from tests.conftest import current_setup_log, current_teardown_log, test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
@@ -8,7 +9,7 @@ import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.storage.secure_db import SecureDB
 
 
-class TestIntializeDevice:
+class TestArbitraryInput:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
         # GIVEN: (A') Initialized DM's CS
@@ -33,11 +34,19 @@ class TestIntializeDevice:
         current_teardown_log()
         SecureDB.delete_secure_db_in_test()
 
-    def test_apply_initialization_ticket(self) -> None:
+    def test_apply_arbitrary_request(self) -> None:
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
         test_log()
+        test_initialization_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
+            "arbitrary",
+            test_initialization_request,
+            self.cloud_server_dm.device_priv_key,
         )
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
@@ -49,38 +58,3 @@ class TestIntializeDevice:
         assert (
             self.iot_device.owner_pub_key_str == self.cloud_server_dm.device_pub_key_str
         )
-
-    def test_apply_initialization_ticket_reintialized_failed(self) -> None:
-        # GIVEN: (B') Initialized DM's IoTD
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
-        self.iot_device.verify_xxx_ticket(test_ticket)
-
-        # WHEN: DM's CS apply_initialization_ticket() on Initialized IoTD
-        test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
-        result = self.iot_device.verify_xxx_ticket(test_ticket)
-
-        # THEN: (B') Cannot re-initialize DM's IoTD
-        assert type(result) == Failure
-
-    def test_apply_initialization_ticket_initialize_user_or_server_failed(self) -> None:
-        # GIVEN: (B') A CS or UA
-        self.user_agent_do = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="user_agent_do",
-        )
-        self.user_agent_do.execute_one_time_intialize_agent_or_server()
-
-        # WHEN: DM's CS apply_initialization_ticket() on Initialized UA's Agent
-        test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
-        result = self.user_agent_do.verify_xxx_ticket(test_ticket)
-
-        # THEN: (B') Cannot initialize CS or UA
-        assert type(result) == Failure

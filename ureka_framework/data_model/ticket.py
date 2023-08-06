@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+# from dataclasses import dataclass
+from pydantic import BaseModel
 
 # Protocol Version
 TICKET_PROTOCOL_VERSION: str = "UREKA-1.0"
@@ -35,8 +36,8 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 # MANAGEMENT_MANAGER: str = "NEW-MANAGER"
 
 
-@dataclass
-class Ticket:
+# @dataclass
+class Ticket(BaseModel):
     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
 
     # ticket_number: str = ""
@@ -45,6 +46,7 @@ class Ticket:
     device_id: str = ""
 
     ticket_type: str = ""
+
     task_scope: str = ""
     holder_id: str = ""
 
