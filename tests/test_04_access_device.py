@@ -1,9 +1,13 @@
+import logging
 from returns.result import Result, Success, Failure
 import pytest
-import logging
-from tests.conftest import current_setup_log, current_teardown_log, current_test_log
-from ureka_framework.controller.device_controller import (
-    DeviceController,
+from tests.conftest import (
+    current_setup_log,
+    current_teardown_log,
+    current_test_given_log,
+    current_test_when_and_then_log,
+    device_owner_agent_and_her_device,
+    enterprise_provider_server,
 )
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import serialization_util
@@ -13,55 +17,11 @@ from ureka_framework.resource.storage.secure_db import SecureDB
 class TestAccessDevice:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
-        # GIVEN: (A') Initialized DM's CS
+        # RE-GIVEN: Reset the test environment
         current_setup_log()
         SecureDB.delete_secure_db_in_test()
-        self.cloud_server_dm = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="cloud_server_dm",
-        )
-        self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
 
-        # GIVEN: (A') Initialized DO's UA
-        self.user_agent_do = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="user_agent_do",
-        )
-        self.user_agent_do.execute_one_time_intialize_agent_or_server()
-
-        # GIVEN: (B') Initialized DM's IoTD
-        self.iot_device = DeviceController(
-            device_type=ticket.IOT_DEVICE,
-            device_name="iot_device",
-        )
-        test_request: dict = {
-            "device_id": f"",
-            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
-            "task_scope": f"",
-        }
-        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-        self.iot_device.verify_xxx_ticket(test_ticket)
-
-        # GIVEN: (B'') Initialized DO's IoTD
-        test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.user_agent_do.device_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
-        }
-        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-
-        self.iot_device.verify_xxx_ticket(test_ticket)
-
-        # GIVEN: (A') Initialized EP's CS
-        self.cloud_server_ep = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="cloud_server_ep",
-        )
-        self.cloud_server_ep.execute_one_time_intialize_agent_or_server()
-
-        # (GIVEN)+WHEN:
+        # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
@@ -69,8 +29,21 @@ class TestAccessDevice:
         SecureDB.delete_secure_db_in_test()
 
     def test_apply_access_permission_ticket(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.cloud_server_dm,
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # GIVEN: Initialized EP's CS
+        self.cloud_server_ep = enterprise_provider_server()
+
         # WHEN: apply_access_permission_ticket()
-        current_test_log()
+        current_test_when_and_then_log()
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
         # -----------------------------------------------------
@@ -127,7 +100,7 @@ class TestAccessDevice:
         test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
         result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
-        # THEN: (B'') EP's CS can Limitedly Access DO's IoTD
+        # THEN: EP's CS can Limitedly Access DO's IoTD
         assert type(result) == Success
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
@@ -139,4 +112,4 @@ class TestAccessDevice:
 
     @pytest.mark.skip(reason="Not Implemented")
     def test_apply_access_permission_ticket_failed(self):
-        current_test_log()
+        current_test_when_and_then_log()

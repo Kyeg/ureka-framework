@@ -1,6 +1,8 @@
 import inspect
 import logging
-import pytest
+from ureka_framework.controller.device_controller import DeviceController
+from ureka_framework.data_model import ticket
+from ureka_framework.resource.crypto import serialization_util
 
 
 ######################################################
@@ -24,32 +26,127 @@ def get_current_function_name() -> str:
 
 def current_setup_log() -> None:
     # Log
+    logging.info("")
     if get_current_class_name() != None:
-        logging.info("")
-        logging.info("*" * 50)
+        logging.info("*" * 100)
         logging.info(f"Setup: {get_current_class_name()}")
-        logging.info("*" * 50)
+        logging.info("*" * 100)
 
 
-def current_test_log() -> None:
+def current_test_given_log() -> None:
     # Log
     if (
         get_current_function_name() != "_hookexec"
         and get_current_function_name() != None
     ):
         logging.info("*" * 50)
-        logging.info(f"Test: {get_current_function_name()}")
+        logging.info(f"Given: {get_current_function_name()}")
+        logging.info("*" * 50)
+
+
+def current_test_when_and_then_log() -> None:
+    # Log
+    if (
+        get_current_function_name() != "_hookexec"
+        and get_current_function_name() != None
+    ):
+        logging.info("*" * 50)
+        logging.info(f"When & Then: {get_current_function_name()}")
         logging.info("*" * 50)
 
 
 def current_teardown_log() -> None:
     # Log
     if get_current_class_name() != None:
-        logging.info("*" * 50)
+        logging.info("*" * 100)
         logging.info(f"Teardown: {get_current_class_name()}")
-        logging.info("*" * 50)
+        logging.info("*" * 100)
 
 
 ######################################################
-# Fixtures (Reusable Test Data)
+# Helper Functions (Reusable Test Data)
+######################################################
+def device_manufacturer_server() -> None:
+    # GIVEN: Initialized DM's CS
+    cloud_server_dm = DeviceController(
+        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="cloud_server_dm",
+    )
+    cloud_server_dm.execute_one_time_intialize_agent_or_server()
+
+    return cloud_server_dm
+
+
+def device_owner_agent() -> None:
+    # GIVEN: Initialized DM's CS
+    user_agent_do = DeviceController(
+        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="user_agent_do",
+    )
+    user_agent_do.execute_one_time_intialize_agent_or_server()
+
+    return user_agent_do
+
+
+def enterprise_provider_server():
+    # GIVEN: Initialized EP's CS
+    cloud_server_ep = DeviceController(
+        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="cloud_server_ep",
+    )
+    cloud_server_ep.execute_one_time_intialize_agent_or_server()
+
+    return cloud_server_ep
+
+
+def device_manufacturer_server_and_her_device():
+    # GIVEN: Initialized DM's CS
+    cloud_server_dm = device_manufacturer_server()
+
+    # GIVEN: Initialized DM's IoTD
+    iot_device = DeviceController(
+        device_type=ticket.IOT_DEVICE,
+        device_name="iot_device",
+    )
+    test_request: dict = {
+        "device_id": f"",
+        "holder_id": f"{cloud_server_dm.device_pub_key_str}",
+        "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+        "task_scope": f"",
+    }
+    test_ticket: str = cloud_server_dm.generate_xxx_ticket(test_request)
+    iot_device.verify_xxx_ticket(test_ticket)
+
+    return (cloud_server_dm, iot_device)
+
+
+def device_owner_agent_and_her_device():
+    # GIVEN: Initialized DM's CS and DM's IoTD
+    (
+        cloud_server_dm,
+        iot_device,
+    ) = device_manufacturer_server_and_her_device()
+
+    # GIVEN: Initialized DO's UA
+    user_agent_do = DeviceController(
+        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="user_agent_do",
+    )
+    user_agent_do.execute_one_time_intialize_agent_or_server()
+
+    # GIVEN: Initialized DO's IoTD
+    test_request: dict = {
+        "device_id": f"{iot_device.device_pub_key_str}",
+        "holder_id": f"{user_agent_do.device_pub_key_str}",
+        "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+        "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+    }
+    test_ticket: str = cloud_server_dm.generate_xxx_ticket(test_request)
+    iot_device.verify_xxx_ticket(test_ticket)
+
+    return (cloud_server_dm, user_agent_do, iot_device)
+
+
+######################################################
+# Fixtures (Reusable Test Data without Logging)
 ######################################################
