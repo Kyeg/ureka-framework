@@ -34,9 +34,13 @@ class TestTransferOwnershipDevice:
             device_type=ticket.IOT_DEVICE,
             device_name="iot_device",
         )
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
+        test_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # (GIVEN)+WHEN:
@@ -49,17 +53,13 @@ class TestTransferOwnershipDevice:
     def test_apply_management_ticket(self) -> None:
         # WHEN: DM's CS apply_management_ticket() on DM's IoTD
         current_test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "management",
-            device_priv_key=self.cloud_server_dm.device_priv_key,
-            device_id=self.iot_device.device_pub_key_str,
-            holder_id=self.user_agent_do.device_pub_key_str,
-            task_scope=serialization_util.dict_to_jsonstr(
-                {
-                    ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER
-                }
-            ),
-        )
+        test_request: dict = {
+            "device_id": f"{self.iot_device.device_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD
@@ -70,32 +70,24 @@ class TestTransferOwnershipDevice:
 
     def test_apply_management_ticket_failed(self) -> None:
         # GIVEN: (B'') Initialized DO's IoTD
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "management",
-            device_priv_key=self.cloud_server_dm.device_priv_key,
-            device_id=self.iot_device.device_pub_key_str,
-            holder_id=self.user_agent_do.device_pub_key_str,
-            task_scope=serialization_util.dict_to_jsonstr(
-                {
-                    ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER
-                }
-            ),
-        )
+        test_request: dict = {
+            "device_id": f"{self.iot_device.device_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: DM's CS apply_management_ticket() on DO's IoTD
         current_test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "management",
-            device_priv_key=self.cloud_server_dm.device_priv_key,
-            device_id=self.iot_device.device_pub_key_str,
-            holder_id=self.user_agent_do.device_pub_key_str,
-            task_scope=serialization_util.dict_to_jsonstr(
-                {
-                    ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER
-                }
-            ),
-        )
+        test_request: dict = {
+            "device_id": f"{self.iot_device.device_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD

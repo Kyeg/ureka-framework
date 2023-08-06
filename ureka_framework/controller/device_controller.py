@@ -1,16 +1,20 @@
 from returns.pipeline import flow, pipe
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.controller.ticket_generation.ticket_generation_router import (
-    GenerateArbitraryTicket,
-    TicketGenerationRouter,
-    GenerateAccessPermissionTicket,
-    GenerateChallengeTicket,
-    GenerateInitializationTicket,
-    GenerateKeyExchangeTicket,
-    GenerateManagementTicket,
-    GenerateResponseTicket,
+from ureka_framework.controller.ticket_generation.ticket_generation_flow import (
+    GenerationFlow,
 )
+
+# from ureka_framework.controller.ticket_generation.ticket_generation_router import (
+#     GenerateArbitraryTicket,
+#     TicketGenerationRouter,
+#     GenerateAccessPermissionTicket,
+#     GenerateChallengeTicket,
+#     GenerateInitializationTicket,
+#     GenerateKeyExchangeTicket,
+#     GenerateManagementTicket,
+#     GenerateResponseTicket,
+# )
 from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
     VerificationFlow,
 )
@@ -42,9 +46,9 @@ class DeviceController:
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
         self.current_session_key_byte: bytes = None
 
-        # Set Ticket Generation Router based on Ticket Protocol
-        self.ticket_generation_router: TicketGenerationRouter = None
-        self.set_ticket_generation_route()
+        # # Set Ticket Generation Router based on Ticket Protocol
+        # self.ticket_generation_router: TicketGenerationRouter = None
+        # self.set_ticket_generation_route()
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
@@ -99,30 +103,38 @@ class DeviceController:
     ######################################################
     # Generate Different Ticket Types
     ######################################################
-    def set_ticket_generation_route(self) -> None:
-        self.ticket_generation_router = TicketGenerationRouter()
-        self.ticket_generation_router.add_ticket_type(
-            "arbitrary", GenerateArbitraryTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "intialization", GenerateInitializationTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "management", GenerateManagementTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "access_permission",
-            GenerateAccessPermissionTicket(self),
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "challenge", GenerateChallengeTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "response", GenerateResponseTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "key_exchange", GenerateKeyExchangeTicket(self)
-        )
+    # def set_ticket_generation_route(self) -> None:
+    #     self.ticket_generation_router = TicketGenerationRouter()
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "arbitrary", GenerateArbitraryTicket(self)
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "intialization", GenerateInitializationTicket(self)
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "management", GenerateManagementTicket(self)
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "access_permission",
+    #         GenerateAccessPermissionTicket(self),
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "challenge", GenerateChallengeTicket(self)
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "response", GenerateResponseTicket(self)
+    #     )
+    #     self.ticket_generation_router.add_ticket_type(
+    #         "key_exchange", GenerateKeyExchangeTicket(self)
+    #     )
+
+    def generate_arbitrary_xxx_ticket(self, arbitrary_dict: dict) -> Ticket:
+        logging.info(f"+ {self.device_name} is generating ticket...")
+
+        generation_flow = GenerationFlow(self)
+        new_ticket = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
+
+        return new_ticket
 
     ######################################################
     # Verify Different Ticket Types

@@ -36,9 +36,13 @@ class TestIntializeDevice:
     def test_apply_initialization_ticket(self) -> None:
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
         current_test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
+        test_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Initialized DM's IoTD
@@ -52,16 +56,24 @@ class TestIntializeDevice:
 
     def test_apply_initialization_ticket_reintialized_failed(self) -> None:
         # GIVEN: (B') Initialized DM's IoTD
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
+        test_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: DM's CS apply_initialization_ticket() on Initialized IoTD
         current_test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
+        test_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Cannot re-initialize DM's IoTD
@@ -77,9 +89,13 @@ class TestIntializeDevice:
 
         # WHEN: DM's CS apply_initialization_ticket() on Initialized UA's Agent
         current_test_log()
-        test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
-            "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
-        )
+        test_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "task_scope": f"",
+        }
+        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
         result = self.user_agent_do.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Cannot initialize CS or UA
