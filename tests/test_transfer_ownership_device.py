@@ -40,7 +40,7 @@ class TestTransferOwnershipDevice:
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # (GIVEN)+WHEN:
@@ -59,7 +59,7 @@ class TestTransferOwnershipDevice:
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD
@@ -76,7 +76,7 @@ class TestTransferOwnershipDevice:
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: DM's CS apply_management_ticket() on DO's IoTD
@@ -87,7 +87,7 @@ class TestTransferOwnershipDevice:
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') Initialized DO's IoTD

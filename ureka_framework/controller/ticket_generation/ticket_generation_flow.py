@@ -5,7 +5,6 @@ from ureka_framework.resource.crypto import ecdh
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-import logging
 
 
 class GenerationFlow:
@@ -16,7 +15,7 @@ class GenerationFlow:
     ######################################################
     # Message Generation Flow
     ######################################################
-    def generate_arbitrary_ticket(self, arbitrary_dict: dict) -> Ticket:
+    def generate_arbitrary_ticket(self, arbitrary_dict: dict) -> str:
         ######################################################
         # Unsigned Ticket
         ######################################################
@@ -53,7 +52,7 @@ class GenerationFlow:
                 ),
             )
 
-        return new_ticket
+        return serialization_util.ticket_to_jsonstr(new_ticket)
 
     ######################################################
     # Add ECC Signature on Ticket

@@ -40,7 +40,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # GIVEN: (B'') Initialized DO's IoTD
@@ -50,7 +50,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
 
         self.iot_device.verify_xxx_ticket(test_ticket)
 
@@ -88,7 +88,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_ticket = self.user_agent_do.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.user_agent_do.generate_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -100,7 +100,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_CHALLENGE_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.iot_device.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
         self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -112,7 +112,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_RESPONSE_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.cloud_server_ep.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -124,7 +124,7 @@ class TestAccessDevice:
             "ticket_type": f"{ticket.TYPE_KEY_EXCHANGE_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.iot_device.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
         result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # THEN: (B'') EP's CS can Limitedly Access DO's IoTD

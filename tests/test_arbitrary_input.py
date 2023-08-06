@@ -43,7 +43,7 @@ class TestArbitraryInput:
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
-        test_ticket = self.cloud_server_dm.generate_arbitrary_xxx_ticket(test_request)
+        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: (B') Initialized DM's IoTD

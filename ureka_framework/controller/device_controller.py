@@ -4,17 +4,6 @@ from returns.result import Result, Success, Failure
 from ureka_framework.controller.ticket_generation.ticket_generation_flow import (
     GenerationFlow,
 )
-
-# from ureka_framework.controller.ticket_generation.ticket_generation_router import (
-#     GenerateArbitraryTicket,
-#     TicketGenerationRouter,
-#     GenerateAccessPermissionTicket,
-#     GenerateChallengeTicket,
-#     GenerateInitializationTicket,
-#     GenerateKeyExchangeTicket,
-#     GenerateManagementTicket,
-#     GenerateResponseTicket,
-# )
 from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
     VerificationFlow,
 )
@@ -45,10 +34,6 @@ class DeviceController:
         # Current Session (RAM-only)
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
         self.current_session_key_byte: bytes = None
-
-        # # Set Ticket Generation Router based on Ticket Protocol
-        # self.ticket_generation_router: TicketGenerationRouter = None
-        # self.set_ticket_generation_route()
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
@@ -103,57 +88,26 @@ class DeviceController:
     ######################################################
     # Generate Different Ticket Types
     ######################################################
-    # def set_ticket_generation_route(self) -> None:
-    #     self.ticket_generation_router = TicketGenerationRouter()
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "arbitrary", GenerateArbitraryTicket(self)
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "intialization", GenerateInitializationTicket(self)
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "management", GenerateManagementTicket(self)
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "access_permission",
-    #         GenerateAccessPermissionTicket(self),
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "challenge", GenerateChallengeTicket(self)
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "response", GenerateResponseTicket(self)
-    #     )
-    #     self.ticket_generation_router.add_ticket_type(
-    #         "key_exchange", GenerateKeyExchangeTicket(self)
-    #     )
-
-    def generate_arbitrary_xxx_ticket(self, arbitrary_dict: dict) -> Ticket:
+    def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
         logging.info(f"+ {self.device_name} is generating ticket...")
 
         generation_flow = GenerationFlow(self)
-        new_ticket = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
+        new_ticket_json = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
 
-        return new_ticket
+        return new_ticket_json
 
     ######################################################
     # Verify Different Ticket Types
     ######################################################
-    def verify_xxx_ticket(self, ticket_in: Ticket) -> Union[Failure, Success]:
+    def verify_xxx_ticket(self, arbitrary_json: str) -> Union[Failure, Success]:
         logging.info(f"+ {self.device_name} is verifying ticket...")
 
-        # verification_flow = VerificationFlow(self)
-        # verification_flow.verify_ticket_protocol_version(ticket_in)
-        # verification_flow.verify_ticket_type(ticket_in)
-        # verification_flow.verify_device_id(ticket_in, self.device_pub_key_str)
-        # verification_flow.verify_issuer_signature(
-        #     ticket_in, self.owner_pub_key, self.current_holder_pub_key
-        # )
-        # verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
+        # New verification flow
+        recieved_ticket = serialization_util.jsonstr_to_ticket(arbitrary_json)
 
         verification_flow = VerificationFlow(self)
         verification_result = flow(
-            ticket_in,
+            recieved_ticket,
             lambda ticket_in_flow: verification_flow.verify_ticket_protocol_version(
                 ticket_in_flow
             ),
