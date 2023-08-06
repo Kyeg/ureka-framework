@@ -31,7 +31,7 @@ def current_setup_log() -> None:
         logging.info("*" * 50)
 
 
-def test_log() -> None:
+def current_test_log() -> None:
     # Log
     if (
         get_current_function_name() != "_hookexec"

@@ -1,7 +1,7 @@
 from returns.result import Result, Success, Failure
 import pytest
 import logging
-from tests.conftest import current_setup_log, current_teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, current_test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -36,7 +36,7 @@ class TestArbitraryInput:
 
     def test_apply_arbitrary_request(self) -> None:
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
-        test_log()
+        current_test_log()
         test_initialization_request: dict = {
             "device_id": f"",
             "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",

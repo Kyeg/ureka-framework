@@ -1,6 +1,6 @@
 from returns.result import Result, Success, Failure
 import pytest
-from tests.conftest import current_setup_log, current_teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, current_test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -35,7 +35,7 @@ class TestIntializeDevice:
 
     def test_apply_initialization_ticket(self) -> None:
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
-        test_log()
+        current_test_log()
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
@@ -58,7 +58,7 @@ class TestIntializeDevice:
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: DM's CS apply_initialization_ticket() on Initialized IoTD
-        test_log()
+        current_test_log()
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )
@@ -76,7 +76,7 @@ class TestIntializeDevice:
         self.user_agent_do.execute_one_time_intialize_agent_or_server()
 
         # WHEN: DM's CS apply_initialization_ticket() on Initialized UA's Agent
-        test_log()
+        current_test_log()
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "intialization", holder_id=self.cloud_server_dm.device_pub_key_str
         )

@@ -1,7 +1,7 @@
 from returns.result import Result, Success, Failure
 import pytest
 import logging
-from tests.conftest import current_setup_log, current_teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, current_test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -29,7 +29,7 @@ class TestIntializeAgentOrServer:
 
     def test_one_time_intialization_command(self) -> None:
         # WHEN: DM apply one_time_intialization_command() on Uninitialized CS
-        test_log()
+        current_test_log()
         result = self.cloud_server.execute_one_time_intialize_agent_or_server()
 
         # THEN: (A') Initialize DM's CS
@@ -43,7 +43,7 @@ class TestIntializeAgentOrServer:
         self.cloud_server.execute_one_time_intialize_agent_or_server()
 
         # WHEN: DM reboot the CS
-        test_log()
+        current_test_log()
         self.cloud_server.reboot_device()
 
         # THEN: (A') Initialized DM's CS
@@ -56,7 +56,7 @@ class TestIntializeAgentOrServer:
         self.cloud_server.execute_one_time_intialize_agent_or_server()
 
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
-        test_log()
+        current_test_log()
         result = self.cloud_server.execute_one_time_intialize_agent_or_server()
 
         # THEN: (A') Cannot re-initialize DM's CS
@@ -74,7 +74,7 @@ class TestIntializeAgentOrServer:
         )
 
         # WHEN: DM apply one_time_intialization_command() on Initialized CS
-        test_log()
+        current_test_log()
         result = self.iot_device.execute_one_time_intialize_agent_or_server()
 
         # THEN: (A') Cannot initialize IoTD

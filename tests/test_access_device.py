@@ -1,7 +1,7 @@
 from returns.result import Result, Success, Failure
 import pytest
 import logging
-from tests.conftest import current_setup_log, current_teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, current_test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -70,7 +70,7 @@ class TestAccessDevice:
 
     def test_apply_access_permission_ticket(self) -> None:
         # WHEN: apply_access_permission_ticket()
-        test_log()
+        current_test_log()
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
         # -----------------------------------------------------
@@ -134,4 +134,4 @@ class TestAccessDevice:
 
     @pytest.mark.skip(reason="Not Implemented")
     def test_apply_access_permission_ticket_failed(self):
-        test_log()
+        current_test_log()

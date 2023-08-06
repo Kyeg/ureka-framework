@@ -1,7 +1,7 @@
 from returns.result import Result, Success, Failure
 import pytest
 import logging
-from tests.conftest import current_setup_log, current_teardown_log, test_log
+from tests.conftest import current_setup_log, current_teardown_log, current_test_log
 from ureka_framework.controller.device_controller import (
     DeviceController,
 )
@@ -48,7 +48,7 @@ class TestTransferOwnershipDevice:
 
     def test_apply_management_ticket(self) -> None:
         # WHEN: DM's CS apply_management_ticket() on DM's IoTD
-        test_log()
+        current_test_log()
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "management",
             device_priv_key=self.cloud_server_dm.device_priv_key,
@@ -84,7 +84,7 @@ class TestTransferOwnershipDevice:
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # WHEN: DM's CS apply_management_ticket() on DO's IoTD
-        test_log()
+        current_test_log()
         test_ticket = self.cloud_server_dm.ticket_generation_router.generate_xxx_ticket(
             "management",
             device_priv_key=self.cloud_server_dm.device_priv_key,
