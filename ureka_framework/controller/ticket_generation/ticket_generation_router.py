@@ -1,3 +1,4 @@
+import copy
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
@@ -21,22 +22,20 @@ class GenerateXXXTicket(ABC):
     # Add ECC Signature on Ticket
     ######################################################
     def _add_issuer_signature_on_ticket(
-        self, ticket_in: Ticket, private_key: ec.EllipticCurvePrivateKey
+        self, unsigned_ticket: Ticket, private_key: ec.EllipticCurvePrivateKey
     ) -> Ticket:
         # Message
-        message_str = serialization_util.ticket_to_jsonstr(ticket_in)
-        message_byte = serialization_util.str_to_byte(message_str)
+        unsigned_ticket_str = serialization_util.ticket_to_jsonstr(unsigned_ticket)
+        unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
         # Sign Signature
-        signature_byte = ecc.sign_signature(message_byte, private_key)
+        signature_byte = ecc.sign_signature(unsigned_ticket_byte, private_key)
 
-        # Add Signature on Ticket
-        ticket_with_signature = ticket_in
-        ticket_with_signature.issuer_signature = serialization_util.byte_to_str(
-            signature_byte
-        )
+        # Add Signature on New Signed Ticket, but Prevent Side Effect on Unsigned Ticket
+        signed_ticket = copy.deepcopy(unsigned_ticket)
+        signed_ticket.issuer_signature = serialization_util.byte_to_str(signature_byte)
 
-        return ticket_with_signature
+        return signed_ticket
 
 
 # Interface for the Invoker/Router

@@ -1,12 +1,14 @@
 # ECC Serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import load_der_private_key
-from cryptography.hazmat.primitives.serialization import load_der_public_key
-from cryptography.hazmat.primitives.serialization import PrivateFormat
-from cryptography.hazmat.primitives.serialization import PublicFormat
-from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.hazmat.primitives.serialization import NoEncryption
+from cryptography.hazmat.primitives.serialization import (
+    load_der_private_key,
+    load_der_public_key,
+    PrivateFormat,
+    PublicFormat,
+    Encoding,
+    NoEncryption,
+)
 
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.data_model.ticket import Ticket
