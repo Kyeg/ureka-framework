@@ -32,47 +32,47 @@ class TestIntializeAgentOrServer:
         current_test_given_log()
 
         # GIVEN: Uninitialized CS
-        self.cloud_server = DeviceController(
+        self.cloud_server_dm = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="cloud_server",
+            device_name="cloud_server_dm",
         )
 
-        # WHEN: DM apply one_time_intialization_command() on Uninitialized CS
+        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Uninitialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
 
-        # THEN: Initialize DM's CS
+        # THEN: Succeed to initialized DM's CS
         assert type(result) == Success
-        assert self.cloud_server.is_initialized == True
-        assert self.cloud_server.device_priv_key_str != ""
-        assert self.cloud_server.device_pub_key_str != ""
+        assert self.cloud_server_dm.is_initialized == True
+        assert self.cloud_server_dm.device_priv_key_str != ""
+        assert self.cloud_server_dm.device_pub_key_str != ""
 
     def test_intialize_agent_or_server_with_reboot(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
-        self.cloud_server = device_manufacturer_server()
+        self.cloud_server_dm = device_manufacturer_server()
 
         # WHEN: DM reboot the CS
         current_test_when_and_then_log()
-        self.cloud_server.reboot_device()
+        self.cloud_server_dm.reboot_device()
 
-        # THEN: Initialized DM's CS
-        assert self.cloud_server.is_initialized == True
-        assert self.cloud_server.device_priv_key_str != ""
-        assert self.cloud_server.device_pub_key_str != ""
+        # THEN: Still is initialized
+        assert self.cloud_server_dm.is_initialized == True
+        assert self.cloud_server_dm.device_priv_key_str != ""
+        assert self.cloud_server_dm.device_pub_key_str != ""
 
     def test_intialize_agent_or_server_reintialized_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
-        self.cloud_server = device_manufacturer_server()
+        self.cloud_server_dm = device_manufacturer_server()
 
-        # WHEN: DM apply one_time_intialization_command() on Initialized CS
+        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Initialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
 
-        # THEN: Cannot re-initialize DM's CS
+        # THEN: Failed to re-initialize DM's CS
         assert type(result) == Failure
         assert (
             result.failure().args[0]
@@ -88,9 +88,9 @@ class TestIntializeAgentOrServer:
             device_name="iot_device",
         )
 
-        # WHEN: DM apply one_time_intialization_command() on Initialized IoTD
+        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on IoTD
         current_test_when_and_then_log()
         result = self.iot_device.execute_one_time_intialize_agent_or_server()
 
-        # THEN: Cannot initialize IoTD
+        # THEN: Failed to initialize IoTD
         assert type(result) == Failure

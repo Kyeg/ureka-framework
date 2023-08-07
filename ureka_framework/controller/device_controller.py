@@ -33,7 +33,7 @@ class DeviceController:
 
         # Current Session (RAM-only)
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
-        self.current_session_key_byte: bytes = None
+        self.current_session_key_byte: bytes = b""
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)

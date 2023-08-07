@@ -1,4 +1,3 @@
-import logging
 from returns.result import Result, Success, Failure
 import pytest
 from tests.conftest import (
@@ -42,7 +41,7 @@ class TestAccessDevice:
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
-        # WHEN: apply_access_permission_ticket()
+        # WHEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
         #     - (->) Access Permission Ticket (->)
@@ -100,16 +99,59 @@ class TestAccessDevice:
         test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
         result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
-        # THEN: EP's CS can Limitedly Access DO's IoTD
+        # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         assert type(result) == Success
+        # THEN: Still DO's IoTD
         assert (
             self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
         )
+        # THEN: EP's CS can open a session with DO's IoTD
         assert (
             self.iot_device.current_session_key_byte
             == self.cloud_server_ep.current_session_key_byte
         )
 
-    @pytest.mark.skip(reason="Not Implemented")
-    def test_apply_access_permission_ticket_failed(self):
+    def test_apply_access_permission_ticket_wrong_owner_failed(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.cloud_server_dm,
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # GIVEN: Initialized EP's CS
+        self.cloud_server_ep = enterprise_provider_server()
+
+        # WHEN: DO's UA do not allow EP's CS to apply_access_permission_ticket() on DO's IoTD
         current_test_when_and_then_log()
+        # -----------------------------------------------------
+        #     - (->) Access Permission Ticket (->)
+        # -----------------------------------------------------
+        permission_resource_tree = serialization_util.dict_to_jsonstr(
+            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+        )
+        task_scope = serialization_util.dict_to_jsonstr(
+            {
+                ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
+            }
+        )
+        test_request: dict = {
+            "device_id": f"{self.iot_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
+            "task_scope": f"{task_scope}",
+        }
+        test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
+
+        # THEN: Failed to allow EP's CS Access DO's IoTD
+        assert type(result) == Failure
+        # THEN: Still DO's IoTD
+        assert (
+            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+        )
+        # THEN: EP's CS cannot open a session with DO's IoTD
+        assert self.iot_device.current_session_key_byte == b""

@@ -52,7 +52,7 @@ class TestIntializeDevice:
         test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
-        # THEN: Initialized DM's IoTD
+        # THEN: Succeed to initialize DM's IoTD
         assert type(result) == Success
         assert self.iot_device.is_initialized == True
         assert self.iot_device.device_priv_key_str != ""
@@ -81,7 +81,7 @@ class TestIntializeDevice:
         test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
-        # THEN: Cannot re-initialize DM's IoTD
+        # THEN: Failed to re-initialize DM's IoTD
         assert type(result) == Failure
 
     def test_apply_initialization_ticket_to_agent_or_server_failed(self) -> None:
@@ -90,13 +90,13 @@ class TestIntializeDevice:
         # GIVEN: Initialized DM's CS
         self.cloud_server_dm = device_manufacturer_server()
 
-        # GIVEN: Uninitialized Agent
+        # GIVEN: Uninitialized UA
         self.user_agent = DeviceController(
             device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="user_agent",
         )
 
-        # WHEN: DM's CS apply_initialization_ticket() on Initialized UA's Agent
+        # WHEN: DM's CS apply_initialization_ticket() on UA
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
@@ -107,5 +107,5 @@ class TestIntializeDevice:
         test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         result = self.user_agent.verify_xxx_ticket(test_ticket)
 
-        # THEN: Cannot initialize CS or UA
+        # THEN: Failed to initialize UA
         assert type(result) == Failure
