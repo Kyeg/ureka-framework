@@ -1,14 +1,8 @@
 from returns.pipeline import flow, pipe
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.controller.ticket_generation.ticket_generation_router import (
-    TicketGenerationRouter,
-    GenerateAccessPermissionTicket,
-    GenerateChallengeTicket,
-    GenerateInitializationTicket,
-    GenerateKeyExchangeTicket,
-    GenerateManagementTicket,
-    GenerateResponseTicket,
+from ureka_framework.controller.ticket_generation.ticket_generation_flow import (
+    GenerationFlow,
 )
 from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
     VerificationFlow,
@@ -21,7 +15,6 @@ import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey, EllipticCurvePublicKey
 from typing import Union
 
 
@@ -40,11 +33,7 @@ class DeviceController:
 
         # Current Session (RAM-only)
         self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
-        self.current_session_key_byte: bytes = None
-
-        # Set Ticket Generation Router based on Ticket Protocol
-        self.ticket_generation_router: TicketGenerationRouter = None
-        self.set_ticket_generation_route()
+        self.current_session_key_byte: bytes = b""
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
@@ -65,6 +54,8 @@ class DeviceController:
             self.execute_one_time_set_time_device_type_and_name(
                 device_type, device_name
             )
+
+        logging.info(f"+ Here is a {self.device_name}...")
 
     @property
     def device_priv_key_str(self) -> str:
@@ -90,6 +81,14 @@ class DeviceController:
             self.owner_pub_key, key_type="ecc-public-key"
         )
 
+    @property
+    def current_holder_pub_key_str(self) -> str:
+        if self.current_holder_pub_key is None:
+            return ""
+        return serialization_util.key_to_str(
+            self.current_holder_pub_key, key_type="ecc-public-key"
+        )
+
     ######################################################
     # Device Activity Cycle
     ######################################################
@@ -99,67 +98,46 @@ class DeviceController:
     ######################################################
     # Generate Different Ticket Types
     ######################################################
-    def set_ticket_generation_route(self) -> None:
-        self.ticket_generation_router = TicketGenerationRouter()
-        self.ticket_generation_router.add_ticket_type(
-            "intialization", GenerateInitializationTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "management", GenerateManagementTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "access_permission",
-            GenerateAccessPermissionTicket(self),
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "challenge", GenerateChallengeTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "response", GenerateResponseTicket(self)
-        )
-        self.ticket_generation_router.add_ticket_type(
-            "key_exchange", GenerateKeyExchangeTicket(self)
-        )
+    def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
+        logging.info(f"+ {self.device_name} is generating ticket...")
+
+        generation_flow = GenerationFlow(self)
+        new_ticket_json = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
+
+        return new_ticket_json
 
     ######################################################
     # Verify Different Ticket Types
     ######################################################
-    def verify_xxx_ticket(self, ticket_in: Ticket) -> Union[Failure, Success]:
+    def verify_xxx_ticket(self, arbitrary_json: str) -> Union[Failure, Success]:
         logging.info(f"+ {self.device_name} is verifying ticket...")
 
-        # verification_flow = VerificationFlow(self)
-        # verification_flow.verify_ticket_protocol_version(ticket_in)
-        # verification_flow.verify_ticket_type(ticket_in)
-        # verification_flow.verify_device_id(ticket_in, self.device_pub_key_str)
-        # verification_flow.verify_issuer_signature(
-        #     ticket_in, self.owner_pub_key, self.current_holder_pub_key
-        # )
-        # verification_flow.execute_ticket_operation(ticket_in, self.device_priv_key)
-
+        # New verification flow
         verification_flow = VerificationFlow(self)
         verification_result = flow(
-            ticket_in,
-            lambda ticket_in_flow: verification_flow.verify_ticket_protocol_version(
-                ticket_in_flow
+            arbitrary_json,
+            lambda arbitrary_json: verification_flow.verify_ticket_schema(
+                arbitrary_json
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_ticket_type(
-                    ticket_in_flow
+                lambda ticket_obj: verification_flow.verify_ticket_protocol_version(
+                    ticket_obj
+                )
+            ),
+            bind(lambda ticket_obj: verification_flow.verify_ticket_type(ticket_obj)),
+            bind(
+                lambda ticket_obj: verification_flow.verify_device_id(
+                    ticket_obj, self.device_pub_key_str
                 )
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_device_id(
-                    ticket_in_flow, self.device_pub_key_str
+                lambda ticket_obj: verification_flow.verify_issuer_signature(
+                    ticket_obj, self.owner_pub_key, self.current_holder_pub_key
                 )
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_issuer_signature(
-                    ticket_in_flow, self.owner_pub_key, self.current_holder_pub_key
-                )
-            ),
-            bind(
-                lambda ticket_in_flow: verification_flow.execute_ticket_operation(
-                    ticket_in_flow, self.device_priv_key
+                lambda ticket_obj: verification_flow.execute_ticket_operation(
+                    ticket_obj, self.device_priv_key
                 )
             ),
         )
@@ -224,7 +202,9 @@ class DeviceController:
     ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
     ######################################################
-    def execute_one_time_initialize_iot_device(self, new_ticket: Ticket) -> Union[Failure, Success]:
+    def execute_one_time_initialize_iot_device(
+        self, new_ticket: Ticket
+    ) -> Union[Failure, Success]:
         logging.info(f"+ {self.device_name} is intializing...")
 
         if self.device_type != ticket.IOT_DEVICE:

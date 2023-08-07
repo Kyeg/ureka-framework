@@ -6,4 +6,6 @@ pygal
 pyclean
 monkeytype
 mypy
+returns
+pydantic
 cryptography
