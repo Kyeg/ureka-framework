@@ -3,6 +3,7 @@ import logging
 from ureka_framework.controller.device_controller import DeviceController
 from ureka_framework.data_model import ticket
 from ureka_framework.resource.crypto import serialization_util
+from typing import Tuple
 
 
 ######################################################
@@ -88,7 +89,7 @@ def device_owner_agent() -> None:
     return user_agent_do
 
 
-def enterprise_provider_server():
+def enterprise_provider_server() -> DeviceController:
     # GIVEN: Initialized EP's CS
     cloud_server_ep = DeviceController(
         device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
@@ -99,7 +100,18 @@ def enterprise_provider_server():
     return cloud_server_ep
 
 
-def device_manufacturer_server_and_her_device():
+def attacker_server() -> DeviceController:
+    # GIVEN: Initialized ATK's CS
+    cloud_server_atk = DeviceController(
+        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="cloud_server_atk",
+    )
+    cloud_server_atk.execute_one_time_intialize_agent_or_server()
+
+    return cloud_server_atk
+
+
+def device_manufacturer_server_and_her_device() -> Tuple[DeviceController, DeviceController]:
     # GIVEN: Initialized DM's CS
     cloud_server_dm = device_manufacturer_server()
 
@@ -120,7 +132,7 @@ def device_manufacturer_server_and_her_device():
     return (cloud_server_dm, iot_device)
 
 
-def device_owner_agent_and_her_device():
+def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceController]:
     # GIVEN: Initialized DM's CS and DM's IoTD
     (
         cloud_server_dm,
@@ -144,7 +156,20 @@ def device_owner_agent_and_her_device():
     test_ticket: str = cloud_server_dm.generate_xxx_ticket(test_request)
     iot_device.verify_xxx_ticket(test_ticket)
 
-    return (cloud_server_dm, user_agent_do, iot_device)
+    return (user_agent_do, iot_device)
+
+
+def device_owner_agent_and_her_device_and_attacker() -> Tuple[DeviceController, DeviceController, DeviceController]:
+    # GIVEN: Initialized DO's UA and DO's IoTD
+    (
+        user_agent_do,
+        iot_device,
+    ) = device_owner_agent_and_her_device()
+
+    # GIVEN: Initialized ATK's CS
+    cloud_server_atk = attacker_server()
+
+    return (user_agent_do, iot_device, cloud_server_atk)
 
 
 ######################################################

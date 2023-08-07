@@ -76,8 +76,9 @@ def key_to_byte(
     elif key_type == "ecc-private-key":
         return key_obj.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
     else:
-        logging.info("Only support key_type = [ecc-public-key] or [ecc-private-key]")
-        return b""
+        failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
+        logging.error(failure_msg)
+        raise RuntimeError(failure_msg)
 
 
 def byte_to_key(
@@ -88,8 +89,9 @@ def byte_to_key(
     elif key_type == "ecc-private-key":
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
-        logging.info("Only support key_type = [ecc-public-key] or [ecc-private-key]")
-        return None
+        failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
+        logging.info(failure_msg)
+        raise RuntimeError(failure_msg)
 
 
 def key_to_str(
@@ -146,13 +148,21 @@ def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
 
 
 def jsonstr_to_ticket(json_str: str) -> Ticket:
-    return json.loads(json_str, object_hook=_dict_to_ticket)
+    try:
+        return json.loads(json_str, object_hook=_dict_to_ticket)
+    except json.JSONDecodeError:
+        # logging.error("NOT VALID JSON")
+        raise RuntimeError("NOT VALID JSON")
 
 
 # sort_keys = True
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
-    # separators = (", ", ": ") in default
-    return json.dumps(ticket_obj, default=_ticket_to_dict, sort_keys=True)
+    # "indent" do not affect json validation, but may affect json size!?
+    try:
+        return json.dumps(ticket_obj, indent=4, default=_ticket_to_dict, sort_keys=True)
+    except TypeError:
+        # logging.error("NOT VALID TICKET")
+        raise RuntimeError("NOT VALID TICKET")
 
 
 def jsonstr_to_dict(json_str: str) -> Dict[str, str]:

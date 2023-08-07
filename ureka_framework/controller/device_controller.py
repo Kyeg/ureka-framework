@@ -81,6 +81,14 @@ class DeviceController:
             self.owner_pub_key, key_type="ecc-public-key"
         )
 
+    @property
+    def current_holder_pub_key_str(self) -> str:
+        if self.current_holder_pub_key is None:
+            return ""
+        return serialization_util.key_to_str(
+            self.current_holder_pub_key, key_type="ecc-public-key"
+        )
+
     ######################################################
     # Device Activity Cycle
     ######################################################

@@ -1,4 +1,5 @@
 import copy
+import json
 from returns.result import Result, Success, Failure
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
@@ -28,11 +29,11 @@ class VerificationFlow:
             return Success(ticket_in)
         except RuntimeError as error:
             logging.error(f"{failure_msg}: {error}")
-            return Failure(RuntimeError(failure_msg))
+            return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
     def verify_ticket_protocol_version(self, ticket_in: Ticket) -> Success:
-        success_msg = "-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION"
-        failure_msg = "-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION"
+        success_msg = f"-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION = {ticket_in.ticket_protocol_verision}"
+        failure_msg = f"-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION = {ticket_in.ticket_protocol_verision}"
 
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
             logging.info(success_msg)
@@ -53,8 +54,8 @@ class VerificationFlow:
             return Failure(RuntimeError(failure_msg))
 
     def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> Success:
-        success_msg = "-> SUCCESS: VERIFY_DEVICE_ID"
-        failure_msg = "-> FAILURE: VERIFY_DEVICE_ID"
+        success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {ticket_in.device_id}"
+        failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {ticket_in.device_id}"
 
         if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
             # No need to verify DEVICE_ID
@@ -121,6 +122,14 @@ class VerificationFlow:
             return Success(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
             # To-Do: Need to check whether the CHALLENGE in the RESPONSE_TICKET is correct
+
+            # Check the ticket holder is allowed by owner (in access permission ticket)
+            if self.device_controller.current_holder_pub_key_str != ticket_in.holder_id:
+                logging.error(failure_msg)
+                logging.error("-> FAILURE: ERROR HOLDER_ID")
+                return Failure(RuntimeError(failure_msg))
+
+            # To-Do: Authenticate the ticket holder
             if self._verify_issuer_signature_on_ticket(
                 ticket_in, current_holder_pub_key
             ):
@@ -128,12 +137,14 @@ class VerificationFlow:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
+                logging.error("-> FAILURE: ERROR AUTHENTICATION")
                 return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(ticket_in)
         else:
+            # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
@@ -174,6 +185,7 @@ class VerificationFlow:
             # To-Do: Create Session
             # To-Do: Auto-Generate Command Ticket
         else:
+            # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
@@ -203,6 +215,7 @@ class VerificationFlow:
                 signature_byte, unsigned_ticket_byte, public_key
             )
 
+        # To-Do: Test this case
         except AttributeError:
             logging.error("FAILURE: NO SIGNATURE")
             return False
