@@ -17,6 +17,19 @@ class VerificationFlow:
     ######################################################
     # Message Verification Flow
     ######################################################
+    def verify_ticket_schema(self, arbitrary_json: str) -> Success:
+        success_msg = "-> SUCCESS: VERIFY_TICKET_SCHEMA"
+        failure_msg = "-> FAILURE: VERIFY_TICKET_SCHEMA"
+
+        try:
+            ticket_in: Ticket = serialization_util.jsonstr_to_ticket(arbitrary_json)
+
+            logging.info(success_msg)
+            return Success(ticket_in)
+        except RuntimeError as error:
+            logging.error(f"{failure_msg}: {error}")
+            return Failure(RuntimeError(failure_msg))
+
     def verify_ticket_protocol_version(self, ticket_in: Ticket) -> Success:
         success_msg = "-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION"
         failure_msg = "-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION"
@@ -24,11 +37,9 @@ class VerificationFlow:
         if ticket_in.ticket_protocol_verision == ticket.TICKET_PROTOCOL_VERSION:
             logging.info(success_msg)
             return Success(ticket_in)
-            # return ticket_in
         else:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
-            # return ticket_in
 
     def verify_ticket_type(self, ticket_in: Ticket) -> Success:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
@@ -37,11 +48,9 @@ class VerificationFlow:
         if ticket_in.ticket_type in ticket.LEGAL_TICKET_TYPES:
             logging.info(success_msg)
             return Success(ticket_in)
-            # return ticket_in
         else:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
-            # return ticket_in
 
     def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> Success:
         success_msg = "-> SUCCESS: VERIFY_DEVICE_ID"
@@ -59,16 +68,13 @@ class VerificationFlow:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(ticket_in)
-            # return ticket_in
         else:
             if ticket_in.device_id == device_pub_key_str:
                 logging.info(success_msg)
                 return Success(ticket_in)
-                # return ticket_in
             else:
                 logging.error(failure_msg)
                 return Failure(RuntimeError(failure_msg))
-                # return ticket_in
 
     def verify_issuer_signature(
         self,

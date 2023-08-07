@@ -55,6 +55,8 @@ class DeviceController:
                 device_type, device_name
             )
 
+        logging.info(f"+ Here is a {self.device_name}...")
+
     @property
     def device_priv_key_str(self) -> str:
         if self.device_priv_key is None:
@@ -103,32 +105,31 @@ class DeviceController:
         logging.info(f"+ {self.device_name} is verifying ticket...")
 
         # New verification flow
-        recieved_ticket = serialization_util.jsonstr_to_ticket(arbitrary_json)
-
         verification_flow = VerificationFlow(self)
         verification_result = flow(
-            recieved_ticket,
-            lambda ticket_in_flow: verification_flow.verify_ticket_protocol_version(
-                ticket_in_flow
+            arbitrary_json,
+            lambda arbitrary_json: verification_flow.verify_ticket_schema(
+                arbitrary_json
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_ticket_type(
-                    ticket_in_flow
+                lambda ticket_obj: verification_flow.verify_ticket_protocol_version(
+                    ticket_obj
+                )
+            ),
+            bind(lambda ticket_obj: verification_flow.verify_ticket_type(ticket_obj)),
+            bind(
+                lambda ticket_obj: verification_flow.verify_device_id(
+                    ticket_obj, self.device_pub_key_str
                 )
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_device_id(
-                    ticket_in_flow, self.device_pub_key_str
+                lambda ticket_obj: verification_flow.verify_issuer_signature(
+                    ticket_obj, self.owner_pub_key, self.current_holder_pub_key
                 )
             ),
             bind(
-                lambda ticket_in_flow: verification_flow.verify_issuer_signature(
-                    ticket_in_flow, self.owner_pub_key, self.current_holder_pub_key
-                )
-            ),
-            bind(
-                lambda ticket_in_flow: verification_flow.execute_ticket_operation(
-                    ticket_in_flow, self.device_priv_key
+                lambda ticket_obj: verification_flow.execute_ticket_operation(
+                    ticket_obj, self.device_priv_key
                 )
             ),
         )

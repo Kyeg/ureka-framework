@@ -145,7 +145,7 @@ def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     return ticket_obj.__dict__
 
 
-def jsonstr_to_ticket(json_str):
+def jsonstr_to_ticket(json_str: str) -> Ticket:
     return json.loads(json_str, object_hook=_dict_to_ticket)
 
 
