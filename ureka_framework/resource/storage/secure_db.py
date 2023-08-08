@@ -5,7 +5,6 @@ import errno
 
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 from cryptography.hazmat.primitives.asymmetric import ec
-from typing import Tuple
 import logging
 
 
@@ -15,15 +14,19 @@ class SecureDB:
 
     # Instance Variables
     def __init__(self, device_name: str = "") -> None:
-        self.device_controller_path: str = self.secure_db_path + "/" + device_name
-
+        # Device
+        self.path_device_controller: str = self.secure_db_path + "/" + device_name
         self.path_has_device_type: str = "/HasDeviceType/HasDeviceType.txt"
         self.path_is_initialized: str = "/IsInitialized/IsInitialized.txt"
         self.path_device_type: str = "/DeviceType/DeviceType.txt"
         self.path_device_name: str = "/DeviceName/DeviceName.txt"
-        self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
-        self.path_device_pub: str = "/DeviceKey/PublicKey.key"
-        self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
+        self.path_device_priv: str = "/DevicePrivateKey/DevicePrivateKey.key"
+        self.path_device_pub: str = "/DevicePublicKey/DevicePublicKey.key"
+        self.path_owner_pub: str = "/OwnerPublicKey/OwnerPublicKey.key"
+
+        # Person
+        self.path_person_priv: str = "/PersonPrviateKey/PersonPrviateKey.key"
+        self.path_person_pub: str = "/PersonPublicKey/PersonPublicKey.key"
 
     ######################################################
     # Device Storage
@@ -36,6 +39,8 @@ class SecureDB:
         device_priv_key: ec.EllipticCurvePrivateKey = None
         device_pub_key: ec.EllipticCurvePublicKey = None
         owner_pub_key: ec.EllipticCurvePublicKey = None
+        person_priv_key: ec.EllipticCurvePrivateKey = None
+        person_pub_key: ec.EllipticCurvePublicKey = None
 
         if self._check_file_exist(self.path_has_device_type):
             has_device_type = True
@@ -64,6 +69,17 @@ class SecureDB:
                 self._load_bytes_file(self.path_owner_pub), key_type="ecc-public-key"
             )
 
+        if self._check_file_exist(self.path_person_priv):
+            if self._check_file_exist(self.path_person_pub):
+                person_priv_key = serialization_util.byte_to_key(
+                    self._load_bytes_file(self.path_person_priv),
+                    key_type="ecc-private-key",
+                )
+                person_pub_key = serialization_util.byte_to_key(
+                    self._load_bytes_file(self.path_person_pub),
+                    key_type="ecc-public-key",
+                )
+
         return (
             has_device_type,
             is_initialized,
@@ -72,6 +88,8 @@ class SecureDB:
             device_priv_key,
             device_pub_key,
             owner_pub_key,
+            person_priv_key,
+            person_pub_key,
         )
 
     # Teardown - Development Only Function
@@ -114,13 +132,22 @@ class SecureDB:
     def store_owner_id(self, owner_pub_key_byte: bytes) -> None:
         self._store_bytes_file(self.path_owner_pub, owner_pub_key_byte)
 
+    # Initialization
+    def store_person_id(
+        self,
+        person_priv_key_byte: bytes,
+        person_pub_key_byte: bytes,
+    ) -> None:
+        self._store_bytes_file(self.path_person_priv, person_priv_key_byte)
+        self._store_bytes_file(self.path_person_pub, person_pub_key_byte)
+
     ######################################################
     # File I/O (byte)
     ######################################################
 
     def _load_bytes_file(self, relative_path: str) -> bytes:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if self._check_file_exist(relative_path):
             # Open and read file
@@ -132,7 +159,7 @@ class SecureDB:
 
     def _load_str_file(self, relative_path: str) -> str:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if self._check_file_exist(relative_path):
             # Open and read file
@@ -144,7 +171,7 @@ class SecureDB:
 
     def _store_bytes_file(self, relative_path: str, data: bytes) -> None:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         # mkdir if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -161,7 +188,7 @@ class SecureDB:
 
     def _store_str_file(self, relative_path: str, data: str) -> None:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         # mkdir if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -178,7 +205,7 @@ class SecureDB:
 
     def _check_file_exist(self, relative_path: str) -> bool:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if os.path.exists(os.path.dirname(abs_path)):
             return True
