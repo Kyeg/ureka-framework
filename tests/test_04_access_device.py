@@ -36,8 +36,8 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
-        assert self.iot_device.current_holder_pub_key_str == ""
-        assert self.iot_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_holder_pub_key_str == ""
+        assert self.iot_device.this_device.current_session_key_byte == b""
 
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -56,8 +56,8 @@ class TestAccessDevice:
             }
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -68,8 +68,8 @@ class TestAccessDevice:
         #     - (<-) Challenge Ticket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_CHALLENGE_TICKET}",
             "task_scope": f"",
         }
@@ -80,8 +80,8 @@ class TestAccessDevice:
         #     - (->) Repsonse Ticket (->)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_RESPONSE_TICKET}",
             "task_scope": f"",
         }
@@ -92,8 +92,8 @@ class TestAccessDevice:
         #     - (<-) Key-exchange Ticket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_KEY_EXCHANGE_TICKET}",
             "task_scope": f"",
         }
@@ -104,16 +104,17 @@ class TestAccessDevice:
         assert type(result) == Success
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: EP's CS can open a session with DO's IoTD
         assert (
-            self.iot_device.current_holder_pub_key_str
-            == self.cloud_server_ep.device_pub_key_str
+            self.iot_device.this_device.current_holder_pub_key_str
+            == self.cloud_server_ep.this_device.device_pub_key_str
         )
         assert (
-            self.iot_device.current_session_key_byte
-            == self.cloud_server_ep.current_session_key_byte
+            self.iot_device.this_device.current_session_key_byte
+            == self.cloud_server_ep.this_device.current_session_key_byte
         )
 
     def test_apply_access_permission_ticket_wrong_owner_failed(self) -> None:
@@ -142,8 +143,8 @@ class TestAccessDevice:
             }
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -154,10 +155,11 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: EP's CS cannot open a session with DO's IoTD
-        assert self.iot_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_session_key_byte == b""
 
     def test_apply_access_permission_ticket_unauthorized_holder_failed(self) -> None:
         current_test_given_log()
@@ -189,8 +191,8 @@ class TestAccessDevice:
             }
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -201,8 +203,8 @@ class TestAccessDevice:
         #     - (<-) Challenge Ticket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_atk.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_CHALLENGE_TICKET}",
             "task_scope": f"",
         }
@@ -213,8 +215,8 @@ class TestAccessDevice:
         #     - (->) Repsonse Ticket (->)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_atk.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_RESPONSE_TICKET}",
             "task_scope": f"",
         }
@@ -225,10 +227,11 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
-        assert self.iot_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_session_key_byte == b""
 
     @pytest.mark.skip(reason="Not implemented yet")
     def test_apply_access_permission_ticket_unauthenticated_holder_failed(self) -> None:

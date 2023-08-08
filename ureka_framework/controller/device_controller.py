@@ -1,4 +1,4 @@
-from returns.pipeline import flow, pipe
+from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
 from ureka_framework.controller.ticket_generation.ticket_generation_flow import (
@@ -7,6 +7,7 @@ from ureka_framework.controller.ticket_generation.ticket_generation_flow import 
 from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
     VerificationFlow,
 )
+from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.storage.secure_db import SecureDB
@@ -19,86 +20,47 @@ import logging
 
 class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
-        # Device Type (Device can be User Agent, Cloud Server, or IoT Device...)
-        self.device_type: str = ""
-        self.device_name: str = ""
-        self.has_device_type: bool = False
-
-        # Generate Keys after Intialization
-        self.is_initialized: bool = False
-        self.device_priv_key: ec.EllipticCurvePrivateKey = None
-        self.device_pub_key: ec.EllipticCurvePublicKey = None
-        self.owner_pub_key: ec.EllipticCurvePublicKey = None
-
-        # Current Session (RAM-only)
-        self.current_holder_pub_key: ec.EllipticCurvePublicKey = None
-        self.current_session_key_byte: bytes = b""
+        # Device State
+        self.this_device = ThisDevice()
+        # WIP
+        # self.this_person = ThisPerson()
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
 
         # Always load SecureDB after Reboot
         (
-            self.has_device_type,
-            self.is_initialized,
-            self.device_type,
-            self.device_name,
-            self.device_priv_key,
-            self.device_pub_key,
-            self.owner_pub_key,
+            self.this_device.has_device_type,
+            self.this_device.is_initialized,
+            self.this_device.device_type,
+            self.this_device.device_name,
+            self.this_device.device_priv_key,
+            self.this_device.device_pub_key,
+            self.this_device.owner_pub_key,
         ) = self.secure_db.load_secure_db()
 
         # Set Device Type
-        if self.has_device_type is False:
+        if self.this_device.has_device_type is False:
             self.execute_one_time_set_time_device_type_and_name(
                 device_type, device_name
             )
 
-        logging.info(f"+ Here is a {self.device_name}...")
-
-    @property
-    def device_priv_key_str(self) -> str:
-        if self.device_priv_key is None:
-            return ""
-        return serialization_util.key_to_str(
-            self.device_priv_key, key_type="ecc-private-key"
-        )
-
-    @property
-    def device_pub_key_str(self) -> str:
-        if self.device_pub_key is None:
-            return ""
-        return serialization_util.key_to_str(
-            self.device_pub_key, key_type="ecc-public-key"
-        )
-
-    @property
-    def owner_pub_key_str(self) -> str:
-        if self.owner_pub_key is None:
-            return ""
-        return serialization_util.key_to_str(
-            self.owner_pub_key, key_type="ecc-public-key"
-        )
-
-    @property
-    def current_holder_pub_key_str(self) -> str:
-        if self.current_holder_pub_key is None:
-            return ""
-        return serialization_util.key_to_str(
-            self.current_holder_pub_key, key_type="ecc-public-key"
-        )
+        logging.info(f"+ Here is a {self.this_device.device_name}...")
 
     ######################################################
     # Device Activity Cycle
     ######################################################
     def reboot_device(self) -> None:
-        self.__init__(device_type=self.device_type, device_name=self.device_name)
+        self.__init__(
+            device_type=self.this_device.device_type,
+            device_name=self.this_device.device_name,
+        )
 
     ######################################################
     # Generate Different Ticket Types
     ######################################################
     def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
-        logging.info(f"+ {self.device_name} is generating ticket...")
+        logging.info(f"+ {self.this_device.device_name} is generating ticket...")
 
         generation_flow = GenerationFlow(self)
         new_ticket_json = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
@@ -109,7 +71,7 @@ class DeviceController:
     # Verify Different Ticket Types
     ######################################################
     def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
-        logging.info(f"+ {self.device_name} is verifying ticket...")
+        logging.info(f"+ {self.this_device.device_name} is verifying ticket...")
 
         # New verification flow
         verification_flow = VerificationFlow(self)
@@ -126,17 +88,19 @@ class DeviceController:
             bind(lambda ticket_obj: verification_flow.verify_ticket_type(ticket_obj)),
             bind(
                 lambda ticket_obj: verification_flow.verify_device_id(
-                    ticket_obj, self.device_pub_key_str
+                    ticket_obj, self.this_device.device_pub_key_str
                 )
             ),
             bind(
                 lambda ticket_obj: verification_flow.verify_issuer_signature(
-                    ticket_obj, self.owner_pub_key, self.current_holder_pub_key
+                    ticket_obj,
+                    self.this_device.owner_pub_key,
+                    self.this_device.current_holder_pub_key,
                 )
             ),
             bind(
                 lambda ticket_obj: verification_flow.execute_ticket_operation(
-                    ticket_obj, self.device_priv_key
+                    ticket_obj, self.this_device.device_priv_key
                 )
             ),
         )
@@ -150,9 +114,9 @@ class DeviceController:
     ) -> bool:
         # Determine device type name, but still be uninitialized
         # Determine device name (for test)
-        self.is_initialized = False
-        self.device_type = device_type
-        self.device_name = device_name
+        self.this_device.is_initialized = False
+        self.this_device.device_type = device_type
+        self.this_device.device_name = device_name
 
         # DB
         self.secure_db.store_device_type_and_name(device_type, device_name)
@@ -165,14 +129,14 @@ class DeviceController:
     def execute_one_time_intialize_agent_or_server(
         self,
     ) -> Result[None, RuntimeError]:
-        logging.info(f"+ {self.device_name} is initializing...")
+        logging.info(f"+ {self.this_device.device_name} is initializing...")
 
-        if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
+        if self.this_device.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
             failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-        if self.is_initialized:
+        if self.this_device.is_initialized:
             failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -186,11 +150,11 @@ class DeviceController:
         (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
 
         # RAM
-        self.is_initialized = True
-        self.device_priv_key = serialization_util.byte_to_key(
+        self.this_device.is_initialized = True
+        self.this_device.device_priv_key = serialization_util.byte_to_key(
             device_priv_key_byte, key_type="ecc-private-key"
         )
-        self.device_pub_key = serialization_util.byte_to_key(
+        self.this_device.device_pub_key = serialization_util.byte_to_key(
             device_pub_key_byte, key_type="ecc-public-key"
         )
 
@@ -206,16 +170,16 @@ class DeviceController:
     def execute_one_time_initialize_iot_device(
         self, new_ticket: Ticket
     ) -> Result[None, RuntimeError]:
-        logging.info(f"+ {self.device_name} is intializing...")
+        logging.info(f"+ {self.this_device.device_name} is intializing...")
 
-        if self.device_type != ticket.IOT_DEVICE:
+        if self.this_device.device_type != ticket.IOT_DEVICE:
             failure_msg = (
                 "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
             )
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-        if self.is_initialized:
+        if self.this_device.is_initialized:
             failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -229,11 +193,11 @@ class DeviceController:
         (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
 
         # RAM
-        self.is_initialized = True
-        self.device_priv_key = serialization_util.byte_to_key(
+        self.this_device.is_initialized = True
+        self.this_device.device_priv_key = serialization_util.byte_to_key(
             device_priv_key_byte, key_type="ecc-private-key"
         )
-        self.device_pub_key = serialization_util.byte_to_key(
+        self.this_device.device_pub_key = serialization_util.byte_to_key(
             device_pub_key_byte, key_type="ecc-public-key"
         )
 
@@ -246,7 +210,9 @@ class DeviceController:
         ######################################################
 
         # RAM
-        self.owner_pub_key = serialization_util.str_to_key(new_ticket.holder_id)
+        self.this_device.owner_pub_key = serialization_util.str_to_key(
+            new_ticket.holder_id
+        )
 
         # DB
         owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
@@ -255,7 +221,7 @@ class DeviceController:
         return Success(None)
 
     def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
-        logging.info(f"+ {self.device_name} is transferring ownership...")
+        logging.info(f"+ {self.this_device.device_name} is transferring ownership...")
 
         ######################################################
         # Decode Request Body
@@ -272,7 +238,7 @@ class DeviceController:
             == ticket.MANAGEMENT_OWNER
         ):
             # RAM
-            self.owner_pub_key = serialization_util.str_to_key(
+            self.this_device.owner_pub_key = serialization_util.str_to_key(
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 
@@ -289,10 +255,12 @@ class DeviceController:
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
     ) -> Result[None, RuntimeError]:
-        logging.info(f"+ {self.device_name} is updating current holder pub key...")
+        logging.info(
+            f"+ {self.this_device.device_name} is updating current holder pub key..."
+        )
 
         # RAM
-        self.current_holder_pub_key = new_current_holder_pub_key
+        self.this_device.current_holder_pub_key = new_current_holder_pub_key
 
         return Success(None)
 
@@ -303,17 +271,19 @@ class DeviceController:
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
     ) -> Result[None, RuntimeError]:
-        logging.info(f"+ {self.device_name} is updating current session key byte...")
+        logging.info(
+            f"+ {self.this_device.device_name} is updating current session key byte..."
+        )
 
         # RAM
-        self.current_session_key_byte = ecdh.generate_ecdh_key(
+        self.this_device.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
             salt=salt_byte,
             info=info_byte,
             peer_public_key=peer_public_key_obj,
         )
         logging.debug(
-            f"current_session_key_byte in {self.device_name}: {str(self.current_session_key_byte)}"
+            f"current_session_key_byte in {self.this_device.device_name}: {str(self.this_device.current_session_key_byte)}"
         )
 
         return Success(None)

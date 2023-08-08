@@ -7,7 +7,6 @@ import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
-from typing import Union
 
 
 class VerificationFlow:
@@ -128,7 +127,10 @@ class VerificationFlow:
             # To-Do: Need to check whether the CHALLENGE in the RESPONSE_TICKET is correct
 
             # Check the ticket holder is allowed by owner (in access permission ticket)
-            if self.device_controller.current_holder_pub_key_str != ticket_in.holder_id:
+            if (
+                self.device_controller.this_device.current_holder_pub_key_str
+                != ticket_in.holder_id
+            ):
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: ERROR HOLDER_ID")
                 return Failure(RuntimeError(failure_msg))

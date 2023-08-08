@@ -5,7 +5,6 @@ import errno
 
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 from cryptography.hazmat.primitives.asymmetric import ec
-from typing import Tuple
 import logging
 
 
@@ -15,8 +14,7 @@ class SecureDB:
 
     # Instance Variables
     def __init__(self, device_name: str = "") -> None:
-        self.device_controller_path: str = self.secure_db_path + "/" + device_name
-
+        self.path_device_controller: str = self.secure_db_path + "/" + device_name
         self.path_has_device_type: str = "/HasDeviceType/HasDeviceType.txt"
         self.path_is_initialized: str = "/IsInitialized/IsInitialized.txt"
         self.path_device_type: str = "/DeviceType/DeviceType.txt"
@@ -120,7 +118,7 @@ class SecureDB:
 
     def _load_bytes_file(self, relative_path: str) -> bytes:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if self._check_file_exist(relative_path):
             # Open and read file
@@ -132,7 +130,7 @@ class SecureDB:
 
     def _load_str_file(self, relative_path: str) -> str:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if self._check_file_exist(relative_path):
             # Open and read file
@@ -144,7 +142,7 @@ class SecureDB:
 
     def _store_bytes_file(self, relative_path: str, data: bytes) -> None:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         # mkdir if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -161,7 +159,7 @@ class SecureDB:
 
     def _store_str_file(self, relative_path: str, data: str) -> None:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         # mkdir if not exist
         if not os.path.exists(os.path.dirname(abs_path)):
@@ -178,7 +176,7 @@ class SecureDB:
 
     def _check_file_exist(self, relative_path: str) -> bool:
         # Get abs file path
-        abs_path = self.device_controller_path + relative_path
+        abs_path = self.path_device_controller + relative_path
 
         if os.path.exists(os.path.dirname(abs_path)):
             return True

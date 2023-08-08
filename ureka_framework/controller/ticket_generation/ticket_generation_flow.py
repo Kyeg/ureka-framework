@@ -35,7 +35,7 @@ class GenerationFlow:
         # Add Signature
         if new_ticket.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
             new_ticket = self._add_issuer_signature_on_ticket(
-                new_ticket, self.device_controller.device_priv_key
+                new_ticket, self.device_controller.this_device.device_priv_key
             )
 
         ######################################################
@@ -44,7 +44,7 @@ class GenerationFlow:
         # Generate session_key (Side Effect)
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             self.device_controller.execute_update_current_session_key_byte(
-                server_private_key_obj=self.device_controller.device_priv_key,
+                server_private_key_obj=self.device_controller.this_device.device_priv_key,
                 salt_byte=random_salt,
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(

@@ -67,7 +67,6 @@ class TestArbitraryInput:
             "task_scope": f"",
         }
         test_ticket: str = self.cloud_server_atk.generate_xxx_ticket(test_request)
-        # logging.warning(f"test_ticket: {test_ticket}")
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
@@ -83,7 +82,6 @@ class TestArbitraryInput:
             "task_scope": f"",
         }
         test_ticket: str = self.cloud_server_atk.generate_xxx_ticket(test_request)
-        # logging.warning(f"test_ticket: {test_ticket}")
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: Fail to do anything on DO's IoTD

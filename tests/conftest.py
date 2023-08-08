@@ -111,7 +111,9 @@ def attacker_server() -> DeviceController:
     return cloud_server_atk
 
 
-def device_manufacturer_server_and_her_device() -> Tuple[DeviceController, DeviceController]:
+def device_manufacturer_server_and_her_device() -> (
+    Tuple[DeviceController, DeviceController]
+):
     # GIVEN: Initialized DM's CS
     cloud_server_dm = device_manufacturer_server()
 
@@ -122,7 +124,7 @@ def device_manufacturer_server_and_her_device() -> Tuple[DeviceController, Devic
     )
     test_request: dict = {
         "device_id": f"",
-        "holder_id": f"{cloud_server_dm.device_pub_key_str}",
+        "holder_id": f"{cloud_server_dm.this_device.device_pub_key_str}",
         "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
         "task_scope": f"",
     }
@@ -148,8 +150,8 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 
     # GIVEN: Initialized DO's IoTD
     test_request: dict = {
-        "device_id": f"{iot_device.device_pub_key_str}",
-        "holder_id": f"{user_agent_do.device_pub_key_str}",
+        "device_id": f"{iot_device.this_device.device_pub_key_str}",
+        "holder_id": f"{user_agent_do.this_device.device_pub_key_str}",
         "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
         "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
     }
@@ -159,7 +161,9 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     return (user_agent_do, iot_device)
 
 
-def device_owner_agent_and_her_device_and_attacker() -> Tuple[DeviceController, DeviceController, DeviceController]:
+def device_owner_agent_and_her_device_and_attacker() -> (
+    Tuple[DeviceController, DeviceController, DeviceController]
+):
     # GIVEN: Initialized DO's UA and DO's IoTD
     (
         user_agent_do,

@@ -46,8 +46,8 @@ class TestTransferOwnershipDevice:
         # WHEN: DM's CS allow DO's UA to apply_management_ticket() on DM's IoTD
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.user_agent_do.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
@@ -57,7 +57,8 @@ class TestTransferOwnershipDevice:
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
         assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_device.device_pub_key_str
         )
 
     def test_apply_management_ticket_wrong_owner_failed(self) -> None:
@@ -75,17 +76,17 @@ class TestTransferOwnershipDevice:
         # WHEN: DO's UA do not allow DM's CS to apply_management_ticket() on DO's IoTD
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_dm.device_pub_key_str}",
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.this_device.device_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
         }
         test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-        logging.warning(f"test_ticket: {test_ticket}")
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure
         assert (
-            self.iot_device.owner_pub_key_str == self.user_agent_do.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_device.device_pub_key_str
         )

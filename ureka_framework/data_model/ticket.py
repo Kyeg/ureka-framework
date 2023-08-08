@@ -1,10 +1,15 @@
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
+
+######################################################
 # Protocol Version
+######################################################
 TICKET_PROTOCOL_VERSION: str = "UREKA-1.0"
 
+######################################################
 # Ticket Type
+######################################################
 TYPE_INITIALIZATION_TICKET: str = "INITIALIZATION"
 # TYPE_QUERY_TICKET: str = "QUERY"
 TYPE_MANAGEMENT_TICKET: str = "MANAGEMENT"
@@ -23,19 +28,28 @@ LEGAL_TICKET_TYPES: {str} = {
     TYPE_KEY_EXCHANGE_TICKET,
 }
 
+######################################################
 # Request Body Type
+######################################################
 REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: str = "MANAGEMENT-TYPE"
 REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: str = "RESOURCE-TREE"
 
-# DEVICE-TYPE
+######################################################
+# Device Type
+######################################################
 USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
 IOT_DEVICE: str = "IOT_DEVICE"
 
-# MANAGEMENT-TYPE
+######################################################
+# Management Type
+######################################################
 MANAGEMENT_OWNER: str = "NEW-OWNER"
 # MANAGEMENT_MANAGER: str = "NEW-MANAGER"
 
 
+######################################################
+# Data Model
+######################################################
 # @dataclass
 class Ticket(BaseModel):
     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
