@@ -18,7 +18,7 @@ class VerificationFlow:
     ######################################################
     # Message Verification Flow
     ######################################################
-    def verify_ticket_schema(self, arbitrary_json: str) -> Success:
+    def verify_ticket_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
         success_msg = "-> SUCCESS: VERIFY_TICKET_SCHEMA"
         failure_msg = "-> FAILURE: VERIFY_TICKET_SCHEMA"
 
@@ -31,7 +31,9 @@ class VerificationFlow:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
-    def verify_ticket_protocol_version(self, ticket_in: Ticket) -> Success:
+    def verify_ticket_protocol_version(
+        self, ticket_in: Ticket
+    ) -> Result[Ticket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_PROTOCOL_VERSION = {ticket_in.ticket_protocol_verision}"
         failure_msg = f"-> FAILURE: VERIFY_TICKET_PROTOCOL_VERSION = {ticket_in.ticket_protocol_verision}"
 
@@ -42,7 +44,7 @@ class VerificationFlow:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    def verify_ticket_type(self, ticket_in: Ticket) -> Success:
+    def verify_ticket_type(self, ticket_in: Ticket) -> Result[Ticket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_TICKET_TYPE = {ticket_in.ticket_type}"
 
@@ -53,7 +55,9 @@ class VerificationFlow:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    def verify_device_id(self, ticket_in: Ticket, device_pub_key_str: str) -> Success:
+    def verify_device_id(
+        self, ticket_in: Ticket, device_pub_key_str: str
+    ) -> Result[Ticket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {ticket_in.device_id}"
 
@@ -82,7 +86,7 @@ class VerificationFlow:
         ticket_in: Ticket,
         owner_pub_key: ec.EllipticCurvePrivateKey,
         current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> Union[Success, Failure]:
+    ) -> Result[Ticket, RuntimeError]:
         success_msg = (
             f"-> SUCCESS: VERIFY_ISSUER_SIGNATURE on {ticket_in.ticket_type} TICKET"
         )
@@ -150,7 +154,7 @@ class VerificationFlow:
 
     def execute_ticket_operation(
         self, ticket_in: Ticket, device_priv_key: ec.EllipticCurvePrivateKey
-    ) -> Union[Success, Failure]:
+    ) -> Result[Ticket, RuntimeError]:
         failure_msg = f"-> FAILURE: WIRED TICKET TYPE {ticket_in.ticket_type}"
 
         # (E-Z) Execute TICKET

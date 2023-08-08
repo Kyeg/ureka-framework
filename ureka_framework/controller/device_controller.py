@@ -15,7 +15,6 @@ import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
 import logging
-from typing import Union
 
 
 class DeviceController:
@@ -109,7 +108,7 @@ class DeviceController:
     ######################################################
     # Verify Different Ticket Types
     ######################################################
-    def verify_xxx_ticket(self, arbitrary_json: str) -> Union[Failure, Success]:
+    def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
         logging.info(f"+ {self.device_name} is verifying ticket...")
 
         # New verification flow
@@ -163,7 +162,9 @@ class DeviceController:
     ######################################################
     # Initilize User Agent or Cloud Server (without using Ticket)
     ######################################################
-    def execute_one_time_intialize_agent_or_server(self) -> Union[Failure, Success]:
+    def execute_one_time_intialize_agent_or_server(
+        self,
+    ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.device_name} is initializing...")
 
         if self.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
@@ -204,7 +205,7 @@ class DeviceController:
     ######################################################
     def execute_one_time_initialize_iot_device(
         self, new_ticket: Ticket
-    ) -> Union[Failure, Success]:
+    ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.device_name} is intializing...")
 
         if self.device_type != ticket.IOT_DEVICE:
@@ -287,7 +288,7 @@ class DeviceController:
     def execute_update_current_holder_pub_key(
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> Success:
+    ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.device_name} is updating current holder pub key...")
 
         # RAM
@@ -301,7 +302,7 @@ class DeviceController:
         salt_byte: bytes,
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
-    ) -> Success:
+    ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.device_name} is updating current session key byte...")
 
         # RAM

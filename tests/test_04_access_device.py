@@ -1,4 +1,4 @@
-from returns.result import Result, Success, Failure
+from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     attacker_server,
@@ -220,18 +220,6 @@ class TestAccessDevice:
         }
         test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
         result = self.iot_device.verify_xxx_ticket(test_ticket)
-
-        # # -----------------------------------------------------
-        # #     - (<-) Key-exchange Ticket (<-)
-        # # -----------------------------------------------------
-        # test_request: dict = {
-        #     "device_id": f"{self.iot_device.device_pub_key_str}",
-        #     "holder_id": f"{self.cloud_server_ep.device_pub_key_str}",
-        #     "ticket_type": f"{ticket.TYPE_KEY_EXCHANGE_TICKET}",
-        #     "task_scope": f"",
-        # }
-        # test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
-        # result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
         assert type(result) == Failure

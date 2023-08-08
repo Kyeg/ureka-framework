@@ -1,5 +1,5 @@
 import logging
-from returns.result import Result, Success, Failure
+from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     current_setup_log,
