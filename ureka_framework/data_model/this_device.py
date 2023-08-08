@@ -26,8 +26,8 @@ class ThisDevice:
     device_priv_key: ec.EllipticCurvePrivateKey = None
     device_pub_key: ec.EllipticCurvePublicKey = None
 
-    # # Generate Owner Key after Intialization (UA or CS only)
-    # owner_pub_key: ec.EllipticCurvePublicKey = None
+    # Generate Owner Key after Intialization
+    owner_pub_key: ec.EllipticCurvePublicKey = None
 
     # Current Session (RAM-only)
     current_holder_pub_key: ec.EllipticCurvePublicKey = None
@@ -49,13 +49,13 @@ class ThisDevice:
             self.device_pub_key, key_type="ecc-public-key"
         )
 
-    # @property
-    # def owner_pub_key_str(self) -> str:
-    #     if self.owner_pub_key is None:
-    #         return ""
-    #     return serialization_util.key_to_str(
-    #         self.owner_pub_key, key_type="ecc-public-key"
-    #     )
+    @property
+    def owner_pub_key_str(self) -> str:
+        if self.owner_pub_key is None:
+            return ""
+        return serialization_util.key_to_str(
+            self.owner_pub_key, key_type="ecc-public-key"
+        )
 
     @property
     def current_holder_pub_key_str(self) -> str:

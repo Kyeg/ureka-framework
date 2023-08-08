@@ -10,7 +10,7 @@ from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
 
 
-class VerificationFlow:
+class TicketVerifier:
     def __init__(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
         self.this_device = this_device
         self.this_person = this_person
@@ -97,7 +97,7 @@ class VerificationFlow:
             return Success(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             if self._verify_issuer_signature_on_ticket(
-                ticket_in, self.this_person.owner_pub_key
+                ticket_in, self.this_device.owner_pub_key
             ):
                 logging.info(success_msg)
                 return Success(ticket_in)
@@ -106,7 +106,7 @@ class VerificationFlow:
                 return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self._verify_issuer_signature_on_ticket(
-                ticket_in, self.this_person.owner_pub_key
+                ticket_in, self.this_device.owner_pub_key
             ):
                 logging.info(success_msg)
                 return Success(ticket_in)
@@ -129,7 +129,7 @@ class VerificationFlow:
 
             # To-Do: Authenticate the ticket holder
             if self._verify_issuer_signature_on_ticket(
-                ticket_in, self.this_device.current_holder_pub_key_str
+                ticket_in, self.this_device.current_holder_pub_key
             ):
                 logging.info(success_msg)
                 return Success(ticket_in)
@@ -137,6 +137,7 @@ class VerificationFlow:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: ERROR AUTHENTICATION")
                 return Failure(RuntimeError(failure_msg))
+
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.info(success_msg)
@@ -170,7 +171,7 @@ class VerificationFlow:
                 signature_byte, unsigned_ticket_byte, public_key
             )
 
-        # To-Do: Test this case
+        # Reach here if the public key is wrong
         except AttributeError:
-            logging.error("FAILURE: NO SIGNATURE")
+            logging.error("FAILURE: WRONG PUBLIC KEY")
             return False

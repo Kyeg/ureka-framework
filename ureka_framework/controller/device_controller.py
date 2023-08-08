@@ -1,11 +1,11 @@
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.controller.ticket_generation.ticket_generation_flow import (
-    GenerationFlow,
+from ureka_framework.controller.ticket_generator import (
+    TicketGenerator,
 )
-from ureka_framework.controller.ticket_verification.ticket_verification_flow import (
-    VerificationFlow,
+from ureka_framework.controller.ticket_verifier import (
+    TicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
@@ -38,7 +38,9 @@ class DeviceController:
             self.this_device.device_name,
             self.this_device.device_priv_key,
             self.this_device.device_pub_key,
-            self.this_person.owner_pub_key,
+            self.this_device.owner_pub_key,
+            self.this_person.person_priv_key,
+            self.this_person.person_pub_key,
         ) = self.secure_db.load_secure_db()
 
         # Set Device Type
@@ -114,6 +116,35 @@ class DeviceController:
         self.secure_db.store_is_initialized()
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
+        ######################################################
+        # Initialize Personal Id
+        ######################################################
+        # CRYPTO
+        person_priv_key_byte = b""
+        person_pub_key_byte = b""
+        (person_priv_key_byte, person_pub_key_byte) = ecc.generate_key_pair()
+
+        # RAM
+        self.this_person.person_priv_key = serialization_util.byte_to_key(
+            person_priv_key_byte, key_type="ecc-private-key"
+        )
+        self.this_person.person_pub_key = serialization_util.byte_to_key(
+            person_pub_key_byte, key_type="ecc-public-key"
+        )
+
+        # DB
+        self.secure_db.store_person_id(person_priv_key_byte, person_pub_key_byte)
+
+        ######################################################
+        # Initialize Device Owner
+        ######################################################
+        # RAM
+        self.this_device.owner_pub_key = self.this_person.person_pub_key
+
+        # DB
+        owner_public_key_byte = person_pub_key_byte
+        self.secure_db.store_owner_id(owner_public_key_byte)
+
         return Success(None)
 
     ######################################################
@@ -122,10 +153,10 @@ class DeviceController:
     def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
         logging.info(f"+ {self.this_device.device_name} is generating ticket...")
 
-        generation_flow = GenerationFlow(self.this_device)
+        ticket_generator = TicketGenerator(self.this_device, self.this_person)
         new_ticket_json = flow(
             arbitrary_dict,
-            generation_flow.generate_arbitrary_ticket,
+            ticket_generator.generate_arbitrary_ticket,
         )
         self.execute_generate_xxx_ticket(new_ticket_json)
         return new_ticket_json
@@ -136,7 +167,7 @@ class DeviceController:
     def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
         new_ticket = serialization_util.jsonstr_to_ticket(new_ticket_json)
 
-        # Generate session_key
+        # Generate session_key (Device)
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
@@ -153,14 +184,14 @@ class DeviceController:
     def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is verifying ticket...")
 
-        verification_flow = VerificationFlow(self.this_device, self.this_person)
+        ticket_verifier = TicketVerifier(self.this_device, self.this_person)
         verification_and_execution_result = flow(
             arbitrary_json,
-            verification_flow.verify_ticket_schema,
-            bind(verification_flow.verify_ticket_protocol_version),
-            bind(verification_flow.verify_ticket_type),
-            bind(verification_flow.verify_device_id),
-            bind(verification_flow.verify_issuer_signature),
+            ticket_verifier.verify_ticket_schema,
+            bind(ticket_verifier.verify_ticket_protocol_version),
+            bind(ticket_verifier.verify_ticket_type),
+            bind(ticket_verifier.verify_device_id),
+            bind(ticket_verifier.verify_issuer_signature),
             bind(self.execute_verify_xxx_ticket),
         )
         return verification_and_execution_result
@@ -179,6 +210,7 @@ class DeviceController:
         elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
             result = self.execute_ownership_transfer(ticket_in)
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
+            # Generate session_key (Device)
             self.execute_update_current_holder_pub_key(
                 serialization_util.str_to_key(
                     ticket_in.holder_id, key_type="ecc-public-key"
@@ -194,9 +226,9 @@ class DeviceController:
             # To-Do: Auto-Generate Key Exchange Ticket
             result = Success(None)
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            # Generate session_key
+            # Generate session_key (Person)
             result = self.execute_update_current_session_key_byte(
-                server_private_key_obj=self.this_device.device_priv_key,
+                server_private_key_obj=self.this_person.person_priv_key,
                 salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
@@ -254,11 +286,10 @@ class DeviceController:
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
         ######################################################
-        # Update Permission Table (only for IoT Device)
+        # Initialize Device Owner
         ######################################################
-
         # RAM
-        self.this_person.owner_pub_key = serialization_util.str_to_key(
+        self.this_device.owner_pub_key = serialization_util.str_to_key(
             new_ticket.holder_id
         )
 
@@ -279,14 +310,14 @@ class DeviceController:
         )  # sort_keys = True
 
         ######################################################
-        # Update Permission Table (MANAGEMENT_OWNER)
+        # Update Device Owner
         ######################################################
         if (
             task_scope_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
             == ticket.MANAGEMENT_OWNER
         ):
             # RAM
-            self.this_person.owner_pub_key = serialization_util.str_to_key(
+            self.this_device.owner_pub_key = serialization_util.str_to_key(
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 

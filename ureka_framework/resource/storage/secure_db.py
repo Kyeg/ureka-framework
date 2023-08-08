@@ -14,14 +14,19 @@ class SecureDB:
 
     # Instance Variables
     def __init__(self, device_name: str = "") -> None:
+        # Device
         self.path_device_controller: str = self.secure_db_path + "/" + device_name
         self.path_has_device_type: str = "/HasDeviceType/HasDeviceType.txt"
         self.path_is_initialized: str = "/IsInitialized/IsInitialized.txt"
         self.path_device_type: str = "/DeviceType/DeviceType.txt"
         self.path_device_name: str = "/DeviceName/DeviceName.txt"
-        self.path_device_priv: str = "/DeviceKey/PrivateKey.key"
-        self.path_device_pub: str = "/DeviceKey/PublicKey.key"
-        self.path_owner_pub: str = "/OwnerKey/PublicKey.key"
+        self.path_device_priv: str = "/DevicePrivateKey/DevicePrivateKey.key"
+        self.path_device_pub: str = "/DevicePublicKey/DevicePublicKey.key"
+        self.path_owner_pub: str = "/OwnerPublicKey/OwnerPublicKey.key"
+
+        # Person
+        self.path_person_priv: str = "/PersonPrviateKey/PersonPrviateKey.key"
+        self.path_person_pub: str = "/PersonPublicKey/PersonPublicKey.key"
 
     ######################################################
     # Device Storage
@@ -34,6 +39,8 @@ class SecureDB:
         device_priv_key: ec.EllipticCurvePrivateKey = None
         device_pub_key: ec.EllipticCurvePublicKey = None
         owner_pub_key: ec.EllipticCurvePublicKey = None
+        person_priv_key: ec.EllipticCurvePrivateKey = None
+        person_pub_key: ec.EllipticCurvePublicKey = None
 
         if self._check_file_exist(self.path_has_device_type):
             has_device_type = True
@@ -62,6 +69,17 @@ class SecureDB:
                 self._load_bytes_file(self.path_owner_pub), key_type="ecc-public-key"
             )
 
+        if self._check_file_exist(self.path_person_priv):
+            if self._check_file_exist(self.path_person_pub):
+                person_priv_key = serialization_util.byte_to_key(
+                    self._load_bytes_file(self.path_person_priv),
+                    key_type="ecc-private-key",
+                )
+                person_pub_key = serialization_util.byte_to_key(
+                    self._load_bytes_file(self.path_person_pub),
+                    key_type="ecc-public-key",
+                )
+
         return (
             has_device_type,
             is_initialized,
@@ -70,6 +88,8 @@ class SecureDB:
             device_priv_key,
             device_pub_key,
             owner_pub_key,
+            person_priv_key,
+            person_pub_key,
         )
 
     # Teardown - Development Only Function
@@ -111,6 +131,15 @@ class SecureDB:
     # Initialization / Ownership-transfer
     def store_owner_id(self, owner_pub_key_byte: bytes) -> None:
         self._store_bytes_file(self.path_owner_pub, owner_pub_key_byte)
+
+    # Initialization
+    def store_person_id(
+        self,
+        person_priv_key_byte: bytes,
+        person_pub_key_byte: bytes,
+    ) -> None:
+        self._store_bytes_file(self.path_person_priv, person_priv_key_byte)
+        self._store_bytes_file(self.path_person_pub, person_pub_key_byte)
 
     ######################################################
     # File I/O (byte)

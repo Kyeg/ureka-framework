@@ -10,13 +10,22 @@ from ureka_framework.resource.crypto import serialization_util
 ######################################################
 @dataclass
 class ThisPerson:
-    # Generate Owner Key after Intialization
-    owner_pub_key: ec.EllipticCurvePublicKey = None
+    # Generate Person Key after Intialization (UA or CS only)
+    person_priv_key: ec.EllipticCurvePrivateKey = None
+    person_pub_key: ec.EllipticCurvePublicKey = None
 
     @property
-    def owner_pub_key_str(self) -> str:
-        if self.owner_pub_key is None:
+    def person_priv_key_str(self) -> str:
+        if self.person_priv_key is None:
             return ""
         return serialization_util.key_to_str(
-            self.owner_pub_key, key_type="ecc-public-key"
+            self.person_priv_key, key_type="ecc-private-key"
+        )
+
+    @property
+    def person_pub_key_str(self) -> str:
+        if self.person_pub_key is None:
+            return ""
+        return serialization_util.key_to_str(
+            self.person_pub_key, key_type="ecc-public-key"
         )

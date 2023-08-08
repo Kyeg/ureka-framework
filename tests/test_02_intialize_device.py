@@ -44,13 +44,15 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.is_initialized == False
         assert self.iot_device.this_device.device_priv_key_str == ""
         assert self.iot_device.this_device.device_pub_key_str == ""
-        assert self.iot_device.this_person.owner_pub_key_str == ""
+        assert self.iot_device.this_device.owner_pub_key_str == ""
+        assert self.iot_device.this_person.person_priv_key_str == ""
+        assert self.iot_device.this_person.person_pub_key_str == ""
 
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
-            "holder_id": f"{self.cloud_server_dm.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
@@ -63,9 +65,11 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.device_priv_key_str != ""
         assert self.iot_device.this_device.device_pub_key_str != ""
         assert (
-            self.iot_device.this_person.owner_pub_key_str
-            == self.cloud_server_dm.this_device.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.cloud_server_dm.this_person.person_pub_key_str
         )
+        assert self.iot_device.this_person.person_priv_key_str == ""
+        assert self.iot_device.this_person.person_pub_key_str == ""
 
     def test_intialize_device_with_reboot(self) -> None:
         current_test_given_log()
@@ -85,9 +89,11 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.device_priv_key_str != ""
         assert self.iot_device.this_device.device_pub_key_str != ""
         assert (
-            self.iot_device.this_person.owner_pub_key_str
-            == self.cloud_server_dm.this_device.device_pub_key_str
+            self.iot_device.this_device.owner_pub_key_str
+            == self.cloud_server_dm.this_person.person_pub_key_str
         )
+        assert self.iot_device.this_person.person_priv_key_str == ""
+        assert self.iot_device.this_person.person_pub_key_str == ""
 
     def test_apply_initialization_ticket_reintialized_failed(self) -> None:
         current_test_given_log()
@@ -102,7 +108,7 @@ class TestIntializeDevice:
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
-            "holder_id": f"{self.cloud_server_dm.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
@@ -128,7 +134,7 @@ class TestIntializeDevice:
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
-            "holder_id": f"{self.cloud_server_dm.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
             "task_scope": f"",
         }
