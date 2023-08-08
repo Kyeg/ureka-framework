@@ -57,7 +57,7 @@ class TestTransferOwnershipDevice:
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.user_agent_do.this_device.device_pub_key_str
         )
 
@@ -87,6 +87,6 @@ class TestTransferOwnershipDevice:
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.user_agent_do.this_device.device_pub_key_str
         )

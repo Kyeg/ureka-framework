@@ -44,7 +44,7 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.is_initialized == False
         assert self.iot_device.this_device.device_priv_key_str == ""
         assert self.iot_device.this_device.device_pub_key_str == ""
-        assert self.iot_device.this_device.owner_pub_key_str == ""
+        assert self.iot_device.this_person.owner_pub_key_str == ""
 
         # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
         current_test_when_and_then_log()
@@ -63,7 +63,7 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.device_priv_key_str != ""
         assert self.iot_device.this_device.device_pub_key_str != ""
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.cloud_server_dm.this_device.device_pub_key_str
         )
 
@@ -85,7 +85,7 @@ class TestIntializeDevice:
         assert self.iot_device.this_device.device_priv_key_str != ""
         assert self.iot_device.this_device.device_pub_key_str != ""
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.cloud_server_dm.this_device.device_pub_key_str
         )
 

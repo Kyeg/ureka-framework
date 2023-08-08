@@ -8,6 +8,7 @@ from ureka_framework.controller.ticket_verification.ticket_verification_flow imp
     VerificationFlow,
 )
 from ureka_framework.data_model.this_device import ThisDevice
+from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.storage.secure_db import SecureDB
@@ -22,8 +23,9 @@ class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
         # Device State
         self.this_device = ThisDevice()
-        # WIP
-        # self.this_person = ThisPerson()
+
+        # Device State (User Agent or Cloud Server only)
+        self.this_person = ThisPerson()
 
         # Set SecureDB
         self.secure_db = SecureDB(device_name=device_name)
@@ -36,7 +38,7 @@ class DeviceController:
             self.this_device.device_name,
             self.this_device.device_priv_key,
             self.this_device.device_pub_key,
-            self.this_device.owner_pub_key,
+            self.this_person.owner_pub_key,
         ) = self.secure_db.load_secure_db()
 
         # Set Device Type
@@ -94,7 +96,7 @@ class DeviceController:
             bind(
                 lambda ticket_obj: verification_flow.verify_issuer_signature(
                     ticket_obj,
-                    self.this_device.owner_pub_key,
+                    self.this_person.owner_pub_key,
                     self.this_device.current_holder_pub_key,
                 )
             ),
@@ -124,7 +126,7 @@ class DeviceController:
         return Success(None)
 
     ######################################################
-    # Initilize User Agent or Cloud Server (without using Ticket)
+    # Initilize without using Ticket (User Agent or Cloud Server only)
     ######################################################
     def execute_one_time_intialize_agent_or_server(
         self,
@@ -210,7 +212,7 @@ class DeviceController:
         ######################################################
 
         # RAM
-        self.this_device.owner_pub_key = serialization_util.str_to_key(
+        self.this_person.owner_pub_key = serialization_util.str_to_key(
             new_ticket.holder_id
         )
 
@@ -238,7 +240,7 @@ class DeviceController:
             == ticket.MANAGEMENT_OWNER
         ):
             # RAM
-            self.this_device.owner_pub_key = serialization_util.str_to_key(
+            self.this_person.owner_pub_key = serialization_util.str_to_key(
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 

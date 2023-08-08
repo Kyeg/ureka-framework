@@ -104,7 +104,7 @@ class TestAccessDevice:
         assert type(result) == Success
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: EP's CS can open a session with DO's IoTD
@@ -155,7 +155,7 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: EP's CS cannot open a session with DO's IoTD
@@ -227,7 +227,7 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
+            self.iot_device.this_person.owner_pub_key_str
             == self.user_agent_do.this_device.device_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
