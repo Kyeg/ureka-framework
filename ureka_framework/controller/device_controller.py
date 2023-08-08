@@ -59,56 +59,6 @@ class DeviceController:
         )
 
     ######################################################
-    # Generate Different Ticket Types
-    ######################################################
-    def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
-        logging.info(f"+ {self.this_device.device_name} is generating ticket...")
-
-        generation_flow = GenerationFlow(self)
-        new_ticket_json = generation_flow.generate_arbitrary_ticket(arbitrary_dict)
-
-        return new_ticket_json
-
-    ######################################################
-    # Verify Different Ticket Types
-    ######################################################
-    def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
-        logging.info(f"+ {self.this_device.device_name} is verifying ticket...")
-
-        # New verification flow
-        verification_flow = VerificationFlow(self)
-        verification_result = flow(
-            arbitrary_json,
-            lambda arbitrary_json: verification_flow.verify_ticket_schema(
-                arbitrary_json
-            ),
-            bind(
-                lambda ticket_obj: verification_flow.verify_ticket_protocol_version(
-                    ticket_obj
-                )
-            ),
-            bind(lambda ticket_obj: verification_flow.verify_ticket_type(ticket_obj)),
-            bind(
-                lambda ticket_obj: verification_flow.verify_device_id(
-                    ticket_obj, self.this_device.device_pub_key_str
-                )
-            ),
-            bind(
-                lambda ticket_obj: verification_flow.verify_issuer_signature(
-                    ticket_obj,
-                    self.this_person.owner_pub_key,
-                    self.this_device.current_holder_pub_key,
-                )
-            ),
-            bind(
-                lambda ticket_obj: verification_flow.execute_ticket_operation(
-                    ticket_obj, self.this_device.device_priv_key
-                )
-            ),
-        )
-        return verification_result
-
-    ######################################################
     # Set Device Type
     ######################################################
     def execute_one_time_set_time_device_type_and_name(
@@ -165,6 +115,102 @@ class DeviceController:
         self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
 
         return Success(None)
+
+    ######################################################
+    # Generate Different Ticket Types (User Agent or Cloud Server only)
+    ######################################################
+    def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
+        logging.info(f"+ {self.this_device.device_name} is generating ticket...")
+
+        generation_flow = GenerationFlow(self.this_device)
+        new_ticket_json = flow(
+            arbitrary_dict,
+            generation_flow.generate_arbitrary_ticket,
+        )
+        self.execute_generate_xxx_ticket(new_ticket_json)
+        return new_ticket_json
+
+    ######################################################
+    # Execute Operation based on generate_xxx_ticket
+    ######################################################
+    def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
+        new_ticket = serialization_util.jsonstr_to_ticket(new_ticket_json)
+
+        # Generate session_key
+        if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
+            self.execute_update_current_session_key_byte(
+                server_private_key_obj=self.this_device.device_priv_key,
+                salt_byte=serialization_util.str_to_byte(new_ticket.task_scope),
+                info_byte=b"",
+                peer_public_key_obj=serialization_util.str_to_key(
+                    new_ticket.holder_id, key_type="ecc-public-key"
+                ),
+            )
+
+    ######################################################
+    # Verify Different Ticket Types
+    ######################################################
+    def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
+        logging.info(f"+ {self.this_device.device_name} is verifying ticket...")
+
+        verification_flow = VerificationFlow(self.this_device, self.this_person)
+        verification_and_execution_result = flow(
+            arbitrary_json,
+            verification_flow.verify_ticket_schema,
+            bind(verification_flow.verify_ticket_protocol_version),
+            bind(verification_flow.verify_ticket_type),
+            bind(verification_flow.verify_device_id),
+            bind(verification_flow.verify_issuer_signature),
+            bind(self.execute_verify_xxx_ticket),
+        )
+        return verification_and_execution_result
+
+    ######################################################
+    # Execute Operation based on verify_xxx_ticket
+    ######################################################
+    def execute_verify_xxx_ticket(
+        self, ticket_in: Ticket
+    ) -> Result[Ticket, RuntimeError]:
+        failure_msg = f"-> FAILURE: WIRED TICKET TYPE {ticket_in.ticket_type}"
+
+        # (E-Z) Execute TICKET
+        if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
+            result = self.execute_one_time_initialize_iot_device(ticket_in)
+        elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
+            result = self.execute_ownership_transfer(ticket_in)
+        elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
+            self.execute_update_current_holder_pub_key(
+                serialization_util.str_to_key(
+                    ticket_in.holder_id, key_type="ecc-public-key"
+                )
+            )
+            # To-Do: Auto-Generate Challenge Ticket
+            result = Success(None)
+        # (E-N) Execute TICKET
+        elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
+            # To-Do: Auto-Generate Response Ticket
+            result = Success(None)
+        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
+            # To-Do: Auto-Generate Key Exchange Ticket
+            result = Success(None)
+        elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
+            # Generate session_key
+            result = self.execute_update_current_session_key_byte(
+                server_private_key_obj=self.this_device.device_priv_key,
+                salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
+                info_byte=b"",
+                peer_public_key_obj=serialization_util.str_to_key(
+                    ticket_in.device_id, key_type="ecc-public-key"
+                ),
+            )
+            # To-Do: Create Session
+            # To-Do: Auto-Generate Command Ticket
+        else:
+            # Never reach here: Because of verify_ticket_type()
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+        return result
 
     ######################################################
     # Execute Initialization & Managment Ticket (E-Z)
