@@ -1,4 +1,5 @@
 # ECC Serialization
+import copy
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import (
@@ -9,8 +10,7 @@ from cryptography.hazmat.primitives.serialization import (
     Encoding,
     NoEncryption,
 )
-
-import ureka_framework.data_model.ticket as ticket
+from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.ticket import Ticket
 import logging
 import json
@@ -69,7 +69,7 @@ def str_to_byte(string: str) -> bytes:
 ################################################################################
 def key_to_byte(
     key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
-    key_type: str = "ecc-public-key",
+    key_type: str,
 ) -> bytes:
     if key_type == "ecc-public-key":
         return key_obj.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
@@ -82,7 +82,7 @@ def key_to_byte(
 
 
 def byte_to_key(
-    key_byte: bytes, key_type: str = "ecc-public-key"
+    key_byte: bytes, key_type: str
 ) -> Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey]:
     if key_type == "ecc-public-key":
         return load_der_public_key(key_byte, backend=default_backend())
@@ -90,7 +90,7 @@ def byte_to_key(
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
         failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
-        logging.info(failure_msg)
+        logging.error(failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -125,6 +125,117 @@ def str_to_key(
 
 
 ################################################################################
+#                  < Custom_Device_obj (Device in Program) >                   #
+#                                      ^                                       #
+#                   __dict__.update(.) ||                                      #
+#                                      || __dict__                             #
+#                                       v                                      #
+#                          < JSON_dict (in Program) >                          #
+#                                      ^                                       #
+#                        json.loads(.) ||                                      #
+#                                      || json.dumps(.)                        #
+#                                       v                                      #
+#                  < JSON_str (Printable Key / Byte / Device) >                #
+################################################################################
+def _dict_to_this_device(this_device_dict):
+    this_device_obj = ThisDevice()
+
+    # JSON Serializable
+    this_device_obj.__dict__.update(this_device_dict)
+
+    # Not JSON Serializable
+    if this_device_dict["device_priv_key"] != None:
+        this_device_obj.device_priv_key = str_to_key(
+            this_device_dict["device_priv_key"], "ecc-private-key"
+        )
+    if this_device_dict["device_pub_key"] != None:
+        this_device_obj.device_pub_key = str_to_key(
+            this_device_dict["device_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["owner_pub_key"] != None:
+        this_device_obj.owner_pub_key = str_to_key(
+            this_device_dict["owner_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["current_holder_pub_key"] != None:
+        this_device_obj.current_holder_pub_key = str_to_key(
+            this_device_dict["current_holder_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["current_session_key_byte"] == None:
+        this_device_obj.current_session_key_byte = b""
+    else:
+        this_device_obj.current_session_key_byte = str_to_byte(
+            this_device_dict["current_session_key_byte"]
+        )
+
+    return this_device_obj
+
+
+def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
+    # Prevent side effect on this_device_obj
+    # However, cannot deepcopy key object, so we need to handle it separately
+    this_device_dict = {}
+
+    # JSON Serializable
+    this_device_dict["device_type"] = this_device_obj.device_type
+    this_device_dict["device_name"] = this_device_obj.device_name
+    this_device_dict["has_device_type"] = this_device_obj.has_device_type
+    this_device_dict["is_initialized"] = this_device_obj.is_initialized
+
+    # Not JSON Serializable
+    if this_device_obj.device_priv_key == None:
+        this_device_dict["device_priv_key"] = None
+    else:
+        this_device_dict["device_priv_key"] = key_to_str(
+            this_device_obj.device_priv_key, "ecc-private-key"
+        )
+    if this_device_obj.device_pub_key == None:
+        this_device_dict["device_pub_key"] = None
+    else:
+        this_device_dict["device_pub_key"] = key_to_str(
+            this_device_obj.device_pub_key, "ecc-public-key"
+        )
+    if this_device_obj.owner_pub_key == None:
+        this_device_dict["owner_pub_key"] = None
+    else:
+        this_device_dict["owner_pub_key"] = key_to_str(
+            this_device_obj.owner_pub_key, "ecc-public-key"
+        )
+    if this_device_obj.current_holder_pub_key == None:
+        this_device_dict["current_holder_pub_key"] = None
+    else:
+        this_device_dict["current_holder_pub_key"] = key_to_str(
+            this_device_obj.current_holder_pub_key, "ecc-public-key"
+        )
+    if this_device_obj.current_session_key_byte == b"":
+        this_device_dict["current_session_key_byte"] = None
+    else:
+        this_device_dict["current_session_key_byte"] = byte_to_str(
+            this_device_obj.current_session_key_byte
+        )
+
+    return this_device_dict
+
+
+def jsonstr_to_this_device(json_str: str) -> ThisDevice:
+    try:
+        return json.loads(json_str, object_hook=_dict_to_this_device)
+    except json.JSONDecodeError:
+        # logging.error("NOT VALID JSON")
+        raise RuntimeError("NOT VALID JSON")
+
+
+def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
+    # "indent" do not affect json validation, but may affect json size!?
+    try:
+        return json.dumps(
+            this_device_obj, indent=4, default=_this_device_to_dict, sort_keys=True
+        )
+    except TypeError:
+        # logging.error("NOT VALID DEVICE")
+        raise RuntimeError("NOT VALID DEVICE")
+
+
+################################################################################
 #                  < Custom_Ticket_obj (Ticket in Program) >                   #
 #                                      ^                                       #
 #                   __dict__.update(.) ||                                      #
@@ -137,14 +248,16 @@ def str_to_key(
 #                                       v                                      #
 #            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
 ################################################################################
-def _dict_to_ticket(dict_obj):
-    ticket_obj = ticket.Ticket()
-    ticket_obj.__dict__.update(dict_obj)
+def _dict_to_ticket(ticket_dict):
+    ticket_obj = Ticket()
+    ticket_obj.__dict__.update(ticket_dict)
     return ticket_obj
 
 
 def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
-    return ticket_obj.__dict__
+    # Prevent side effect on ticket_obj
+    ticket_dict = copy.deepcopy(ticket_obj.__dict__)
+    return ticket_dict
 
 
 def jsonstr_to_ticket(json_str: str) -> Ticket:
@@ -155,7 +268,6 @@ def jsonstr_to_ticket(json_str: str) -> Ticket:
         raise RuntimeError("NOT VALID JSON")
 
 
-# sort_keys = True
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
     try:
@@ -165,6 +277,14 @@ def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
         raise RuntimeError("NOT VALID TICKET")
 
 
+################################################################################
+#                          < JSON_dict (in Program) >                          #
+#                                      ^                                       #
+#                        json.loads(.) ||                                      #
+#                                      || json.dumps(.)                        #
+#                                       v                                      #
+#                           < JSON_str (Printable ) >                          #
+################################################################################
 def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
     return json.loads(json_str)
 
