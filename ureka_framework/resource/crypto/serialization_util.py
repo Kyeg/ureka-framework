@@ -1,5 +1,8 @@
-# ECC Serialization
 import copy
+import logging
+import json
+import base64
+from typing import Dict, Union
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import (
@@ -12,35 +15,30 @@ from cryptography.hazmat.primitives.serialization import (
 )
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.ticket import Ticket
-import logging
-import json
-import base64
-from typing import Dict, Union
 
 
 ################################################################################
-#                        < Arbitrary_Byte (in File/DB) >                       #
+#                    < Arbitrary_Byte (Signature / Salt) >                     #
+#                                      ^                                       #
+#                      encode('UTF-8') ||                                      #
+#                                      || decode('UTF-8')                      #
+#                                      ||(not always success...)               #
+#                                       v                                      #
+#                       < JSON_str (Printable Characters) >                    #
+################################################################################
+################################################################################
+#                    < Arbitrary_Byte (Signature / Salt) >                     #
 #                                      ^                                       #
 #          base64.urlsafe_b64decode(.) ||                                      #
-#             (not always success...)) ||                                      #
 #                                      || base64.urlsafe_b64encode(.)          #
 #                                       v                                      #
 #                     < BASE64_byte (Printable Characters) >                   #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
-#                                      ||(always success due to BASE64...)     #
+#                                      || (always success due to BASE64!!)     #
 #                                       v                                      #
-#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
-################################################################################
-################################################################################
-#                     < BASE64_byte (Printable Characters) >                   #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      ||(not always success...)               #
-#                                       v                                      #
-#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
+#                       < JSON_str (Printable Characters) >                    #
 ################################################################################
 def byte_to_str(byte: bytes) -> str:
     base64_byte = base64.urlsafe_b64encode(byte)
@@ -53,19 +51,18 @@ def str_to_byte(string: str) -> bytes:
 
 
 ################################################################################
-#                        < ECC_Key_obj (Key in Program) >                      #
+#                                < ECC_Key_obj >                               #
 #                                      ^                                       #
 #       load_der_public/private_key(.) ||                                      #
-#             (not always success...)) ||                                      #
 #                                      || public/private_bytes(.)              #
 #                                       v                                      #
 #                           < DER_byte (in File/DB) >                          #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #
-#                                      ||(always success due to BASE64...)     #
+#                                      || (always success due to BASE64!!)     #
 #                                       v                                      #
-#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
+#                       < JSON_str (Printable Characters) >                    #
 ################################################################################
 def key_to_byte(
     key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
@@ -109,33 +106,34 @@ def str_to_key(
 
 
 ################################################################################
-# Testing: base64.urlsafe_b64encode / base64.urlsafe_b64decode
-################################################################################
-
-# orig_byte = '你好嗎'.encode('UTF-8')
-# logging.info('orig_byte: ' + str(orig_byte))
-# b64_byte = base64.urlsafe_b64encode(orig_byte)
-# logging.info('b64_byte: ' + str(b64_byte))
-# new_byte = base64.urlsafe_b64decode(b64_byte)
-# logging.info('new_byte: ' + str(new_byte))
-
-# logging.info(orig_byte == new_byte)
-
-# logging.info("")
-
-
-################################################################################
-#                  < Custom_Device_obj (Device in Program) >                   #
-#                                      ^                                       #
-#                   __dict__.update(.) ||                                      #
-#                                      || __dict__                             #
-#                                       v                                      #
-#                          < JSON_dict (in Program) >                          #
+#         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
 #                                      ^                                       #
 #                        json.loads(.) ||                                      #
 #                                      || json.dumps(.)                        #
 #                                       v                                      #
-#                  < JSON_str (Printable Key / Byte / Device) >                #
+#                       < JSON_str (Printable Characters) >                    #
+################################################################################
+def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
+    return json.loads(json_str)
+
+
+def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
+    return json.dumps(dict_obj, sort_keys=True)
+
+
+################################################################################
+#                                < Device_obj >                                #
+#                                      ^                                       #
+#           self-defined serilaization ||                                      #
+#                                      || self-defined serilaization           #
+#                                      || (including ECC_Key_obj, bytes, etc.) #
+#                                       v                                      #
+#         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
+#                                      ^                                       #
+#                        json.loads(.) ||                                      #
+#                                      || json.dumps(.)                        #
+#                                       v                                      #
+#                       < JSON_str (Printable Characters) >                    #
 ################################################################################
 def _dict_to_this_device(this_device_dict):
     this_device_obj = ThisDevice()
@@ -236,17 +234,18 @@ def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
 
 
 ################################################################################
-#                  < Custom_Ticket_obj (Ticket in Program) >                   #
+#                                < Ticket_obj >                                #
 #                                      ^                                       #
-#                   __dict__.update(.) ||                                      #
-#                                      || __dict__                             #
+#           self-defined serilaization ||                                      #
+#                                      || self-defined serilaization           #
+#                                      || (all str, which is native type)      #
 #                                       v                                      #
-#                          < JSON_dict (in Program) >                          #
+#         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
 #                                      ^                                       #
 #                        json.loads(.) ||                                      #
 #                                      || json.dumps(.)                        #
 #                                       v                                      #
-#            < JSON_str (Printable Key / Signature / Salt / Ticket) >          #
+#                       < JSON_str (Printable Characters) >                    #
 ################################################################################
 def _dict_to_ticket(ticket_dict):
     ticket_obj = Ticket()
@@ -275,52 +274,3 @@ def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     except TypeError:
         # logging.error("NOT VALID TICKET")
         raise RuntimeError("NOT VALID TICKET")
-
-
-################################################################################
-#                          < JSON_dict (in Program) >                          #
-#                                      ^                                       #
-#                        json.loads(.) ||                                      #
-#                                      || json.dumps(.)                        #
-#                                       v                                      #
-#                           < JSON_str (Printable ) >                          #
-################################################################################
-def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
-    return json.loads(json_str)
-
-
-# sort_keys = True
-def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
-    # separators = (", ", ": ") in default
-    return json.dumps(dict_obj, sort_keys=True)
-
-
-######################################################
-# Testing: jsonstr_to_obj / obj_to_jsonstr
-######################################################
-
-# ticket_str1 = '{"device_id": "1234", "holder_id": "abcd"}'
-# ticket1 = jsonstr_to_ticket(ticket_str1)
-# logging.info(ticket1)
-# logging.info("")
-
-# new_ticket1 = ticket.Ticket()
-# new_ticket1.device_id = "1234"
-# new_ticket1.holder_id = "abcd"
-# new_ticket_str1 = ticket_to_jsonstr(new_ticket1)
-# logging.info(new_ticket_str1)
-# logging.info("")
-
-# # Notice that different setting order will generate different json string...
-# new_ticket2 = ticket.Ticket()
-# new_ticket2.holder_id = "abcd"
-# new_ticket2.device_id = "1234"
-# new_ticket_str2 = ticket_to_jsonstr(new_ticket2)
-# logging.info(new_ticket_str2)
-# logging.info("")
-
-# # Notice that wrong field will still be set in the object, but no error will be raised
-# ticket_str2 = '{"holder_id": "abcd", "wrong": "blablabla..."}'
-# ticket2 = jsonstr_to_ticket(ticket_str2)
-# logging.info(ticket2)
-# logging.info(ticket2.wrong)
