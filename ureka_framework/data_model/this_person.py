@@ -104,5 +104,5 @@ def this_person_to_jsonstr(this_person_obj: ThisPerson) -> str:
             this_person_obj, indent=4, default=_this_person_to_dict, sort_keys=True
         )
     else:
-        # logging.error("NOT VALID DEVICE")
-        raise RuntimeError("NOT VALID DEVICE")
+        # logging.error("NOT VALID PERSON")
+        raise RuntimeError("NOT VALID PERSON")
