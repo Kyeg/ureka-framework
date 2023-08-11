@@ -7,7 +7,10 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
-from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.data_model.this_device import (
+    jsonstr_to_this_device,
+    this_device_to_jsonstr,
+)
 from ureka_framework.resource.storage.secure_db import SecureDB
 from typing import Iterator
 
@@ -35,12 +38,10 @@ class TestSerialization:
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
         logging.warning(f"device-befo = {self.cloud_server_dm.this_device}")
-        json_str = serialization_util.this_device_to_jsonstr(
-            self.cloud_server_dm.this_device
-        )
+        json_str = this_device_to_jsonstr(self.cloud_server_dm.this_device)
         logging.warning(f"json_str = {json_str}")
 
-        obj = serialization_util.jsonstr_to_this_device(json_str)
+        obj = jsonstr_to_this_device(json_str)
         logging.warning(f"device-befo = {self.cloud_server_dm.this_device}")
         logging.warning(f"device-aftr = {obj}")
 

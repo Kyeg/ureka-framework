@@ -23,7 +23,7 @@ class TicketVerifier:
         failure_msg = "-> FAILURE: VERIFY_TICKET_SCHEMA"
 
         try:
-            ticket_in: Ticket = serialization_util.jsonstr_to_ticket(arbitrary_json)
+            ticket_in: Ticket = ticket.jsonstr_to_ticket(arbitrary_json)
 
             logging.info(success_msg)
             return Success(ticket_in)
@@ -124,7 +124,7 @@ class TicketVerifier:
             # Check the ticket holder is allowed by owner (in access permission ticket)
             if self.this_device.current_holder_pub_key_str != ticket_in.holder_id:
                 logging.error(failure_msg)
-                logging.error("-> FAILURE: ERROR HOLDER_ID")
+                logging.error("-> FAILURE: WRONG HOLDER_ID")
                 return Failure(RuntimeError(failure_msg))
 
             # To-Do: Authenticate the ticket holder
@@ -135,7 +135,7 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
-                logging.error("-> FAILURE: ERROR AUTHENTICATION")
+                logging.error("-> FAILURE: WRONG AUTHENTICATION")
                 return Failure(RuntimeError(failure_msg))
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
@@ -163,7 +163,7 @@ class TicketVerifier:
             unsigned_ticket = copy.deepcopy(signed_ticket)
             unsigned_ticket.issuer_signature = ""
 
-            unsigned_ticket_str = serialization_util.ticket_to_jsonstr(unsigned_ticket)
+            unsigned_ticket_str = ticket.ticket_to_jsonstr(unsigned_ticket)
             unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
             # Verify Signature

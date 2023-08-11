@@ -52,7 +52,7 @@ class TicketGenerator:
                 new_ticket, self.this_person.person_priv_key
             )
 
-        return serialization_util.ticket_to_jsonstr(new_ticket)
+        return ticket.ticket_to_jsonstr(new_ticket)
 
     ######################################################
     # Add ECC Signature on Ticket
@@ -61,7 +61,7 @@ class TicketGenerator:
         self, unsigned_ticket: Ticket, private_key: ec.EllipticCurvePrivateKey
     ) -> Ticket:
         # Message
-        unsigned_ticket_str = serialization_util.ticket_to_jsonstr(unsigned_ticket)
+        unsigned_ticket_str = ticket.ticket_to_jsonstr(unsigned_ticket)
         unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
         # Sign Signature

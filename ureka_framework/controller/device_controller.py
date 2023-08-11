@@ -165,7 +165,7 @@ class DeviceController:
     # Execute Operation based on generate_xxx_ticket
     ######################################################
     def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
-        new_ticket = serialization_util.jsonstr_to_ticket(new_ticket_json)
+        new_ticket = ticket.jsonstr_to_ticket(new_ticket_json)
 
         # Generate session_key (Device)
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
