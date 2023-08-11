@@ -106,8 +106,8 @@ def jsonstr_to_ticket(json_str: str) -> Ticket:
 
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    try:
+    if type(ticket_obj) == Ticket:
         return json.dumps(ticket_obj, indent=4, default=_ticket_to_dict, sort_keys=True)
-    except TypeError:
+    else:
         # logging.error("NOT VALID TICKET")
         raise RuntimeError("NOT VALID TICKET")

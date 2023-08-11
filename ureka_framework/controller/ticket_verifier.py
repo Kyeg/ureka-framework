@@ -142,7 +142,7 @@ class TicketVerifier:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(ticket_in)
-        else:
+        else:  # pragma: no cover
             # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))

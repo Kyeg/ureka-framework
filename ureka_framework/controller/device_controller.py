@@ -237,7 +237,7 @@ class DeviceController:
             )
             # To-Do: Create Session
             # To-Do: Auto-Generate Command Ticket
-        else:
+        else:  # pragma: no cover
             # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))

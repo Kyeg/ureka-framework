@@ -87,7 +87,7 @@ def key_to_byte(
         return key_obj.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
     else:
         failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
-        logging.error(failure_msg)
+        # logging.error(failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -100,7 +100,7 @@ def byte_to_key(
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
         failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
-        logging.error(failure_msg)
+        # logging.error(failure_msg)
         raise RuntimeError(failure_msg)
 
 

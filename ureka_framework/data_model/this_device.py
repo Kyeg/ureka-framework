@@ -177,10 +177,10 @@ def jsonstr_to_this_device(json_str: str) -> ThisDevice:
 
 def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    try:
+    if type(this_device_obj) == ThisDevice:
         return json.dumps(
             this_device_obj, indent=4, default=_this_device_to_dict, sort_keys=True
         )
-    except TypeError:
+    else:
         # logging.error("NOT VALID DEVICE")
         raise RuntimeError("NOT VALID DEVICE")
