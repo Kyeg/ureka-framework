@@ -80,11 +80,11 @@ class TestIntializeDevice:
             self.iot_device,
         ) = device_manufacturer_server_and_her_device()
 
-        # WHEN: DM reboot the CS
+        # WHEN: Reboot the DM's IoTD
         current_test_when_and_then_log()
         self.iot_device.reboot_device()
 
-        # THEN: Still is initialized  IoTD
+        # THEN: Still is initialized IoTD
         assert self.iot_device.this_device.is_initialized == True
         assert self.iot_device.this_device.device_priv_key_str != ""
         assert self.iot_device.this_device.device_pub_key_str != ""

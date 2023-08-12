@@ -1,7 +1,11 @@
 import copy
 import logging
 from returns.result import Result, Success, Failure
-from ureka_framework.data_model.ticket import Ticket
+from ureka_framework.data_model.ticket import (
+    Ticket,
+    jsonstr_to_ticket,
+    ticket_to_jsonstr,
+)
 import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
@@ -18,18 +22,20 @@ class TicketVerifier:
     ######################################################
     # Message Verification Flow
     ######################################################
-    def verify_ticket_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
-        success_msg = "-> SUCCESS: VERIFY_TICKET_SCHEMA"
-        failure_msg = "-> FAILURE: VERIFY_TICKET_SCHEMA"
+    def verify_json_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
+        success_msg = "-> SUCCESS: VERIFY_JSON_SCHEMA"
+        failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
 
         try:
-            ticket_in: Ticket = ticket.jsonstr_to_ticket(arbitrary_json)
+            ticket_in: Ticket = jsonstr_to_ticket(arbitrary_json)
 
             logging.info(success_msg)
             return Success(ticket_in)
         except RuntimeError as error:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
+
+    # TODO: verify_ticket_schema()
 
     def verify_ticket_protocol_version(
         self, ticket_in: Ticket
@@ -163,7 +169,7 @@ class TicketVerifier:
             unsigned_ticket = copy.deepcopy(signed_ticket)
             unsigned_ticket.issuer_signature = ""
 
-            unsigned_ticket_str = ticket.ticket_to_jsonstr(unsigned_ticket)
+            unsigned_ticket_str = ticket_to_jsonstr(unsigned_ticket)
             unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
             # Verify Signature

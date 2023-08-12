@@ -7,6 +7,7 @@ from tests.conftest import (
     current_test_given_log,
     current_test_when_and_then_log,
     device_owner_agent_and_her_device_and_attacker,
+    enterprise_provider_server,
 )
 from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -37,14 +38,36 @@ class TestArbitraryInput:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_wrong_ticket_schema(self) -> None:
+    def test_apply_wrong_json_schema(self) -> None:
         # WHEN: Not fit with json format '{"key": "value"}'
         current_test_when_and_then_log()
-        test_ticket: str = "WRONG-TICKET-SCHEMA"
+        test_ticket: str = "WRONG-JSON-SCHEMA"
         result = self.iot_device.verify_xxx_ticket(test_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
+
+    @pytest.mark.skip(reason="Not implemented yet")
+    def test_apply_wrong_ticket_schema(self) -> None:
+        # GIVEN: Initialized EP's CS
+        self.cloud_server_ep = enterprise_provider_server()
+
+        # WHEN: Every other format is right (e.g., a legal management ticket here), but exist undefined ticket field in Ticket
+        current_test_when_and_then_log()
+        test_request: dict = {
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+            "not_defined_ticket_field": "NOT-DEFINED-TICKET-FIELD",
+        }
+        test_ticket: str = self.user_agent_do.generate_xxx_ticket(test_request)
+        result = self.iot_device.verify_xxx_ticket(test_ticket)
+
+        # THEN: Fail to do anything on DO's IoTD
+        assert (
+            type(result) == Success
+        )  # TODO: Should be Failure due to verify_ticket_schema()
 
     def test_apply_wrong_ticket_protocol_version(self) -> None:
         # WHEN: Wrong ticket protocol version

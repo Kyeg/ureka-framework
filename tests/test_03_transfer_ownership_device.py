@@ -61,6 +61,25 @@ class TestTransferOwnershipDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
 
+    def test_apply_management_ticket_with_reboot(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # WHEN: Reboot the DO's IoTD
+        current_test_when_and_then_log()
+        self.iot_device.reboot_device()
+
+        # THEN: Still is successful to transfer ownership (become DO's IoTD)
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_person.person_pub_key_str
+        )
+
     def test_apply_management_ticket_wrong_owner_failed(self) -> None:
         current_test_given_log()
 

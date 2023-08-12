@@ -9,7 +9,7 @@ from ureka_framework.controller.ticket_verifier import (
 )
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.ticket import Ticket
+from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.resource.crypto.serialization_util as serialization_util
@@ -68,7 +68,6 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        # Storage
         self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
@@ -133,7 +132,6 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        # Storage
         self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
@@ -156,7 +154,7 @@ class DeviceController:
     # Execute Operation based on generate_xxx_ticket
     ######################################################
     def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
-        new_ticket = ticket.jsonstr_to_ticket(new_ticket_json)
+        new_ticket = jsonstr_to_ticket(new_ticket_json)
 
         # Generate session_key (Device)
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
@@ -178,7 +176,7 @@ class DeviceController:
         ticket_verifier = TicketVerifier(self.this_device, self.this_person)
         verification_and_execution_result = flow(
             arbitrary_json,
-            ticket_verifier.verify_ticket_schema,
+            ticket_verifier.verify_json_schema,
             bind(ticket_verifier.verify_ticket_protocol_version),
             bind(ticket_verifier.verify_ticket_type),
             bind(ticket_verifier.verify_device_id),
@@ -283,7 +281,6 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        # Storage
         self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
@@ -313,7 +310,6 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        # Storage
         self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
@@ -329,8 +325,16 @@ class DeviceController:
             f"+ {self.this_device.device_name} is updating current holder pub key..."
         )
 
+        ######################################################
+        # Update Session
+        ######################################################
         # RAM
         self.this_device.current_holder_pub_key = new_current_holder_pub_key
+
+        ######################################################
+        # Storage (RAM Only)
+        ######################################################
+        # self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -345,6 +349,9 @@ class DeviceController:
             f"+ {self.this_device.device_name} is updating current session key byte..."
         )
 
+        ######################################################
+        # Update Session
+        ######################################################
         # RAM
         self.this_device.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
@@ -355,5 +362,10 @@ class DeviceController:
         logging.debug(
             f"current_session_key_byte in {self.this_device.device_name}: {str(self.this_device.current_session_key_byte)}"
         )
+
+        ######################################################
+        # Storage (RAM Only)
+        ######################################################
+        # self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)

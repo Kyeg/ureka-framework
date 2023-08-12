@@ -63,7 +63,7 @@ class TestIntializeAgentOrServer:
         # GIVEN: Initialized DM's CS
         self.cloud_server_dm = device_manufacturer_server()
 
-        # WHEN: DM reboot the CS
+        # WHEN: Reboot the DM's CS
         current_test_when_and_then_log()
         self.cloud_server_dm.reboot_device()
 

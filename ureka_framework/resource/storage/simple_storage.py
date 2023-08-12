@@ -38,6 +38,8 @@ class SimpleStorage:
         else:
             logging.debug(f"Exist: {self.path_device_controller}")
 
+    # The data access can be further optimized by more fine-grained interface
+    # so that we can access each variable rather than access the whole object (faster, but more code)
     def store_storage(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
         with self.path_this_device.open("w") as file:
             file.write(this_device_to_jsonstr(this_device))
@@ -45,6 +47,8 @@ class SimpleStorage:
         with self.path_this_person.open("w") as file:
             file.write(this_person_to_jsonstr(this_person))
 
+    # The data access can be further optimized by more fine-grained interface
+    # so that we can access each variable rather than access the whole object (faster, but more code)
     def load_storage(self) -> Tuple[ThisDevice, ThisPerson]:
         this_device: ThisDevice = ThisDevice()
         this_person: ThisPerson = ThisPerson()

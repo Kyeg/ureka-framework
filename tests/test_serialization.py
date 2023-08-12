@@ -7,7 +7,11 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.data_model import ticket
-from ureka_framework.data_model.ticket import Ticket
+from ureka_framework.data_model.ticket import (
+    Ticket,
+    jsonstr_to_ticket,
+    ticket_to_jsonstr,
+)
 from ureka_framework.data_model.this_device import (
     jsonstr_to_this_device,
     this_device_to_jsonstr,
@@ -120,30 +124,52 @@ class TestSerialization:
         ticket_json_befo: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
         # logging.warning(f"ticket_json_befo = {ticket_json_befo}")
 
-        ticket_obj: Ticket = ticket.jsonstr_to_ticket(ticket_json_befo)
+        ticket_obj: Ticket = jsonstr_to_ticket(ticket_json_befo)
         # logging.warning(f"ticket_obj = {ticket_obj}")
 
-        ticket_json_aftr: str = ticket.ticket_to_jsonstr(ticket_obj)
+        ticket_json_aftr: str = ticket_to_jsonstr(ticket_obj)
         # logging.warning(f"ticket_json_aftr = {ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
         assert f"WRONG-DEVICE-ID" == ticket_obj.device_id
         assert f"{ticket.TYPE_MANAGEMENT_TICKET}" == ticket_obj.ticket_type
 
-    def test_ticket_serialization_failed(self) -> None:
+    def test_common_serialization_failed(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized DM's CS
-        self.cloud_server_dm = device_manufacturer_server()
+        # GIVEN: Not a valid object
+        not_an_object: str = "NOT-AN-OBJ"
+        # GIVEN: Not a valid json
+        wrong_json_schema: str = "WRONG-JSON-SCHEMA"
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
 
+        # WHEN: Try to serialize/deserialize an invalid object
         with pytest.raises(RuntimeError) as ticket_to_jsonstr_error_info:
-            ticket_json: str = ticket.ticket_to_jsonstr("not-a-ticket-obj")
+            ticket_json: str = ticket_to_jsonstr(not_an_object)
+        with pytest.raises(RuntimeError) as this_device_to_jsonstr_error_info:
+            this_device_json: str = this_device_to_jsonstr(not_an_object)
+        with pytest.raises(RuntimeError) as this_person_to_jsonstr_error_info:
+            this_person_json: str = this_person_to_jsonstr(not_an_object)
 
-        # THEN: Failed to serialize/deserialize
+        # WHEN: Try to serialize/deserialize an invalid json
+        with pytest.raises(RuntimeError) as jsonstr_to_ticket_error_info:
+            this_device: str = jsonstr_to_ticket(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_this_device_error_info:
+            this_device: str = jsonstr_to_this_device(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
+            this_person: str = jsonstr_to_this_person(wrong_json_schema)
+
+        # THEN: Failed to serialize/deserialize an invalid object
         assert str(ticket_to_jsonstr_error_info.value) == "NOT VALID TICKET"
+        assert str(this_device_to_jsonstr_error_info.value) == "NOT VALID DEVICE"
+        assert str(this_person_to_jsonstr_error_info.value) == "NOT VALID PERSON"
+
+        # THEN: Failed to serialize/deserialize an invalid json
+        assert str(jsonstr_to_ticket_error_info.value) == "NOT VALID JSON"
+        assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
+        assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
 
     def test_key_serialization(self) -> None:
         current_test_given_log()
