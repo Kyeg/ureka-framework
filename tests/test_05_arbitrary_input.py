@@ -9,7 +9,7 @@ from tests.conftest import (
     device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.data_model.ticket as ticket
 from typing import Iterator
 
@@ -19,7 +19,7 @@ class TestArbitraryInput:
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
         # GIVEN: Initialized ATK's CS
@@ -35,7 +35,7 @@ class TestArbitraryInput:
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_apply_wrong_ticket_schema(self) -> None:
         # WHEN: Not fit with json format '{"key": "value"}'

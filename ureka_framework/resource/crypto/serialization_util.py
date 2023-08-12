@@ -69,7 +69,7 @@ def str_to_byte(string: str) -> bytes:
 #       load_der_public/private_key(.) ||                                      #
 #                                      || public/private_bytes(.)              #
 #                                       v                                      #
-#                           < DER_byte (in File/DB) >                          #
+#                                 < DER_byte >                                 #
 #                                      ^                                       #
 #                      encode('UTF-8') ||                                      #
 #                                      || decode('UTF-8')                      #

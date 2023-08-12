@@ -18,7 +18,7 @@ from ureka_framework.data_model.this_person import (
 )
 from ureka_framework.resource.crypto.serialization_util import key_to_str, str_to_key
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
 
@@ -27,14 +27,14 @@ class TestSerialization:
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_device_serialization(self) -> None:
         current_test_given_log()

@@ -11,7 +11,7 @@ from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.ticket import Ticket
 import ureka_framework.data_model.ticket as ticket
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
@@ -21,29 +21,21 @@ import logging
 
 class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
-        # Device State
-        self.this_device = ThisDevice()
+        # Data Model
+        self.this_device: ThisDevice = ThisDevice()
+        # Data Model (User Agent or Cloud Server only)
+        self.this_person: ThisPerson = ThisPerson()
 
-        # Device State (User Agent or Cloud Server only)
-        self.this_person = ThisPerson()
+        # Set Storage
+        self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
 
-        # Set SecureDB
-        self.secure_db = SecureDB(device_name=device_name)
-
-        # Always load SecureDB after Reboot
+        # Always load Storage after Reboot
         (
-            self.this_device.has_device_type,
-            self.this_device.is_initialized,
-            self.this_device.device_type,
-            self.this_device.device_name,
-            self.this_device.device_priv_key,
-            self.this_device.device_pub_key,
-            self.this_device.owner_pub_key,
-            self.this_person.person_priv_key,
-            self.this_person.person_pub_key,
-        ) = self.secure_db.load_secure_db()
+            self.this_device,
+            self.this_person,
+        ) = self.simple_storage.load_storage()
 
-        # Set Device Type
+        # Set Device Type (must after loading storage)
         if self.this_device.has_device_type is False:
             self.execute_one_time_set_time_device_type_and_name(
                 device_type, device_name
@@ -69,11 +61,15 @@ class DeviceController:
         # Determine device type name, but still be uninitialized
         # Determine device name (for test)
         self.this_device.is_initialized = False
+        self.this_device.has_device_type = True
         self.this_device.device_type = device_type
         self.this_device.device_name = device_name
 
-        # DB
-        self.secure_db.store_device_type_and_name(device_type, device_name)
+        ######################################################
+        # Storage
+        ######################################################
+        # Storage
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -112,10 +108,6 @@ class DeviceController:
             device_pub_key_byte, key_type="ecc-public-key"
         )
 
-        # DB
-        self.secure_db.store_is_initialized()
-        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
-
         ######################################################
         # Initialize Personal Id
         ######################################################
@@ -132,18 +124,17 @@ class DeviceController:
             person_pub_key_byte, key_type="ecc-public-key"
         )
 
-        # DB
-        self.secure_db.store_person_id(person_priv_key_byte, person_pub_key_byte)
-
         ######################################################
         # Initialize Device Owner
         ######################################################
         # RAM
         self.this_device.owner_pub_key = self.this_person.person_pub_key
 
-        # DB
-        owner_public_key_byte = person_pub_key_byte
-        self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        # Storage
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -281,10 +272,6 @@ class DeviceController:
             device_pub_key_byte, key_type="ecc-public-key"
         )
 
-        # DB
-        self.secure_db.store_is_initialized()
-        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
-
         ######################################################
         # Initialize Device Owner
         ######################################################
@@ -293,9 +280,11 @@ class DeviceController:
             new_ticket.holder_id
         )
 
-        # DB
-        owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-        self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        # Storage
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -321,9 +310,11 @@ class DeviceController:
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 
-            # DB
-            owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-            self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        # Storage
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 

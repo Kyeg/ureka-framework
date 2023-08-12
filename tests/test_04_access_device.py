@@ -12,7 +12,7 @@ from tests.conftest import (
 )
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 
 class TestAccessDevice:
@@ -20,14 +20,14 @@ class TestAccessDevice:
     def setup_teardown(self):
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_apply_access_permission_ticket(self) -> None:
         current_test_given_log()

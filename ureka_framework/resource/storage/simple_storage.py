@@ -36,20 +36,26 @@ class SimpleStorage:
             self.path_device_controller.mkdir(parents=True)
             logging.debug(f"Create: {self.path_device_controller}")
         else:
-            logging.error(f"Exist: {self.path_device_controller}")
-            raise RuntimeError(f"Exist: {self.path_device_controller}")
+            logging.debug(f"Exist: {self.path_device_controller}")
 
     def store_storage(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
         with self.path_this_device.open("w") as file:
             file.write(this_device_to_jsonstr(this_device))
+
         with self.path_this_person.open("w") as file:
             file.write(this_person_to_jsonstr(this_person))
 
     def load_storage(self) -> Tuple[ThisDevice, ThisPerson]:
-        with self.path_this_device.open("r") as file:
-            this_device: ThisDevice = jsonstr_to_this_device(file.read())
-        with self.path_this_person.open("r") as file:
-            this_person: ThisPerson = jsonstr_to_this_person(file.read())
+        this_device: ThisDevice = ThisDevice()
+        this_person: ThisPerson = ThisPerson()
+
+        if Path(self.path_this_device).exists():
+            with self.path_this_device.open("r") as file:
+                this_device: ThisDevice = jsonstr_to_this_device(file.read())
+
+        if Path(self.path_this_person).exists():
+            with self.path_this_person.open("r") as file:
+                this_person: ThisPerson = jsonstr_to_this_person(file.read())
 
         return (this_device, this_person)
 

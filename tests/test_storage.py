@@ -10,8 +10,7 @@ from tests.conftest import (
 from ureka_framework.data_model.this_device import (
     this_device_to_jsonstr,
 )
-from ureka_framework.resource.crypto.serialization_util import key_to_str, str_to_key
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
@@ -21,20 +20,17 @@ class TestStorage:
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_store_and_load_storage(self) -> None:
         current_test_given_log()
-
-        # RE-GIVEN: Reset the test environment
-        SimpleStorage.delete_storage_in_test()
 
         # GIVEN: A SimpleStorage
         self.simple_storage = SimpleStorage("test_storage")
@@ -71,25 +67,15 @@ class TestStorage:
             == self.cloud_server_dm.this_device.device_name
         )
 
-        # RE-GIVEN: Reset the test environment
-        SimpleStorage.delete_storage_in_test()
-
     def test_create_existed_dir(self) -> None:
         current_test_given_log()
-
-        # RE-GIVEN: Reset the test environment
-        SimpleStorage.delete_storage_in_test()
 
         # GIVEN: A SimpleStorage
         self.simple_storage = SimpleStorage("test_storage")
 
         # WHEN: A repeated SimpleStorage is created
         current_test_when_and_then_log()
-        with pytest.raises(RuntimeError) as storage_error_info:
-            self.another_storage = SimpleStorage("test_storage")
+        self.another_storage = SimpleStorage("test_storage")
 
-        # THEN: Raise RuntimeError from Storage
-        assert storage_error_info.type == RuntimeError
-
-        # RE-GIVEN: Reset the test environment
-        SimpleStorage.delete_storage_in_test()
+        # THEN: It's ok to create a repeated SimpleStorage
+        # logging.debug(f"Exist: {self.path_device_controller}")
