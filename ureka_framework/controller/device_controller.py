@@ -11,6 +11,8 @@ from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
 import ureka_framework.data_model.ticket as ticket
+
+from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
@@ -28,6 +30,8 @@ class DeviceController:
 
         # Set Storage
         self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
+        # Set Communication
+        self.comm_channel: FakeCommChannel = None
 
         # Always load Storage after Reboot
         (
@@ -51,6 +55,34 @@ class DeviceController:
             device_type=self.this_device.device_type,
             device_name=self.this_device.device_name,
         )
+
+    ######################################################
+    # Communication
+    ######################################################
+    def connect(self, comm_channel: FakeCommChannel) -> None:
+        self.comm_channel = comm_channel
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is connecting with {end.this_device.device_name}..."
+                )
+
+    def send_xxx_ticket(self, ticket_json: str) -> None:
+        self.comm_channel.message_in_channel = ticket_json
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is sending ticket to {end.this_device.device_name}..."
+                )
+                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+
+    def recv_xxx_ticket(self) -> None:
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is receiving ticket from {end.this_device.device_name}..."
+                )
+                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
 
     ######################################################
     # Set Device Type
