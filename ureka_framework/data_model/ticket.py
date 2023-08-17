@@ -72,36 +72,24 @@ class Ticket(BaseModel):
 
 ################################################################################
 #                                < Ticket_obj >                                #
-#                                      ^                                       #
-#           self-defined serilaization ||                                      #
-#                                      || self-defined serilaization           #
-#                                      || (all str, which is native type)      #
+#                                       | self-defined serilaization           #
+#                                       | (all str, which is native type)      #
 #                                       v                                      #
 #         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
-#                                      ^                                       #
-#                        json.loads(.) ||                                      #
-#                                      || json.dumps(.)                        #
+#                                       |                                      #
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def _dict_to_ticket(ticket_dict):
-    ticket_obj = Ticket()
-    ticket_obj.__dict__.update(ticket_dict)
-    return ticket_obj
-
-
 def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     # Prevent side effect on ticket_obj
     ticket_dict = copy.deepcopy(ticket_obj.__dict__)
     return ticket_dict
 
 
-def jsonstr_to_ticket(json_str: str) -> Ticket:
-    try:
-        return json.loads(json_str, object_hook=_dict_to_ticket)
-    except json.JSONDecodeError:
-        # logging.error("NOT VALID JSON")
-        raise RuntimeError("NOT VALID JSON")
+def _dict_to_ticket(ticket_dict):
+    ticket_obj = Ticket()
+    ticket_obj.__dict__.update(ticket_dict)
+    return ticket_obj
 
 
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
@@ -111,3 +99,11 @@ def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     else:
         # logging.error("NOT VALID TICKET")
         raise RuntimeError("NOT VALID TICKET")
+
+
+def jsonstr_to_ticket(json_str: str) -> Ticket:
+    try:
+        return json.loads(json_str, object_hook=_dict_to_ticket)
+    except json.JSONDecodeError:
+        # logging.error("NOT VALID JSON")
+        raise RuntimeError("NOT VALID JSON")

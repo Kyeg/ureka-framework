@@ -126,34 +126,22 @@ class DeviceController:
         # Initialize Device Id
         ######################################################
         # CRYPTO
-        device_priv_key_byte = b""
-        device_pub_key_byte = b""
-        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+        (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
         self.this_device.is_initialized = True
-        self.this_device.device_priv_key = serialization_util.byte_to_key(
-            device_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_device.device_pub_key = serialization_util.byte_to_key(
-            device_pub_key_byte, key_type="ecc-public-key"
-        )
+        self.this_device.device_priv_key = device_priv_key
+        self.this_device.device_pub_key = device_pub_key
 
         ######################################################
         # Initialize Personal Id
         ######################################################
         # CRYPTO
-        person_priv_key_byte = b""
-        person_pub_key_byte = b""
-        (person_priv_key_byte, person_pub_key_byte) = ecc.generate_key_pair()
+        (person_priv_key, person_pub_key) = ecc.generate_key_pair()
 
         # RAM
-        self.this_person.person_priv_key = serialization_util.byte_to_key(
-            person_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_person.person_pub_key = serialization_util.byte_to_key(
-            person_pub_key_byte, key_type="ecc-public-key"
-        )
+        self.this_person.person_priv_key = person_priv_key
+        self.this_person.person_pub_key = person_pub_key
 
         ######################################################
         # Initialize Device Owner
@@ -192,7 +180,9 @@ class DeviceController:
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
-                salt_byte=serialization_util.str_to_byte(new_ticket.task_scope),
+                salt_byte=serialization_util.base64str_backto_byte(
+                    new_ticket.task_scope
+                ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
                     new_ticket.holder_id, key_type="ecc-public-key"
@@ -250,7 +240,9 @@ class DeviceController:
             # Generate session_key (Person)
             result = self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_person.person_priv_key,
-                salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
+                salt_byte=serialization_util.base64str_backto_byte(
+                    ticket_in.task_scope
+                ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
                     ticket_in.device_id, key_type="ecc-public-key"
@@ -289,18 +281,12 @@ class DeviceController:
         # Initialize Device Id
         ######################################################
         # CRYPTO
-        device_priv_key_byte = b""
-        device_pub_key_byte = b""
-        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+        (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
         self.this_device.is_initialized = True
-        self.this_device.device_priv_key = serialization_util.byte_to_key(
-            device_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_device.device_pub_key = serialization_util.byte_to_key(
-            device_pub_key_byte, key_type="ecc-public-key"
-        )
+        self.this_device.device_priv_key = device_priv_key
+        self.this_device.device_pub_key = device_pub_key
 
         ######################################################
         # Initialize Device Owner

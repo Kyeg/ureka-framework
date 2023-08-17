@@ -1,4 +1,3 @@
-import logging
 import json
 import base64
 from typing import Dict, Union
@@ -15,69 +14,62 @@ from cryptography.hazmat.primitives.serialization import (
 
 
 ################################################################################
-#         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
-#                                      ^                                       #
-#                        json.loads(.) ||                                      #
-#                                      || json.dumps(.)                        #
+#           "Encode always success -o->, while Decode does not -x->"           #
+################################################################################
+################################################################################
+#                  < Arbitrary_String (Printable Characters) >                 #
+#                                       |                                      #
 #                                       v                                      #
-#                       < JSON_str (Printable Characters) >                    #
+#                                   < Byte >                                   #
 ################################################################################
-def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
-    return json.loads(json_str)
+def str_to_byte(string: str) -> bytes:
+    return string.encode("UTF-8")
 
 
-def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
-    return json.dumps(dict_obj, sort_keys=True)
+def byte_backto_str(byte: bytes) -> str:
+    return byte.decode("UTF-8")
 
 
 ################################################################################
+#                                  < String >                                  #
+#                                       ^                                      #
+#                                       |                                      #
 #                    < Arbitrary_Byte (Signature / Salt) >                     #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      ||(not always success...)               #
-#                                       v                                      #
-#                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-################################################################################
-#                    < Arbitrary_Byte (Signature / Salt) >                     #
-#                                      ^                                       #
-#          base64.urlsafe_b64decode(.) ||                                      #
-#                                      || base64.urlsafe_b64encode(.)          #
-#                                       v                                      #
-#                     < BASE64_byte (Printable Characters) >                   #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      || (always success due to BASE64!!)     #
-#                                       v                                      #
-#                       < JSON_str (Printable Characters) >                    #
-################################################################################
-def byte_to_str(byte: bytes) -> str:
+def byte_to_base64str(byte: bytes) -> str:
     base64_byte = base64.urlsafe_b64encode(byte)
     return base64_byte.decode("UTF-8")
 
 
-def str_to_byte(string: str) -> bytes:
+def base64str_backto_byte(string: str) -> bytes:
     base64_byte = string.encode("UTF-8")
     return base64.urlsafe_b64decode(base64_byte)
 
 
 ################################################################################
-#                                < ECC_Key_obj >                               #
-#                                      ^                                       #
-#       load_der_public/private_key(.) ||                                      #
-#                                      || public/private_bytes(.)              #
-#                                       v                                      #
-#                                 < DER_byte >                                 #
-#                                      ^                                       #
-#                      encode('UTF-8') ||                                      #
-#                                      || decode('UTF-8')                      #
-#                                      || (always success due to BASE64!!)     #
+#         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
+#                                       |                                      #
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def key_to_byte(
+def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
+    return json.dumps(dict_obj, sort_keys=True)
+
+
+def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
+    return json.loads(json_str)
+
+
+################################################################################
+#                                < ECC_Key_obj >                               #
+#                                       | Python cryptography defined          #
+#                                       v                                      #
+#                                 < DER_byte >                                 #
+#                                       |                                      #
+#                                       v                                      #
+#                       < JSON_str (Printable Characters) >                    #
+################################################################################
+def _key_to_byte(
     key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
     key_type: str,
 ) -> bytes:
@@ -91,7 +83,7 @@ def key_to_byte(
         raise RuntimeError(failure_msg)
 
 
-def byte_to_key(
+def _byte_to_key(
     key_byte: bytes, key_type: str
 ) -> Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey]:
     if key_type == "ecc-public-key":
@@ -108,11 +100,11 @@ def key_to_str(
     key_obj: Union[ec.EllipticCurvePublicKey, ec.EllipticCurvePrivateKey],
     key_type: str = "ecc-public-key",
 ) -> bytes:
-    return byte_to_str(key_to_byte(key_obj, key_type=key_type))
+    return byte_to_base64str(_key_to_byte(key_obj, key_type=key_type))
 
 
 def str_to_key(
     key_str: str, key_type: str = "ecc-public-key"
 ) -> ec.EllipticCurvePublicKey:
-    key_byte = str_to_byte(key_str)
-    return byte_to_key(key_byte, key_type=key_type)
+    key_byte = base64str_backto_byte(key_str)
+    return _byte_to_key(key_byte, key_type=key_type)

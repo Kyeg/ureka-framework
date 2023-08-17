@@ -6,9 +6,9 @@ from typing import Dict
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.crypto.serialization_util import (
-    byte_to_str,
+    byte_to_base64str,
     key_to_str,
-    str_to_byte,
+    base64str_backto_byte,
     str_to_key,
 )
 
@@ -76,53 +76,14 @@ class ThisDevice:
 
 ################################################################################
 #                                < Device_obj >                                #
-#                                      ^                                       #
-#           self-defined serilaization ||                                      #
-#                                      || self-defined serilaization           #
-#                                      || (including ECC_Key_obj, bytes, etc.) #
+#                                       | self-defined serilaization           #
+#                                       | (including ECC_Key_obj, bytes, etc.) #
 #                                       v                                      #
 #         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
-#                                      ^                                       #
-#                        json.loads(.) ||                                      #
-#                                      || json.dumps(.)                        #
+#                                       |                                      #
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def _dict_to_this_device(this_device_dict):
-    this_device_obj = ThisDevice()
-
-    # JSON Serializable
-    this_device_obj.__dict__.update(this_device_dict)
-
-    # Not JSON Serializable
-    if this_device_dict["device_priv_key"] != None:
-        this_device_obj.device_priv_key = str_to_key(
-            this_device_dict["device_priv_key"], "ecc-private-key"
-        )
-    if this_device_dict["device_pub_key"] != None:
-        this_device_obj.device_pub_key = str_to_key(
-            this_device_dict["device_pub_key"], "ecc-public-key"
-        )
-    if this_device_dict["owner_pub_key"] != None:
-        this_device_obj.owner_pub_key = str_to_key(
-            this_device_dict["owner_pub_key"], "ecc-public-key"
-        )
-    if this_device_dict["current_holder_pub_key"] != None:  # pragma: no cover
-        # Never reach here: Because the current_holder_pub_key is not persistently stored
-        this_device_obj.current_holder_pub_key = str_to_key(
-            this_device_dict["current_holder_pub_key"], "ecc-public-key"
-        )
-    if this_device_dict["current_session_key_byte"] == None:
-        this_device_obj.current_session_key_byte = b""
-    else:  # pragma: no cover
-        # Never reach here: Because the current_session_key_byte is not persistently stored
-        this_device_obj.current_session_key_byte = str_to_byte(
-            this_device_dict["current_session_key_byte"]
-        )
-
-    return this_device_obj
-
-
 def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
     # Prevent side effect on this_device_obj
     # However, cannot deepcopy key object, so we need to handle it separately
@@ -164,19 +125,46 @@ def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
         this_device_dict["current_session_key_byte"] = None
     else:  # pragma: no cover
         # Never reach here: Because the current_session_key_byte is not persistently stored
-        this_device_dict["current_session_key_byte"] = byte_to_str(
+        this_device_dict["current_session_key_byte"] = byte_to_base64str(
             this_device_obj.current_session_key_byte
         )
 
     return this_device_dict
 
 
-def jsonstr_to_this_device(json_str: str) -> ThisDevice:
-    try:
-        return json.loads(json_str, object_hook=_dict_to_this_device)
-    except json.JSONDecodeError:
-        # logging.error("NOT VALID JSON")
-        raise RuntimeError("NOT VALID JSON")
+def _dict_to_this_device(this_device_dict):
+    this_device_obj = ThisDevice()
+
+    # JSON Serializable
+    this_device_obj.__dict__.update(this_device_dict)
+
+    # Not JSON Serializable
+    if this_device_dict["device_priv_key"] != None:
+        this_device_obj.device_priv_key = str_to_key(
+            this_device_dict["device_priv_key"], "ecc-private-key"
+        )
+    if this_device_dict["device_pub_key"] != None:
+        this_device_obj.device_pub_key = str_to_key(
+            this_device_dict["device_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["owner_pub_key"] != None:
+        this_device_obj.owner_pub_key = str_to_key(
+            this_device_dict["owner_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["current_holder_pub_key"] != None:  # pragma: no cover
+        # Never reach here: Because the current_holder_pub_key is not persistently stored
+        this_device_obj.current_holder_pub_key = str_to_key(
+            this_device_dict["current_holder_pub_key"], "ecc-public-key"
+        )
+    if this_device_dict["current_session_key_byte"] == None:
+        this_device_obj.current_session_key_byte = b""
+    else:  # pragma: no cover
+        # Never reach here: Because the current_session_key_byte is not persistently stored
+        this_device_obj.current_session_key_byte = base64str_backto_byte(
+            this_device_dict["current_session_key_byte"]
+        )
+
+    return this_device_obj
 
 
 def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
@@ -188,3 +176,11 @@ def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
     else:
         # logging.error("NOT VALID DEVICE")
         raise RuntimeError("NOT VALID DEVICE")
+
+
+def jsonstr_to_this_device(json_str: str) -> ThisDevice:
+    try:
+        return json.loads(json_str, object_hook=_dict_to_this_device)
+    except json.JSONDecodeError:
+        # logging.error("NOT VALID JSON")
+        raise RuntimeError("NOT VALID JSON")

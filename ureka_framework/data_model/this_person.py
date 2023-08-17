@@ -39,34 +39,14 @@ class ThisPerson:
 
 ################################################################################
 #                                < Person_obj >                                #
-#                                      ^                                       #
-#           self-defined serilaization ||                                      #
-#                                      || self-defined serilaization           #
-#                                      || (including ECC_Key_obj, bytes, etc.) #
+#                                       | self-defined serilaization           #
+#                                       | (including ECC_Key_obj, bytes, etc.) #
 #                                       v                                      #
 #         < JSON_dict (Should be JSON serializable, i.e. native type) >        #
-#                                      ^                                       #
-#                        json.loads(.) ||                                      #
-#                                      || json.dumps(.)                        #
+#                                       |                                      #
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def _dict_to_this_person(this_person_dict):
-    this_person_obj = ThisPerson()
-
-    # Not JSON Serializable
-    if this_person_dict["person_priv_key"] != None:
-        this_person_obj.person_priv_key = str_to_key(
-            this_person_dict["person_priv_key"], "ecc-private-key"
-        )
-    if this_person_dict["person_pub_key"] != None:
-        this_person_obj.person_pub_key = str_to_key(
-            this_person_dict["person_pub_key"], "ecc-public-key"
-        )
-
-    return this_person_obj
-
-
 def _this_person_to_dict(this_person_obj: ThisPerson) -> Dict[str, str]:
     # Prevent side effect on this_person_obj
     # However, cannot deepcopy key object, so we need to handle it separately
@@ -89,12 +69,20 @@ def _this_person_to_dict(this_person_obj: ThisPerson) -> Dict[str, str]:
     return this_person_dict
 
 
-def jsonstr_to_this_person(json_str: str) -> ThisPerson:
-    try:
-        return json.loads(json_str, object_hook=_dict_to_this_person)
-    except json.JSONDecodeError:
-        # logging.error("NOT VALID JSON")
-        raise RuntimeError("NOT VALID JSON")
+def _dict_to_this_person(this_person_dict):
+    this_person_obj = ThisPerson()
+
+    # Not JSON Serializable
+    if this_person_dict["person_priv_key"] != None:
+        this_person_obj.person_priv_key = str_to_key(
+            this_person_dict["person_priv_key"], "ecc-private-key"
+        )
+    if this_person_dict["person_pub_key"] != None:
+        this_person_obj.person_pub_key = str_to_key(
+            this_person_dict["person_pub_key"], "ecc-public-key"
+        )
+
+    return this_person_obj
 
 
 def this_person_to_jsonstr(this_person_obj: ThisPerson) -> str:
@@ -106,3 +94,11 @@ def this_person_to_jsonstr(this_person_obj: ThisPerson) -> str:
     else:
         # logging.error("NOT VALID PERSON")
         raise RuntimeError("NOT VALID PERSON")
+
+
+def jsonstr_to_this_person(json_str: str) -> ThisPerson:
+    try:
+        return json.loads(json_str, object_hook=_dict_to_this_person)
+    except json.JSONDecodeError:
+        # logging.error("NOT VALID JSON")
+        raise RuntimeError("NOT VALID JSON")

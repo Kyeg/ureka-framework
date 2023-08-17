@@ -28,11 +28,15 @@ class TicketGenerator:
         ######################################################
         # Generate Random Salt for Challenge-response or Key-exchange
         if new_ticket.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            random_salt = ecdh.generate_random_byte(32)
-            new_ticket.task_scope = serialization_util.byte_to_str(random_salt)
+            random_salt_byte = ecdh.generate_random_byte(32)
+            new_ticket.task_scope = serialization_util.byte_to_base64str(
+                random_salt_byte
+            )
         elif new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
-            random_salt = ecdh.generate_random_byte(32)
-            new_ticket.task_scope = serialization_util.byte_to_str(random_salt)
+            random_salt_byte = ecdh.generate_random_byte(32)
+            new_ticket.task_scope = serialization_util.byte_to_base64str(
+                random_salt_byte
+            )
 
         # Add Signature
         if new_ticket.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
@@ -69,6 +73,8 @@ class TicketGenerator:
 
         # Add Signature on New Signed Ticket, but Prevent side effect on Unsigned Ticket
         signed_ticket = copy.deepcopy(unsigned_ticket)
-        signed_ticket.issuer_signature = serialization_util.byte_to_str(signature_byte)
+        signed_ticket.issuer_signature = serialization_util.byte_to_base64str(
+            signature_byte
+        )
 
         return signed_ticket

@@ -109,6 +109,7 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
+                logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self._verify_issuer_signature_on_ticket(
@@ -118,6 +119,7 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
+                logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
         # (N) Verify HOLDER_SIGNATURE
         elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
@@ -159,25 +161,17 @@ class TicketVerifier:
     def _verify_issuer_signature_on_ticket(
         self, signed_ticket: Ticket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
-        try:
-            # Get Signature on Ticket
-            signature_byte = serialization_util.str_to_byte(
-                signed_ticket.issuer_signature
-            )
+        # Get Signature on Ticket
+        signature_byte = serialization_util.base64str_backto_byte(
+            signed_ticket.issuer_signature
+        )
 
-            # Verify Signature on Signed Ticket, but Prevent side effect on Signed Ticket
-            unsigned_ticket = copy.deepcopy(signed_ticket)
-            unsigned_ticket.issuer_signature = ""
+        # Verify Signature on Signed Ticket, but Prevent side effect on Signed Ticket
+        unsigned_ticket = copy.deepcopy(signed_ticket)
+        unsigned_ticket.issuer_signature = ""
 
-            unsigned_ticket_str = ticket_to_jsonstr(unsigned_ticket)
-            unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
+        unsigned_ticket_str = ticket_to_jsonstr(unsigned_ticket)
+        unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
-            # Verify Signature
-            return ecc.verify_signature(
-                signature_byte, unsigned_ticket_byte, public_key
-            )
-
-        # Reach here if the public key is wrong
-        except AttributeError:
-            logging.error("FAILURE: WRONG PUBLIC KEY")
-            return False
+        # Verify Signature
+        return ecc.verify_signature(signature_byte, unsigned_ticket_byte, public_key)
