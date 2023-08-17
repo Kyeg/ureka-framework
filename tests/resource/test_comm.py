@@ -7,7 +7,7 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
-from ureka_framework.controller.device_controller import DeviceController
+from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import ticket
 
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel

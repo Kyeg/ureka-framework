@@ -20,7 +20,14 @@ from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
-from ureka_framework.resource.crypto.serialization_util import key_to_str, str_to_key
+from ureka_framework.resource.crypto import ecdh
+from ureka_framework.resource.crypto.serialization_util import (
+    base64str_backto_byte,
+    byte_backto_str,
+    jsonstr_to_dict,
+    key_to_str,
+    str_to_key,
+)
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -134,26 +141,18 @@ class TestSerialization:
         assert f"WRONG-DEVICE-ID" == ticket_obj.device_id
         assert f"{ticket.TYPE_MANAGEMENT_TICKET}" == ticket_obj.ticket_type
 
-    def test_common_serialization_failed(self) -> None:
+    def test_json_serialization_failed(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Not a valid object
-        not_an_object: str = "NOT-AN-OBJ"
         # GIVEN: Not a valid json
         wrong_json_schema: str = "WRONG-JSON-SCHEMA"
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
 
-        # WHEN: Try to serialize/deserialize an invalid object
-        with pytest.raises(RuntimeError) as ticket_to_jsonstr_error_info:
-            ticket_json: str = ticket_to_jsonstr(not_an_object)
-        with pytest.raises(RuntimeError) as this_device_to_jsonstr_error_info:
-            this_device_json: str = this_device_to_jsonstr(not_an_object)
-        with pytest.raises(RuntimeError) as this_person_to_jsonstr_error_info:
-            this_person_json: str = this_person_to_jsonstr(not_an_object)
-
         # WHEN: Try to serialize/deserialize an invalid json
+        with pytest.raises(RuntimeError) as jsonstr_to_dict_error_info:
+            dict: str = jsonstr_to_dict(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_ticket_error_info:
             this_device: str = jsonstr_to_ticket(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_device_error_info:
@@ -161,15 +160,37 @@ class TestSerialization:
         with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
             this_person: str = jsonstr_to_this_person(wrong_json_schema)
 
-        # THEN: Failed to serialize/deserialize an invalid object
-        assert str(ticket_to_jsonstr_error_info.value) == "NOT VALID TICKET"
-        assert str(this_device_to_jsonstr_error_info.value) == "NOT VALID DEVICE"
-        assert str(this_person_to_jsonstr_error_info.value) == "NOT VALID PERSON"
-
         # THEN: Failed to serialize/deserialize an invalid json
+        assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_ticket_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
+
+    def test_byte_serialization_failed(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Not some byte or string
+        arbitrary_byte = ecdh.generate_random_byte(32)
+        arbitrary_str: str = "asdfghjkl;"
+
+        # WHEN: Do some serialization/deserialization
+        current_test_when_and_then_log()
+
+        # WHEN: Try to serialize/deserialize invalid byte or string
+        with pytest.raises(RuntimeError) as byte_backto_str_error_info:
+            string: str = byte_backto_str(arbitrary_byte)
+        with pytest.raises(RuntimeError) as base64str_backto_byte_error_info:
+            byte: bytes = base64str_backto_byte(arbitrary_str)
+
+        # THEN: Failed to serialize/deserialize an invalid json
+        assert (
+            str(byte_backto_str_error_info.value)
+            == "NOT Any Byte can be decoded to UTF-8"
+        )
+        assert (
+            str(base64str_backto_byte_error_info.value)
+            == "NOT Any String is Base64 string which can be decoded to Byte"
+        )
 
     def test_key_serialization(self) -> None:
         current_test_given_log()

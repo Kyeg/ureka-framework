@@ -1,4 +1,5 @@
 import json
+import binascii
 import base64
 from typing import Dict, Union
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -27,7 +28,12 @@ def str_to_byte(string: str) -> bytes:
 
 
 def byte_backto_str(byte: bytes) -> str:
-    return byte.decode("UTF-8")
+    try:
+        return byte.decode("UTF-8")
+    except UnicodeDecodeError:
+        failure_msg = "NOT Any Byte can be decoded to UTF-8"
+        # logging.error(failure_msg)
+        raise RuntimeError(failure_msg)
 
 
 ################################################################################
@@ -42,8 +48,13 @@ def byte_to_base64str(byte: bytes) -> str:
 
 
 def base64str_backto_byte(string: str) -> bytes:
-    base64_byte = string.encode("UTF-8")
-    return base64.urlsafe_b64decode(base64_byte)
+    try:
+        base64_byte = string.encode("UTF-8")
+        return base64.urlsafe_b64decode(base64_byte)
+    except binascii.Error:
+        failure_msg = "NOT Any String is Base64 string which can be decoded to Byte"
+        # logging.error(failure_msg)
+        raise RuntimeError(failure_msg)
 
 
 ################################################################################
@@ -57,7 +68,12 @@ def dict_to_jsonstr(dict_obj: Dict[str, str]) -> str:
 
 
 def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
-    return json.loads(json_str)
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        failure_msg = "NOT VALID JSON"
+        # logging.error(failure_msg)
+        raise RuntimeError(failure_msg)
 
 
 ################################################################################

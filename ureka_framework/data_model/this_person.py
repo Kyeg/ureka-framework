@@ -87,18 +87,15 @@ def _dict_to_this_person(this_person_dict):
 
 def this_person_to_jsonstr(this_person_obj: ThisPerson) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    if type(this_person_obj) == ThisPerson:
-        return json.dumps(
-            this_person_obj, indent=4, default=_this_person_to_dict, sort_keys=True
-        )
-    else:
-        # logging.error("NOT VALID PERSON")
-        raise RuntimeError("NOT VALID PERSON")
+    return json.dumps(
+        this_person_obj, indent=4, default=_this_person_to_dict, sort_keys=True
+    )
 
 
 def jsonstr_to_this_person(json_str: str) -> ThisPerson:
     try:
         return json.loads(json_str, object_hook=_dict_to_this_person)
     except json.JSONDecodeError:
-        # logging.error("NOT VALID JSON")
-        raise RuntimeError("NOT VALID JSON")
+        failure_msg = "NOT VALID JSON"
+        # logging.error(failure_msg)
+        raise RuntimeError(failure_msg)

@@ -1,10 +1,10 @@
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.controller.ticket_generator import (
+from ureka_framework.logic.ticket_generator import (
     TicketGenerator,
 )
-from ureka_framework.controller.ticket_verifier import (
+from ureka_framework.logic.ticket_verifier import (
     TicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice

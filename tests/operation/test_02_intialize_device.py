@@ -8,7 +8,7 @@ from tests.conftest import (
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
-from ureka_framework.controller.device_controller import (
+from ureka_framework.logic.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.ticket as ticket
