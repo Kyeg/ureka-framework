@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ureka_framework.controller.device_controller import DeviceController
 
 
