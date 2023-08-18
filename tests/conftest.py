@@ -1,6 +1,6 @@
 import inspect
 import logging
-from ureka_framework.controller.device_controller import DeviceController
+from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import ticket
 from ureka_framework.resource.crypto import serialization_util
 from typing import Tuple

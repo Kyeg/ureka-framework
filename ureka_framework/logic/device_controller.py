@@ -1,17 +1,19 @@
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.controller.ticket_generator import (
+from ureka_framework.logic.ticket_generator import (
     TicketGenerator,
 )
-from ureka_framework.controller.ticket_verifier import (
+from ureka_framework.logic.ticket_verifier import (
     TicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.ticket import Ticket
+from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
 import ureka_framework.data_model.ticket as ticket
-from ureka_framework.resource.storage.secure_db import SecureDB
+
+from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
@@ -21,29 +23,23 @@ import logging
 
 class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
-        # Device State
-        self.this_device = ThisDevice()
+        # Data Model
+        self.this_device: ThisDevice = ThisDevice()
+        # Data Model (User Agent or Cloud Server only)
+        self.this_person: ThisPerson = ThisPerson()
 
-        # Device State (User Agent or Cloud Server only)
-        self.this_person = ThisPerson()
+        # Set Storage
+        self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
+        # Set Communication
+        self.comm_channel: FakeCommChannel = None
 
-        # Set SecureDB
-        self.secure_db = SecureDB(device_name=device_name)
-
-        # Always load SecureDB after Reboot
+        # Always load Storage after Reboot
         (
-            self.this_device.has_device_type,
-            self.this_device.is_initialized,
-            self.this_device.device_type,
-            self.this_device.device_name,
-            self.this_device.device_priv_key,
-            self.this_device.device_pub_key,
-            self.this_device.owner_pub_key,
-            self.this_person.person_priv_key,
-            self.this_person.person_pub_key,
-        ) = self.secure_db.load_secure_db()
+            self.this_device,
+            self.this_person,
+        ) = self.simple_storage.load_storage()
 
-        # Set Device Type
+        # Set Device Type (must after loading storage)
         if self.this_device.has_device_type is False:
             self.execute_one_time_set_time_device_type_and_name(
                 device_type, device_name
@@ -61,6 +57,34 @@ class DeviceController:
         )
 
     ######################################################
+    # Communication
+    ######################################################
+    def connect(self, comm_channel: FakeCommChannel) -> None:
+        self.comm_channel = comm_channel
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is connecting with {end.this_device.device_name}..."
+                )
+
+    def send_xxx_ticket(self, ticket_json: str) -> None:
+        self.comm_channel.message_in_channel = ticket_json
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is sending ticket to {end.this_device.device_name}..."
+                )
+                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+
+    def recv_xxx_ticket(self) -> None:
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is receiving ticket from {end.this_device.device_name}..."
+                )
+                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+
+    ######################################################
     # Set Device Type
     ######################################################
     def execute_one_time_set_time_device_type_and_name(
@@ -69,11 +93,14 @@ class DeviceController:
         # Determine device type name, but still be uninitialized
         # Determine device name (for test)
         self.this_device.is_initialized = False
+        self.this_device.has_device_type = True
         self.this_device.device_type = device_type
         self.this_device.device_name = device_name
 
-        # DB
-        self.secure_db.store_device_type_and_name(device_type, device_name)
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -99,41 +126,22 @@ class DeviceController:
         # Initialize Device Id
         ######################################################
         # CRYPTO
-        device_priv_key_byte = b""
-        device_pub_key_byte = b""
-        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+        (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
         self.this_device.is_initialized = True
-        self.this_device.device_priv_key = serialization_util.byte_to_key(
-            device_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_device.device_pub_key = serialization_util.byte_to_key(
-            device_pub_key_byte, key_type="ecc-public-key"
-        )
-
-        # DB
-        self.secure_db.store_is_initialized()
-        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
+        self.this_device.device_priv_key = device_priv_key
+        self.this_device.device_pub_key = device_pub_key
 
         ######################################################
         # Initialize Personal Id
         ######################################################
         # CRYPTO
-        person_priv_key_byte = b""
-        person_pub_key_byte = b""
-        (person_priv_key_byte, person_pub_key_byte) = ecc.generate_key_pair()
+        (person_priv_key, person_pub_key) = ecc.generate_key_pair()
 
         # RAM
-        self.this_person.person_priv_key = serialization_util.byte_to_key(
-            person_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_person.person_pub_key = serialization_util.byte_to_key(
-            person_pub_key_byte, key_type="ecc-public-key"
-        )
-
-        # DB
-        self.secure_db.store_person_id(person_priv_key_byte, person_pub_key_byte)
+        self.this_person.person_priv_key = person_priv_key
+        self.this_person.person_pub_key = person_pub_key
 
         ######################################################
         # Initialize Device Owner
@@ -141,9 +149,10 @@ class DeviceController:
         # RAM
         self.this_device.owner_pub_key = self.this_person.person_pub_key
 
-        # DB
-        owner_public_key_byte = person_pub_key_byte
-        self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -165,13 +174,15 @@ class DeviceController:
     # Execute Operation based on generate_xxx_ticket
     ######################################################
     def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
-        new_ticket = serialization_util.jsonstr_to_ticket(new_ticket_json)
+        new_ticket = jsonstr_to_ticket(new_ticket_json)
 
         # Generate session_key (Device)
         if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
-                salt_byte=serialization_util.str_to_byte(new_ticket.task_scope),
+                salt_byte=serialization_util.base64str_backto_byte(
+                    new_ticket.task_scope
+                ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
                     new_ticket.holder_id, key_type="ecc-public-key"
@@ -187,7 +198,7 @@ class DeviceController:
         ticket_verifier = TicketVerifier(self.this_device, self.this_person)
         verification_and_execution_result = flow(
             arbitrary_json,
-            ticket_verifier.verify_ticket_schema,
+            ticket_verifier.verify_json_schema,
             bind(ticket_verifier.verify_ticket_protocol_version),
             bind(ticket_verifier.verify_ticket_type),
             bind(ticket_verifier.verify_device_id),
@@ -229,7 +240,9 @@ class DeviceController:
             # Generate session_key (Person)
             result = self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_person.person_priv_key,
-                salt_byte=serialization_util.str_to_byte(ticket_in.task_scope),
+                salt_byte=serialization_util.base64str_backto_byte(
+                    ticket_in.task_scope
+                ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
                     ticket_in.device_id, key_type="ecc-public-key"
@@ -237,7 +250,7 @@ class DeviceController:
             )
             # To-Do: Create Session
             # To-Do: Auto-Generate Command Ticket
-        else:
+        else:  # pragma: no cover
             # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -268,22 +281,12 @@ class DeviceController:
         # Initialize Device Id
         ######################################################
         # CRYPTO
-        device_priv_key_byte = b""
-        device_pub_key_byte = b""
-        (device_priv_key_byte, device_pub_key_byte) = ecc.generate_key_pair()
+        (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
         self.this_device.is_initialized = True
-        self.this_device.device_priv_key = serialization_util.byte_to_key(
-            device_priv_key_byte, key_type="ecc-private-key"
-        )
-        self.this_device.device_pub_key = serialization_util.byte_to_key(
-            device_pub_key_byte, key_type="ecc-public-key"
-        )
-
-        # DB
-        self.secure_db.store_is_initialized()
-        self.secure_db.store_device_id(device_priv_key_byte, device_pub_key_byte)
+        self.this_device.device_priv_key = device_priv_key
+        self.this_device.device_pub_key = device_pub_key
 
         ######################################################
         # Initialize Device Owner
@@ -293,9 +296,10 @@ class DeviceController:
             new_ticket.holder_id
         )
 
-        # DB
-        owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-        self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -321,9 +325,10 @@ class DeviceController:
                 new_ticket.holder_id, key_type="ecc-public-key"
             )
 
-            # DB
-            owner_public_key_byte = serialization_util.str_to_byte(new_ticket.holder_id)
-            self.secure_db.store_owner_id(owner_public_key_byte)
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -338,8 +343,16 @@ class DeviceController:
             f"+ {self.this_device.device_name} is updating current holder pub key..."
         )
 
+        ######################################################
+        # Update Session
+        ######################################################
         # RAM
         self.this_device.current_holder_pub_key = new_current_holder_pub_key
+
+        ######################################################
+        # Storage (RAM Only)
+        ######################################################
+        # self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)
 
@@ -354,6 +367,9 @@ class DeviceController:
             f"+ {self.this_device.device_name} is updating current session key byte..."
         )
 
+        ######################################################
+        # Update Session
+        ######################################################
         # RAM
         self.this_device.current_session_key_byte = ecdh.generate_ecdh_key(
             server_private_key=server_private_key_obj,
@@ -364,5 +380,10 @@ class DeviceController:
         logging.debug(
             f"current_session_key_byte in {self.this_device.device_name}: {str(self.this_device.current_session_key_byte)}"
         )
+
+        ######################################################
+        # Storage (RAM Only)
+        ######################################################
+        # self.simple_storage.store_storage(self.this_device, self.this_person)
 
         return Success(None)

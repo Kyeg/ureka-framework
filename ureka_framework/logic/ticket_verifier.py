@@ -1,7 +1,11 @@
 import copy
 import logging
 from returns.result import Result, Success, Failure
-from ureka_framework.data_model.ticket import Ticket
+from ureka_framework.data_model.ticket import (
+    Ticket,
+    jsonstr_to_ticket,
+    ticket_to_jsonstr,
+)
 import ureka_framework.data_model.ticket as ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
@@ -18,18 +22,20 @@ class TicketVerifier:
     ######################################################
     # Message Verification Flow
     ######################################################
-    def verify_ticket_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
-        success_msg = "-> SUCCESS: VERIFY_TICKET_SCHEMA"
-        failure_msg = "-> FAILURE: VERIFY_TICKET_SCHEMA"
+    def verify_json_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
+        success_msg = "-> SUCCESS: VERIFY_JSON_SCHEMA"
+        failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
 
         try:
-            ticket_in: Ticket = serialization_util.jsonstr_to_ticket(arbitrary_json)
+            ticket_in: Ticket = jsonstr_to_ticket(arbitrary_json)
 
             logging.info(success_msg)
             return Success(ticket_in)
         except RuntimeError as error:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
+
+    # TODO: verify_ticket_schema()
 
     def verify_ticket_protocol_version(
         self, ticket_in: Ticket
@@ -103,6 +109,7 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
+                logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
         elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
             if self._verify_issuer_signature_on_ticket(
@@ -112,6 +119,7 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
+                logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
         # (N) Verify HOLDER_SIGNATURE
         elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
@@ -124,7 +132,7 @@ class TicketVerifier:
             # Check the ticket holder is allowed by owner (in access permission ticket)
             if self.this_device.current_holder_pub_key_str != ticket_in.holder_id:
                 logging.error(failure_msg)
-                logging.error("-> FAILURE: ERROR HOLDER_ID")
+                logging.error("-> FAILURE: WRONG HOLDER_ID")
                 return Failure(RuntimeError(failure_msg))
 
             # To-Do: Authenticate the ticket holder
@@ -135,14 +143,14 @@ class TicketVerifier:
                 return Success(ticket_in)
             else:
                 logging.error(failure_msg)
-                logging.error("-> FAILURE: ERROR AUTHENTICATION")
+                logging.error("-> FAILURE: WRONG AUTHENTICATION")
                 return Failure(RuntimeError(failure_msg))
 
         elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             # To-Do: Return Ticket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(ticket_in)
-        else:
+        else:  # pragma: no cover
             # Never reach here: Because of verify_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -153,25 +161,17 @@ class TicketVerifier:
     def _verify_issuer_signature_on_ticket(
         self, signed_ticket: Ticket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
-        try:
-            # Get Signature on Ticket
-            signature_byte = serialization_util.str_to_byte(
-                signed_ticket.issuer_signature
-            )
+        # Get Signature on Ticket
+        signature_byte = serialization_util.base64str_backto_byte(
+            signed_ticket.issuer_signature
+        )
 
-            # Verify Signature on Signed Ticket, but Prevent side effect on Signed Ticket
-            unsigned_ticket = copy.deepcopy(signed_ticket)
-            unsigned_ticket.issuer_signature = ""
+        # Verify Signature on Signed Ticket, but Prevent side effect on Signed Ticket
+        unsigned_ticket = copy.deepcopy(signed_ticket)
+        unsigned_ticket.issuer_signature = ""
 
-            unsigned_ticket_str = serialization_util.ticket_to_jsonstr(unsigned_ticket)
-            unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
+        unsigned_ticket_str = ticket_to_jsonstr(unsigned_ticket)
+        unsigned_ticket_byte = serialization_util.str_to_byte(unsigned_ticket_str)
 
-            # Verify Signature
-            return ecc.verify_signature(
-                signature_byte, unsigned_ticket_byte, public_key
-            )
-
-        # Reach here if the public key is wrong
-        except AttributeError:
-            logging.error("FAILURE: WRONG PUBLIC KEY")
-            return False
+        # Verify Signature
+        return ecc.verify_signature(signature_byte, unsigned_ticket_byte, public_key)

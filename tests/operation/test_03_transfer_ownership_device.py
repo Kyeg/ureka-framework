@@ -13,7 +13,7 @@ from tests.conftest import (
 )
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
 
@@ -22,14 +22,14 @@ class TestTransferOwnershipDevice:
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_apply_management_ticket(self) -> None:
         current_test_given_log()
@@ -56,6 +56,25 @@ class TestTransferOwnershipDevice:
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_person.person_pub_key_str
+        )
+
+    def test_apply_management_ticket_with_reboot(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # WHEN: Reboot the DO's IoTD
+        current_test_when_and_then_log()
+        self.iot_device.reboot_device()
+
+        # THEN: Still is successful to transfer ownership (become DO's IoTD)
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str

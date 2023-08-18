@@ -1,4 +1,3 @@
-import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
@@ -12,7 +11,7 @@ from tests.conftest import (
 )
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.storage.secure_db import SecureDB
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 
 class TestAccessDevice:
@@ -20,14 +19,14 @@ class TestAccessDevice:
     def setup_teardown(self):
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        SecureDB.delete_secure_db_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_apply_access_permission_ticket(self) -> None:
         current_test_given_log()
@@ -117,6 +116,19 @@ class TestAccessDevice:
             self.iot_device.this_device.current_session_key_byte
             == self.cloud_server_ep.this_device.current_session_key_byte
         )
+
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_apply_access_permission_ticket_with_reboot(self) -> None:
+        current_test_given_log()
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        # GIVEN: Initialized EP's CS
+        # GIVEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
+        # GIVEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
+
+        # WHEN: Reboot the DO's IoTD
+
+        # THEN: Becuase the session between EP's CS and DO's IoTD is not persistently stored,
+        #       so EP's CS need to create a new session by re-issue the Ticket
 
     def test_apply_access_permission_ticket_wrong_owner_failed(self) -> None:
         current_test_given_log()
