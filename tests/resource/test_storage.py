@@ -10,6 +10,11 @@ from tests.conftest import (
 from ureka_framework.data_model.this_device import (
     this_device_to_jsonstr,
 )
+from ureka_framework.data_model.other_device import (
+    OtherDevice,
+    jsonstr_to_other_device,
+    other_device_to_jsonstr,
+)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -39,25 +44,51 @@ class TestStorage:
         # logging.debug(
         #     f"Original Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
+        logging.debug(
+            f"Original Other Devices in RAM = {other_device_to_jsonstr(self.cloud_server_dm.other_devices)}"
+        )
 
         # WHEN: Variables are modified in the RAM
         current_test_when_and_then_log()
+
         self.cloud_server_dm.this_device.device_name = "another_new_device_name"
         # logging.debug(
         #     f"Modified Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
+
+        self.cloud_server_dm.other_devices["device_id_1"] = OtherDevice(
+            device_id="device_id_1",
+            device_name="device_id_1's name",
+        )
+        self.cloud_server_dm.other_devices["device_id_2"] = OtherDevice(
+            device_id="device_id_2",
+            device_name="device_id_2's name",
+        )
+        logging.debug(
+            f"Modified Other Devices in RAM = {other_device_to_jsonstr(self.cloud_server_dm.other_devices)}"
+        )
+
         # WHEN: Variables are stored in the Storage
         self.simple_storage.store_storage(
-            self.cloud_server_dm.this_device, self.cloud_server_dm.this_person
+            self.cloud_server_dm.this_device,
+            self.cloud_server_dm.other_devices,
+            self.cloud_server_dm.this_person,
         )
+
         # WHEN: Variables are loaded from the Storage
         (
             updated_this_device,
+            updated_other_devices,
             updated_this_person,
         ) = self.simple_storage.load_storage()
+
         # logging.debug(
         #     f"Loaded Device from Storage = {this_device_to_jsonstr(updated_this_device)}"
         # )
+
+        logging.debug(
+            f"Loaded Other Devices from Storage = {other_device_to_jsonstr(updated_other_devices)}"
+        )
 
         # THEN: Check SimpleStorage/test_storage/this_device.json to ensure the variables are stored correctly
         # THEN: The variables loaded from the Storage should be the same with the variables modified in the RAM

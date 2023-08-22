@@ -8,6 +8,7 @@ from ureka_framework.logic.ticket_verifier import (
     TicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
+from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
 import ureka_framework.data_model.ticket as ticket
@@ -25,6 +26,7 @@ class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
         # Data Model
         self.this_device: ThisDevice = ThisDevice()
+        self.other_devices: dict[str, OtherDevice] = {}
         # Data Model (User Agent or Cloud Server only)
         self.this_person: ThisPerson = ThisPerson()
 
@@ -36,6 +38,7 @@ class DeviceController:
         # Always load Storage after Reboot
         (
             self.this_device,
+            self.other_devices,
             self.this_person,
         ) = self.simple_storage.load_storage()
 
@@ -100,7 +103,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.other_devices, self.this_person
+        )
 
         return Success(None)
 
@@ -152,7 +157,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.other_devices, self.this_person
+        )
 
         return Success(None)
 
@@ -299,7 +306,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.other_devices, self.this_person
+        )
 
         return Success(None)
 
@@ -328,7 +337,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.other_devices, self.this_person
+        )
 
         return Success(None)
 
@@ -352,7 +363,7 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.other_devices, self.this_person)
 
         return Success(None)
 
@@ -384,6 +395,6 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.other_devices, self.this_person)
 
         return Success(None)

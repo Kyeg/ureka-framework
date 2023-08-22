@@ -86,7 +86,7 @@ def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     return ticket_dict
 
 
-def _dict_to_ticket(ticket_dict):
+def _dict_to_ticket(ticket_dict: Dict[str, str]) -> Ticket:
     ticket_obj = Ticket()
     ticket_obj.__dict__.update(ticket_dict)
     return ticket_obj
