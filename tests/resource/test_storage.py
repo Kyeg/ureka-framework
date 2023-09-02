@@ -12,7 +12,6 @@ from ureka_framework.data_model.this_device import (
 )
 from ureka_framework.data_model.other_device import (
     OtherDevice,
-    jsonstr_to_other_device,
     other_device_to_jsonstr,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -33,7 +32,7 @@ class TestStorage:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_store_and_load_storage(self) -> None:
+    def test_store_and_load_this_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: A SimpleStorage
@@ -44,9 +43,6 @@ class TestStorage:
         # logging.debug(
         #     f"Original Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
-        logging.debug(
-            f"Original Other Devices in RAM = {other_device_to_jsonstr(self.cloud_server_dm.other_devices)}"
-        )
 
         # WHEN: Variables are modified in the RAM
         current_test_when_and_then_log()
@@ -55,6 +51,47 @@ class TestStorage:
         # logging.debug(
         #     f"Modified Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
+
+        # WHEN: Variables are stored in the Storage
+        self.simple_storage.store_storage(
+            self.cloud_server_dm.this_device,
+            self.cloud_server_dm.other_devices,
+            self.cloud_server_dm.this_person,
+        )
+
+        # WHEN: Variables are loaded from the Storage
+        (
+            updated_this_device,
+            updated_other_devices,
+            updated_this_person,
+        ) = self.simple_storage.load_storage()
+
+        # logging.debug(
+        #     f"Loaded Device from Storage = {this_device_to_jsonstr(updated_this_device)}"
+        # )
+
+        # THEN: Check SimpleStorage/test_storage/this_device.json to ensure the variables are stored correctly
+        # THEN: The variables loaded from the Storage should be the same with the variables modified in the RAM
+        assert (
+            updated_this_device.device_name
+            == self.cloud_server_dm.this_device.device_name
+        )
+
+    def test_store_and_load_other_devices(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: A SimpleStorage
+        self.simple_storage = SimpleStorage("test_storage")
+
+        # GIVEN: An initialized DM's CS as test data
+        self.cloud_server_dm = device_manufacturer_server()
+        logging.debug(
+            f"Original Other Devices in RAM = {other_device_to_jsonstr(self.cloud_server_dm.other_devices)}"
+        )
+
+        # WHEN: Variables are modified in the RAM
+        current_test_when_and_then_log()
+        self.cloud_server_dm.this_device.device_name = "another_new_device_name"
 
         self.cloud_server_dm.other_devices["device_id_1"] = OtherDevice(
             device_id="device_id_1",
@@ -82,20 +119,16 @@ class TestStorage:
             updated_this_person,
         ) = self.simple_storage.load_storage()
 
-        # logging.debug(
-        #     f"Loaded Device from Storage = {this_device_to_jsonstr(updated_this_device)}"
-        # )
-
         logging.debug(
             f"Loaded Other Devices from Storage = {other_device_to_jsonstr(updated_other_devices)}"
         )
 
-        # THEN: Check SimpleStorage/test_storage/this_device.json to ensure the variables are stored correctly
+        # THEN: Check SimpleStorage/test_storage/other_devices.json to ensure the variables are stored correctly
         # THEN: The variables loaded from the Storage should be the same with the variables modified in the RAM
-        assert (
-            updated_this_device.device_name
-            == self.cloud_server_dm.this_device.device_name
-        )
+        assert updated_other_devices["device_id_1"].device_id == "device_id_1"
+        assert updated_other_devices["device_id_1"].device_name == "device_id_1's name"
+        assert updated_other_devices["device_id_2"].device_id == "device_id_2"
+        assert updated_other_devices["device_id_2"].device_name == "device_id_2's name"
 
     def test_create_existed_dir(self) -> None:
         current_test_given_log()

@@ -16,6 +16,9 @@ from ureka_framework.data_model.this_device import (
     jsonstr_to_this_device,
     this_device_to_jsonstr,
 )
+from ureka_framework.data_model.other_device import (
+    jsonstr_to_other_device,
+)
 from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
@@ -157,6 +160,8 @@ class TestSerialization:
             this_device: str = jsonstr_to_ticket(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_device_error_info:
             this_device: str = jsonstr_to_this_device(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_other_device_error_info:
+            other_device: str = jsonstr_to_other_device(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
             this_person: str = jsonstr_to_this_person(wrong_json_schema)
 
@@ -164,6 +169,7 @@ class TestSerialization:
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_ticket_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
+        assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
 
     def test_byte_serialization_failed(self) -> None:
