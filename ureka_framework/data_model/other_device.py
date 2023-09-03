@@ -18,8 +18,8 @@ class OtherDevice:
     # consent_state: str = ""
     # execution_state: str = ""
 
-    # # URequest, UTicket, UReject, RTicket, etc.
-    # message_id: list[str] = field(default_factory=list)
+    # URequest, UTicket, UReject, RTicket, etc.
+    device_ticket: str = ""
 
 
 ################################################################################
@@ -39,26 +39,26 @@ def _other_device_to_dict(other_device_obj: OtherDevice) -> Dict[str, str]:
 
 
 def _dict_to_other_device(
-    other_device_dict: Dict[str, Union[OtherDevice, str]]
+    other_device_dict: Dict[str, Union[str, OtherDevice]]
 ) -> Union[Dict[str, OtherDevice], OtherDevice]:
     # Dict -> OtherDevice
     if "device_id" in other_device_dict:
         other_device_obj = OtherDevice()
         other_device_obj.__dict__.update(other_device_dict)
         return other_device_obj
-    # Dict[str, OtherDevice] -> Dict[str, OtherDevice]
+    # DeviceTable -> DeviceTable
     else:
         return other_device_dict
 
 
-def other_device_to_jsonstr(other_device_obj: OtherDevice) -> str:
+def device_table_to_jsonstr(other_device_obj: Dict[str, OtherDevice]) -> str:
     # "indent" do not affect json validation, but may affect json size!?
     return json.dumps(
         other_device_obj, indent=4, default=_other_device_to_dict, sort_keys=True
     )
 
 
-def jsonstr_to_other_device(json_str: str) -> OtherDevice:
+def jsonstr_to_device_table(json_str: str) -> Dict[str, OtherDevice]:
     try:
         return json.loads(json_str, object_hook=_dict_to_other_device)
     except json.JSONDecodeError:

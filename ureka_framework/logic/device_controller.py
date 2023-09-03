@@ -26,7 +26,7 @@ class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
         # Data Model
         self.this_device: ThisDevice = ThisDevice()
-        self.other_devices: dict[str, OtherDevice] = {}
+        self.device_table: dict[str, OtherDevice] = {}
         # Data Model (User Agent or Cloud Server only)
         self.this_person: ThisPerson = ThisPerson()
 
@@ -38,7 +38,7 @@ class DeviceController:
         # Always load Storage after Reboot
         (
             self.this_device,
-            self.other_devices,
+            self.device_table,
             self.this_person,
         ) = self.simple_storage.load_storage()
 
@@ -104,7 +104,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.other_devices, self.this_person
+            self.this_device, self.device_table, self.this_person
         )
 
         return Success(None)
@@ -158,7 +158,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.other_devices, self.this_person
+            self.this_device, self.device_table, self.this_person
         )
 
         return Success(None)
@@ -307,7 +307,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.other_devices, self.this_person
+            self.this_device, self.device_table, self.this_person
         )
 
         return Success(None)
@@ -338,7 +338,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.other_devices, self.this_person
+            self.this_device, self.device_table, self.this_person
         )
 
         return Success(None)
@@ -363,7 +363,7 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.other_devices, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
         return Success(None)
 
@@ -395,6 +395,6 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.other_devices, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
         return Success(None)

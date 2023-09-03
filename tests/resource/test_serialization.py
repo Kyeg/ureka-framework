@@ -19,7 +19,7 @@ from ureka_framework.data_model.this_device import (
     this_device_to_jsonstr,
 )
 from ureka_framework.data_model.other_device import (
-    jsonstr_to_other_device,
+    jsonstr_to_device_table,
 )
 from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
@@ -163,7 +163,7 @@ class TestSerialization:
         with pytest.raises(RuntimeError) as jsonstr_to_this_device_error_info:
             this_device: str = jsonstr_to_this_device(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_other_device_error_info:
-            other_device: str = jsonstr_to_other_device(wrong_json_schema)
+            other_device: str = jsonstr_to_device_table(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
             this_person: str = jsonstr_to_this_person(wrong_json_schema)
 
