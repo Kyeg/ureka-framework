@@ -1,3 +1,5 @@
+import copy
+import logging
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -126,7 +128,7 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         test_request: dict = {
-            "device_id": f"WRONG-DEVICE-ID",
+            "device_id": f"device_id",
             "holder_id": f"",
             "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
             "task_scope": f"",
@@ -141,7 +143,7 @@ class TestSerialization:
         # logging.warning(f"ticket_json_aftr = {ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert f"WRONG-DEVICE-ID" == ticket_obj.device_id
+        assert f"device_id" == ticket_obj.device_id
         assert f"{ticket.TYPE_MANAGEMENT_TICKET}" == ticket_obj.ticket_type
 
     def test_json_serialization_failed(self) -> None:
@@ -248,3 +250,46 @@ class TestSerialization:
             str(str_to_key_error_info.value)
             == "Only support key_type = [ecc-public-key] or [ecc-private-key]"
         )
+
+    def test_ticket_comparison(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        self.cloud_server_dm = device_manufacturer_server()
+
+        # WHEN: Generate two tickets and compare
+        current_test_when_and_then_log()
+
+        test_request_1: dict = {
+            "device_id": f"device_id",
+            "holder_id": f"",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"",
+        }
+        ticket_json_1: str = self.cloud_server_dm.generate_xxx_ticket(test_request_1)
+        logging.warning(f"ticket_json_1 = {ticket_json_1}")
+        ticket_obj_1: Ticket = jsonstr_to_ticket(ticket_json_1)
+        logging.warning(f"ticket_obj_1 = {ticket_obj_1}")
+
+        ticket_json_copy_1 = copy.deepcopy(ticket_json_1)
+        logging.warning(f"ticket_json_copy_1 = {ticket_json_copy_1}")
+        ticket_obj_copy_1 = copy.deepcopy(ticket_obj_1)
+        logging.warning(f"ticket_obj_copy_1 = {ticket_obj_copy_1}")
+
+        test_request_2: dict = {
+            "device_id": f"device_id",
+            "holder_id": f"",
+            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "task_scope": f"",
+        }
+        ticket_json_2: str = self.cloud_server_dm.generate_xxx_ticket(test_request_2)
+        logging.warning(f"ticket_json_2 = {ticket_json_2}")
+        ticket_obj_2: Ticket = jsonstr_to_ticket(ticket_json_2)
+        logging.warning(f"ticket_obj_2 = {ticket_obj_2}")
+
+        # THEN: Every ticket will have different unique ticket_id
+        assert ticket_obj_1 != "!@#"
+        assert ticket_json_1 == ticket_json_copy_1
+        assert ticket_obj_1 == ticket_obj_copy_1
+        assert ticket_json_1 != ticket_json_2
+        assert ticket_obj_1 != ticket_obj_2
