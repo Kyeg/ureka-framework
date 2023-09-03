@@ -29,14 +29,14 @@ class TestStorage:
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
         current_setup_log()
-        # SimpleStorage.delete_storage_in_test()
+        SimpleStorage.delete_storage_in_test()
 
         # GIVEN+WHEN+THEN:
         yield
 
         # RE-GIVEN: Reset the test environment
         current_teardown_log()
-        # SimpleStorage.delete_storage_in_test()
+        SimpleStorage.delete_storage_in_test()
 
     def test_store_and_load_this_device(self) -> None:
         current_test_given_log()
