@@ -169,7 +169,9 @@ class TestSerialization:
 
         # THEN: Failed to serialize/deserialize an invalid json
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
-        assert str(jsonstr_to_ticket_error_info.value) == "NOT VALID JSON"
+        assert (
+            str(jsonstr_to_ticket_error_info.value) == "NOT VALID JSON or VALID SCHEMA"
+        )
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"

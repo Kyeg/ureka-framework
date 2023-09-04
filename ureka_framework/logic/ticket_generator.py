@@ -34,6 +34,7 @@ class TicketGenerator:
         # Generate Task Scope (device_id, holder_id, ticket_type, task_scope, etc.)
         try:
             new_ticket = Ticket(**arbitrary_dict)
+            logging.info(success_msg)
         except ValidationError as error:
             logging.error(f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
@@ -74,8 +75,9 @@ class TicketGenerator:
                 new_ticket, self.this_person.person_priv_key
             )
 
-        logging.info(success_msg)
-        return ticket_to_jsonstr(new_ticket)
+        new_ticket_json = ticket_to_jsonstr(new_ticket)
+
+        return new_ticket_json
 
     ######################################################
     # Add ECC Signature on Ticket
