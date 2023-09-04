@@ -87,7 +87,7 @@ class DeviceController:
                 )
                 # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
 
-        # ToDo: Update Device Table (Role, State, etc.)
+        # TODO: Update Device Table (Role, State, etc.)
         # RAM: Add Device & Ticket in Device Table
         recveived_ticket_json = self.comm_channel.message_in_channel
         recveived_ticket = jsonstr_to_ticket(recveived_ticket_json)
@@ -216,7 +216,7 @@ class DeviceController:
                 ),
             )
 
-        # ToDo: Update Device Table (Role, State, etc.)
+        # TODO: Update Device Table (Role, State, etc.)
 
     ######################################################
     # Verify Different Ticket Types

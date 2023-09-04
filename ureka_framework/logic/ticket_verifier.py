@@ -22,20 +22,18 @@ class TicketVerifier:
     ######################################################
     # Message Verification Flow
     ######################################################
+    # TODO: verify_ticket_schema()
     def verify_json_schema(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
         success_msg = "-> SUCCESS: VERIFY_JSON_SCHEMA"
         failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
 
         try:
             ticket_in: Ticket = jsonstr_to_ticket(arbitrary_json)
-
             logging.info(success_msg)
             return Success(ticket_in)
         except RuntimeError as error:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
-
-    # TODO: verify_ticket_schema()
 
     def verify_ticket_protocol_version(
         self, ticket_in: Ticket

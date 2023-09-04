@@ -3,7 +3,7 @@ import copy
 import json
 import logging
 from typing import Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 
 ######################################################
@@ -74,6 +74,10 @@ class Ticket(BaseModel):
             return self.ticket_id == other.ticket_id
         return False
 
+    # By default, Pydantic "ignore" extra input fields not defined in model schema
+    # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema
+    model_config = ConfigDict(extra="forbid")
+
 
 ################################################################################
 #                                < Ticket_obj >                                #
@@ -92,8 +96,9 @@ def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
 
 
 def _dict_to_ticket(ticket_dict: Dict[str, str]) -> Ticket:
-    ticket_obj = Ticket()
-    ticket_obj.__dict__.update(ticket_dict)
+    # ticket_obj = Ticket()
+    # ticket_obj.__dict__.update(ticket_dict)
+    ticket_obj = Ticket(**ticket_dict)
     return ticket_obj
 
 
@@ -109,3 +114,8 @@ def jsonstr_to_ticket(json_str: str) -> Ticket:
         failure_msg = "NOT VALID JSON"
         # logging.error(failure_msg)
         raise RuntimeError(failure_msg)
+    # TODO: verify_ticket_schema()
+    # except ValidationError:
+    #     failure_msg = "NOT VALID SCHEMA"
+    #     # logging.error(failure_msg)
+    #     raise RuntimeError(failure_msg)
