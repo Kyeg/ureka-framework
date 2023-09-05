@@ -1,3 +1,4 @@
+import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
@@ -66,6 +67,7 @@ class TestAccessDevice:
             "task_scope": f"{task_scope}",
         }
         test_ticket: str = self.user_agent_do.generate_xxx_ticket(test_request)
+        logging.debug(f"ACCESS_PERMISSION_TICKET: {test_ticket}")
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -78,6 +80,7 @@ class TestAccessDevice:
             "task_scope": f"",
         }
         test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
+        logging.debug(f"CHALLENGE_TICKET: {test_ticket}")
         self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -90,6 +93,7 @@ class TestAccessDevice:
             "task_scope": f"",
         }
         test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
+        logging.debug(f"RESPONSE_TICKET: {test_ticket}")
         self.iot_device.verify_xxx_ticket(test_ticket)
 
         # -----------------------------------------------------
@@ -102,6 +106,7 @@ class TestAccessDevice:
             "task_scope": f"",
         }
         test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
+        logging.debug(f"KEY_EXCHANGE_TICKET: {test_ticket}")
         result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
