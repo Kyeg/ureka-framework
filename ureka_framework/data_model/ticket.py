@@ -1,9 +1,5 @@
-# from dataclasses import dataclass
-import copy
-import json
 import logging
-from typing import Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 
 ######################################################
@@ -54,7 +50,6 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 ######################################################
 # Data Model
 ######################################################
-# @dataclass
 class Ticket(BaseModel):
     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
 
@@ -74,6 +69,10 @@ class Ticket(BaseModel):
             return self.ticket_id == other.ticket_id
         return False
 
+    # By default, Pydantic "ignore" extra input fields not defined in model schema
+    # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema
+    model_config = ConfigDict(extra="forbid")
+
 
 ################################################################################
 #                                < Ticket_obj >                                #
@@ -85,27 +84,18 @@ class Ticket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
-    # Prevent side effect on ticket_obj
-    ticket_dict = copy.deepcopy(ticket_obj.__dict__)
-    return ticket_dict
-
-
-def _dict_to_ticket(ticket_dict: Dict[str, str]) -> Ticket:
-    ticket_obj = Ticket()
-    ticket_obj.__dict__.update(ticket_dict)
-    return ticket_obj
-
-
 def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    return json.dumps(ticket_obj, indent=4, default=_ticket_to_dict, sort_keys=True)
+    # return json.dumps(ticket_obj, indent=4, default=_ticket_to_dict, sort_keys=True)
+    ticket_json = ticket_obj.model_dump_json(indent=4)
+    return ticket_json
 
 
 def jsonstr_to_ticket(json_str: str) -> Ticket:
     try:
-        return json.loads(json_str, object_hook=_dict_to_ticket)
-    except json.JSONDecodeError:
-        failure_msg = "NOT VALID JSON"
-        # logging.error(failure_msg)
+        # return json.loads(json_str, object_hook=_dict_to_ticket)
+        return Ticket.model_validate_json(json_str)
+    except ValidationError as error:
+        failure_msg = "NOT VALID JSON or VALID SCHEMA"
+        logging.error(f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

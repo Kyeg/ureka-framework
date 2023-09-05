@@ -28,6 +28,10 @@ class TestAccessDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_apply_access_permission_ticket_with_storage_and_comm(self) -> None:
+        current_test_given_log()
+
     def test_apply_access_permission_ticket(self) -> None:
         current_test_given_log()
 

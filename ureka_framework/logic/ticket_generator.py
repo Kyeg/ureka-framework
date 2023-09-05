@@ -1,5 +1,9 @@
 import copy
+import logging
 import uuid
+
+from returns.result import Result, Success, Failure
+from pydantic import ValidationError
 from ureka_framework.data_model.ticket import Ticket, ticket_to_jsonstr
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import ecdh
@@ -18,12 +22,23 @@ class TicketGenerator:
     ######################################################
     # Message Generation Flow
     ######################################################
-    def generate_arbitrary_ticket(self, arbitrary_dict: dict) -> str:
+    def generate_arbitrary_ticket(
+        self, arbitrary_dict: dict
+    ) -> Result[str, RuntimeError]:
+        success_msg = "-> SUCCESS: GENERATE_TICKET"
+        failure_msg = "-> FAILURE: GENERATE_TICKET"
+
         ######################################################
         # Unsigned Ticket
         ######################################################
-        # Generate Task Scope
-        new_ticket = ticket.Ticket(**arbitrary_dict)
+        # Generate Task Scope (device_id, holder_id, ticket_type, task_scope, etc.)
+        try:
+            new_ticket = Ticket(**arbitrary_dict)
+            logging.info(success_msg)
+        except ValidationError as error:
+            logging.error(f"{failure_msg}: {error}")
+            raise RuntimeError(failure_msg)
+
         # Generate Ticket Id (UUID-4: Random, Unique, and Unpredictable)
         new_ticket.ticket_id = str(uuid.uuid4())
 
@@ -60,7 +75,9 @@ class TicketGenerator:
                 new_ticket, self.this_person.person_priv_key
             )
 
-        return ticket_to_jsonstr(new_ticket)
+        new_ticket_json = ticket_to_jsonstr(new_ticket)
+
+        return new_ticket_json
 
     ######################################################
     # Add ECC Signature on Ticket
