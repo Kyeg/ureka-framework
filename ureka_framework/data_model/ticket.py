@@ -1,6 +1,7 @@
 # from dataclasses import dataclass
 import copy
 import json
+import logging
 from typing import Dict
 from pydantic import BaseModel
 
@@ -57,8 +58,7 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 class Ticket(BaseModel):
     ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
 
-    # ticket_number: str = ""
-    # transaction_number: str = ""
+    ticket_id: str = ""
 
     device_id: str = ""
 
@@ -68,6 +68,11 @@ class Ticket(BaseModel):
     holder_id: str = ""
 
     issuer_signature: str = ""
+
+    def __eq__(self, other):
+        if isinstance(other, Ticket):
+            return self.ticket_id == other.ticket_id
+        return False
 
 
 ################################################################################
@@ -86,7 +91,7 @@ def _ticket_to_dict(ticket_obj: Ticket) -> Dict[str, str]:
     return ticket_dict
 
 
-def _dict_to_ticket(ticket_dict):
+def _dict_to_ticket(ticket_dict: Dict[str, str]) -> Ticket:
     ticket_obj = Ticket()
     ticket_obj.__dict__.update(ticket_dict)
     return ticket_obj

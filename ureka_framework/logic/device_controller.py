@@ -8,6 +8,7 @@ from ureka_framework.logic.ticket_verifier import (
     TicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
+from ureka_framework.data_model.other_device import OtherDevice, device_table_to_jsonstr
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
 import ureka_framework.data_model.ticket as ticket
@@ -25,6 +26,7 @@ class DeviceController:
     def __init__(self, device_type: str = "", device_name: str = "") -> None:
         # Data Model
         self.this_device: ThisDevice = ThisDevice()
+        self.device_table: dict[str, OtherDevice] = {}
         # Data Model (User Agent or Cloud Server only)
         self.this_person: ThisPerson = ThisPerson()
 
@@ -36,6 +38,7 @@ class DeviceController:
         # Always load Storage after Reboot
         (
             self.this_device,
+            self.device_table,
             self.this_person,
         ) = self.simple_storage.load_storage()
 
@@ -76,13 +79,33 @@ class DeviceController:
                 )
                 # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
 
-    def recv_xxx_ticket(self) -> None:
+    def recv_xxx_ticket(self) -> str:
         for end in self.comm_channel.ends:
             if end.this_device.device_name != self.this_device.device_name:
                 logging.info(
                     f"+ {self.this_device.device_name} is receiving ticket from {end.this_device.device_name}..."
                 )
                 # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+
+        # ToDo: Update Device Table (Role, State, etc.)
+        # RAM: Add Device & Ticket in Device Table
+        recveived_ticket_json = self.comm_channel.message_in_channel
+        recveived_ticket = jsonstr_to_ticket(recveived_ticket_json)
+        if recveived_ticket.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
+            self.device_table[recveived_ticket.device_id] = OtherDevice(
+                device_id=recveived_ticket.device_id,
+                device_name="device_id's name",
+                device_ticket=recveived_ticket_json,
+            )
+
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
+
+        return recveived_ticket_json
 
     ######################################################
     # Set Device Type
@@ -100,7 +123,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
 
         return Success(None)
 
@@ -152,7 +177,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
 
         return Success(None)
 
@@ -163,31 +190,33 @@ class DeviceController:
         logging.info(f"+ {self.this_device.device_name} is generating ticket...")
 
         ticket_generator = TicketGenerator(self.this_device, self.this_person)
-        new_ticket_json = flow(
+        generated_ticket_json = flow(
             arbitrary_dict,
             ticket_generator.generate_arbitrary_ticket,
         )
-        self.execute_generate_xxx_ticket(new_ticket_json)
-        return new_ticket_json
+        self.execute_generate_xxx_ticket(generated_ticket_json)
+        return generated_ticket_json
 
     ######################################################
     # Execute Operation based on generate_xxx_ticket
     ######################################################
-    def execute_generate_xxx_ticket(self, new_ticket_json) -> None:
-        new_ticket = jsonstr_to_ticket(new_ticket_json)
+    def execute_generate_xxx_ticket(self, generated_ticket_json) -> None:
+        generated_ticket = jsonstr_to_ticket(generated_ticket_json)
 
-        # Generate session_key (Device)
-        if new_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
+        # RAM: Generate session_key (Device)
+        if generated_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
             self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
                 salt_byte=serialization_util.base64str_backto_byte(
-                    new_ticket.task_scope
+                    generated_ticket.task_scope
                 ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
-                    new_ticket.holder_id, key_type="ecc-public-key"
+                    generated_ticket.holder_id, key_type="ecc-public-key"
                 ),
             )
+
+        # ToDo: Update Device Table (Role, State, etc.)
 
     ######################################################
     # Verify Different Ticket Types
@@ -299,7 +328,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
 
         return Success(None)
 
@@ -328,7 +359,9 @@ class DeviceController:
         ######################################################
         # Storage
         ######################################################
-        self.simple_storage.store_storage(self.this_device, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
 
         return Success(None)
 
@@ -352,7 +385,7 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
         return Success(None)
 
@@ -384,6 +417,6 @@ class DeviceController:
         ######################################################
         # Storage (RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.this_person)
+        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
         return Success(None)

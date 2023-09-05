@@ -1,4 +1,5 @@
 import copy
+import uuid
 from ureka_framework.data_model.ticket import Ticket, ticket_to_jsonstr
 import ureka_framework.data_model.ticket as ticket
 from ureka_framework.resource.crypto import ecdh
@@ -21,7 +22,10 @@ class TicketGenerator:
         ######################################################
         # Unsigned Ticket
         ######################################################
+        # Generate Task Scope
         new_ticket = ticket.Ticket(**arbitrary_dict)
+        # Generate Ticket Id (UUID-4: Random, Unique, and Unpredictable)
+        new_ticket.ticket_id = str(uuid.uuid4())
 
         ######################################################
         # Signed Ticket
@@ -38,7 +42,7 @@ class TicketGenerator:
                 random_salt_byte
             )
 
-        # Add Signature
+        # Generate Signature
         if new_ticket.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
             new_ticket = self._add_issuer_signature_on_ticket(
                 new_ticket, self.this_device.device_priv_key

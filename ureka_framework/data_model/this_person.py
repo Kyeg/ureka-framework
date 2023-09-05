@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from typing import Dict
+from typing import Optional, Dict
 
 # Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -69,7 +69,7 @@ def _this_person_to_dict(this_person_obj: ThisPerson) -> Dict[str, str]:
     return this_person_dict
 
 
-def _dict_to_this_person(this_person_dict):
+def _dict_to_this_person(this_person_dict: Dict[str, Optional[str]]) -> ThisPerson:
     this_person_obj = ThisPerson()
 
     # Not JSON Serializable
