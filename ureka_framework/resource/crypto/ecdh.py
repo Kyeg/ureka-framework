@@ -58,9 +58,9 @@ def generate_ecdh_key(
 #   Need Padding:
 #       https://cryptography.io/en/3.4.2/hazmat/primitives/padding.html
 #   Need HMAC:
-#       If ureka protocol applies Command Ticket/Data Ticket with signatures on them,
+#       If ureka protocol applies Command UTicket/Data UTicket with signatures on them,
 #           the AES-CBC can be used and the HMAC can be omitted.
-#       However, AES+HMAC may provide better performance than Command Ticket/Data Ticket.
+#       However, AES+HMAC may provide better performance than Command UTicket/Data UTicket.
 #                   (Because HMAC verfication may be cheaper than Signature verification.)
 #           In this case, AES-GCM (Galois Counter Mode) is better,
 #               which is a  AEAD (authenticated encryption with additional data) mode so that HMAC are not necessary.

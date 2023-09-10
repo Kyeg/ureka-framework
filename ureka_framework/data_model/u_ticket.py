@@ -5,27 +5,27 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 ######################################################
 # Protocol Version
 ######################################################
-TICKET_PROTOCOL_VERSION: str = "UREKA-1.0"
+PROTOCOL_VERSION: str = "UREKA-1.0"
 
 ######################################################
-# Ticket Type
+# UTicket Type
 ######################################################
-TYPE_INITIALIZATION_TICKET: str = "INITIALIZATION"
-# TYPE_QUERY_TICKET: str = "QUERY"
-TYPE_MANAGEMENT_TICKET: str = "MANAGEMENT"
-TYPE_ACCESS_PERMISSION_TICKET: str = "ACCESS-PERMISSION"
-TYPE_CHALLENGE_TICKET: str = "CHALLENGE"
-TYPE_RESPONSE_TICKET: str = "RESPONSE"
-TYPE_KEY_EXCHANGE_TICKET: str = "KEY-EXCHANGE"
-# TYPE_COMMAND_TICKET: str = "COMMAND"
-# TYPE_RETURN_TICKET: str = "RETURN"
-LEGAL_TICKET_TYPES: {str} = {
-    TYPE_INITIALIZATION_TICKET,
-    TYPE_MANAGEMENT_TICKET,
-    TYPE_ACCESS_PERMISSION_TICKET,
-    TYPE_CHALLENGE_TICKET,
-    TYPE_RESPONSE_TICKET,
-    TYPE_KEY_EXCHANGE_TICKET,
+TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
+TYPE_MANAGEMENT_UTICKET: str = "MANAGEMENT"
+TYPE_ACCESS_PERMISSION_UTICKET: str = "ACCESS-PERMISSION"
+TYPE_CHALLENGE_UTICKET: str = "CHALLENGE"
+TYPE_RESPONSE_UTICKET: str = "RESPONSE"
+TYPE_KEY_EXCHANGE_UTICKET: str = "KEY-EXCHANGE"
+# TYPE_COMMAND_UTICKET: str = "COMMAND"
+# TYPE_RETURN_UTICKET: str = "RETURN"
+# TYPE_QUERY_UTICKET: str = "QUERY"
+LEGAL_UTICKET_TYPES: {str} = {
+    TYPE_INITIALIZATION_UTICKET,
+    TYPE_MANAGEMENT_UTICKET,
+    TYPE_ACCESS_PERMISSION_UTICKET,
+    TYPE_CHALLENGE_UTICKET,
+    TYPE_RESPONSE_UTICKET,
+    TYPE_KEY_EXCHANGE_UTICKET,
 }
 
 ######################################################
@@ -50,23 +50,21 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 ######################################################
 # Data Model
 ######################################################
-class Ticket(BaseModel):
-    ticket_protocol_verision: str = TICKET_PROTOCOL_VERSION
+class UTicket(BaseModel):
+    protocol_verision: str = PROTOCOL_VERSION
+    u_ticket_id: str = ""
 
-    ticket_id: str = ""
+    u_ticket_type: str = ""
 
     device_id: str = ""
-
-    ticket_type: str = ""
-
-    task_scope: str = ""
     holder_id: str = ""
+    task_scope: str = ""
 
     issuer_signature: str = ""
 
     def __eq__(self, other):
-        if isinstance(other, Ticket):
-            return self.ticket_id == other.ticket_id
+        if isinstance(other, UTicket):
+            return self.u_ticket_id == other.u_ticket_id
         return False
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
@@ -75,7 +73,7 @@ class Ticket(BaseModel):
 
 
 ################################################################################
-#                                < Ticket_obj >                                #
+#                                < UTicket_obj >                               #
 #                                       | self-defined serilaization           #
 #                                       | (all str, which is native type)      #
 #                                       v                                      #
@@ -84,17 +82,17 @@ class Ticket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def ticket_to_jsonstr(ticket_obj: Ticket) -> str:
+def u_ticket_to_jsonstr(u_ticket_obj: UTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    # return json.dumps(ticket_obj, indent=4, default=_ticket_to_dict, sort_keys=True)
-    ticket_json = ticket_obj.model_dump_json(indent=4)
-    return ticket_json
+    # return json.dumps(u_ticket_obj, indent=4, default=_u_ticket_to_dict, sort_keys=True)
+    u_ticket_json = u_ticket_obj.model_dump_json(indent=4)
+    return u_ticket_json
 
 
-def jsonstr_to_ticket(json_str: str) -> Ticket:
+def jsonstr_to_u_ticket(json_str: str) -> UTicket:
     try:
-        # return json.loads(json_str, object_hook=_dict_to_ticket)
-        return Ticket.model_validate_json(json_str)
+        # return json.loads(json_str, object_hook=_dict_to_u_ticket)
+        return UTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
         logging.error(f"{failure_msg}: {error}")

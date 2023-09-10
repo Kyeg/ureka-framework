@@ -1,7 +1,7 @@
 import inspect
 import logging
 from ureka_framework.logic.device_controller import DeviceController
-from ureka_framework.data_model import ticket
+from ureka_framework.data_model import u_ticket
 from ureka_framework.resource.crypto import serialization_util
 from typing import Tuple
 
@@ -70,7 +70,7 @@ def current_teardown_log() -> None:
 def device_manufacturer_server() -> DeviceController:
     # GIVEN: Initialized DM's CS
     cloud_server_dm = DeviceController(
-        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_dm",
     )
     cloud_server_dm.execute_one_time_intialize_agent_or_server()
@@ -81,7 +81,7 @@ def device_manufacturer_server() -> DeviceController:
 def device_owner_agent() -> DeviceController:
     # GIVEN: Initialized DM's CS
     user_agent_do = DeviceController(
-        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
     user_agent_do.execute_one_time_intialize_agent_or_server()
@@ -97,17 +97,17 @@ def device_manufacturer_server_and_her_device() -> (
 
     # GIVEN: Initialized DM's IoTD
     iot_device = DeviceController(
-        device_type=ticket.IOT_DEVICE,
+        device_type=u_ticket.IOT_DEVICE,
         device_name="iot_device",
     )
     test_request: dict = {
         "device_id": f"",
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
-        "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+        "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         "task_scope": f"",
     }
-    test_ticket: str = cloud_server_dm.generate_xxx_ticket(test_request)
-    iot_device.verify_xxx_ticket(test_ticket)
+    test_u_ticket: str = cloud_server_dm.generate_xxx_u_ticket(test_request)
+    iot_device.verify_xxx_u_ticket(test_u_ticket)
 
     return (cloud_server_dm, iot_device)
 
@@ -121,7 +121,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 
     # GIVEN: Initialized DO's UA
     user_agent_do = DeviceController(
-        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
     user_agent_do.execute_one_time_intialize_agent_or_server()
@@ -130,11 +130,11 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     test_request: dict = {
         "device_id": f"{iot_device.this_device.device_pub_key_str}",
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
-        "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
-        "task_scope": f"{serialization_util.dict_to_jsonstr({ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: ticket.MANAGEMENT_OWNER})}",
+        "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
     }
-    test_ticket: str = cloud_server_dm.generate_xxx_ticket(test_request)
-    iot_device.verify_xxx_ticket(test_ticket)
+    test_u_ticket: str = cloud_server_dm.generate_xxx_u_ticket(test_request)
+    iot_device.verify_xxx_u_ticket(test_u_ticket)
 
     return (user_agent_do, iot_device)
 
@@ -142,7 +142,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 def enterprise_provider_server() -> DeviceController:
     # GIVEN: Initialized EP's CS
     cloud_server_ep = DeviceController(
-        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_ep",
     )
     cloud_server_ep.execute_one_time_intialize_agent_or_server()
@@ -153,7 +153,7 @@ def enterprise_provider_server() -> DeviceController:
 def attacker_server() -> DeviceController:
     # GIVEN: Initialized ATK's CS
     cloud_server_atk = DeviceController(
-        device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_atk",
     )
     cloud_server_atk.execute_one_time_intialize_agent_or_server()

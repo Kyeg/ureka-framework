@@ -1,17 +1,17 @@
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.logic.ticket_generator import (
-    TicketGenerator,
+from ureka_framework.logic.u_ticket_generator import (
+    UTicketGenerator,
 )
-from ureka_framework.logic.ticket_verifier import (
-    TicketVerifier,
+from ureka_framework.logic.u_ticket_verifier import (
+    UTicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.other_device import OtherDevice, device_table_to_jsonstr
 from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.ticket import Ticket, jsonstr_to_ticket
-import ureka_framework.data_model.ticket as ticket
+from ureka_framework.data_model.u_ticket import UTicket, jsonstr_to_u_ticket
+import ureka_framework.data_model.u_ticket as u_ticket
 
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -70,32 +70,32 @@ class DeviceController:
                     f"+ {self.this_device.device_name} is connecting with {end.this_device.device_name}..."
                 )
 
-    def send_xxx_ticket(self, ticket_json: str) -> None:
-        self.comm_channel.message_in_channel = ticket_json
+    def send_xxx_u_ticket(self, u_ticket_json: str) -> None:
+        self.comm_channel.message_in_channel = u_ticket_json
         for end in self.comm_channel.ends:
             if end.this_device.device_name != self.this_device.device_name:
                 logging.info(
-                    f"+ {self.this_device.device_name} is sending ticket to {end.this_device.device_name}..."
+                    f"+ {self.this_device.device_name} is sending u_ticket to {end.this_device.device_name}..."
                 )
-                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+                # logging.debug(f"+ UTicket=\n{self.comm_channel.message_in_channel}")
 
-    def recv_xxx_ticket(self) -> str:
+    def recv_xxx_u_ticket(self) -> str:
         for end in self.comm_channel.ends:
             if end.this_device.device_name != self.this_device.device_name:
                 logging.info(
-                    f"+ {self.this_device.device_name} is receiving ticket from {end.this_device.device_name}..."
+                    f"+ {self.this_device.device_name} is receiving u_ticket from {end.this_device.device_name}..."
                 )
-                # logging.debug(f"+ Ticket=\n{self.comm_channel.message_in_channel}")
+                # logging.debug(f"+ UTicket=\n{self.comm_channel.message_in_channel}")
 
         # TODO: Update Device Table (Role, State, etc.)
-        # RAM: Add Device & Ticket in Device Table
-        recveived_ticket_json = self.comm_channel.message_in_channel
-        recveived_ticket = jsonstr_to_ticket(recveived_ticket_json)
-        if recveived_ticket.ticket_type != ticket.TYPE_INITIALIZATION_TICKET:
-            self.device_table[recveived_ticket.device_id] = OtherDevice(
-                device_id=recveived_ticket.device_id,
+        # RAM: Add Device & UTicket in Device Table
+        recveived_u_ticket_json = self.comm_channel.message_in_channel
+        recveived_u_ticket = jsonstr_to_u_ticket(recveived_u_ticket_json)
+        if recveived_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET:
+            self.device_table[recveived_u_ticket.device_id] = OtherDevice(
+                device_id=recveived_u_ticket.device_id,
                 device_name="device_id's name",
-                device_ticket=recveived_ticket_json,
+                device_u_ticket=recveived_u_ticket_json,
             )
 
         ######################################################
@@ -105,7 +105,7 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person
         )
 
-        return recveived_ticket_json
+        return recveived_u_ticket_json
 
     ######################################################
     # Set Device Type
@@ -130,14 +130,14 @@ class DeviceController:
         return Success(None)
 
     ######################################################
-    # Initilize without using Ticket (User Agent or Cloud Server only)
+    # Initilize without using UTicket (User Agent or Cloud Server only)
     ######################################################
     def execute_one_time_intialize_agent_or_server(
         self,
     ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is initializing...")
 
-        if self.this_device.device_type != ticket.USER_AGENT_OR_CLOUD_SERVER:
+        if self.this_device.device_type != u_ticket.USER_AGENT_OR_CLOUD_SERVER:
             failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -184,117 +184,117 @@ class DeviceController:
         return Success(None)
 
     ######################################################
-    # Generate Different Ticket Types (User Agent or Cloud Server only)
+    # Generate Different UTicket Types (User Agent or Cloud Server only)
     ######################################################
-    def generate_xxx_ticket(self, arbitrary_dict: dict) -> str:
-        logging.info(f"+ {self.this_device.device_name} is generating ticket...")
+    def generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
+        logging.info(f"+ {self.this_device.device_name} is generating u_ticket...")
 
-        ticket_generator = TicketGenerator(self.this_device, self.this_person)
-        generated_ticket_json = flow(
+        u_ticket_generator = UTicketGenerator(self.this_device, self.this_person)
+        generated_u_ticket_json = flow(
             arbitrary_dict,
-            ticket_generator.generate_arbitrary_ticket,
+            u_ticket_generator.generate_arbitrary_u_ticket,
         )
-        self.execute_generate_xxx_ticket(generated_ticket_json)
-        return generated_ticket_json
+        self.execute_generate_xxx_u_ticket(generated_u_ticket_json)
+        return generated_u_ticket_json
 
     ######################################################
-    # Execute Operation based on generate_xxx_ticket
+    # Execute Operation based on generate_xxx_u_ticket
     ######################################################
-    def execute_generate_xxx_ticket(self, generated_ticket_json) -> None:
-        generated_ticket = jsonstr_to_ticket(generated_ticket_json)
+    def execute_generate_xxx_u_ticket(self, generated_u_ticket_json) -> None:
+        generated_u_ticket = jsonstr_to_u_ticket(generated_u_ticket_json)
 
         # RAM: Generate session_key (Device)
-        if generated_ticket.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
+        if generated_u_ticket.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
             self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
                 salt_byte=serialization_util.base64str_backto_byte(
-                    generated_ticket.task_scope
+                    generated_u_ticket.task_scope
                 ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
-                    generated_ticket.holder_id, key_type="ecc-public-key"
+                    generated_u_ticket.holder_id, key_type="ecc-public-key"
                 ),
             )
 
         # TODO: Update Device Table (Role, State, etc.)
 
     ######################################################
-    # Verify Different Ticket Types
+    # Verify Different UTicket Types
     ######################################################
-    def verify_xxx_ticket(self, arbitrary_json: str) -> Result[Ticket, RuntimeError]:
-        logging.info(f"+ {self.this_device.device_name} is verifying ticket...")
+    def verify_xxx_u_ticket(self, arbitrary_json: str) -> Result[UTicket, RuntimeError]:
+        logging.info(f"+ {self.this_device.device_name} is verifying u_ticket...")
 
-        ticket_verifier = TicketVerifier(self.this_device, self.this_person)
+        u_ticket_verifier = UTicketVerifier(self.this_device, self.this_person)
         verification_and_execution_result = flow(
             arbitrary_json,
-            ticket_verifier.verify_json_schema,
-            bind(ticket_verifier.verify_ticket_protocol_version),
-            bind(ticket_verifier.verify_ticket_type),
-            bind(ticket_verifier.verify_device_id),
-            bind(ticket_verifier.verify_issuer_signature),
-            bind(self.execute_verify_xxx_ticket),
+            u_ticket_verifier.verify_json_schema,
+            bind(u_ticket_verifier.verify_protocol_version),
+            bind(u_ticket_verifier.verify_u_ticket_type),
+            bind(u_ticket_verifier.verify_device_id),
+            bind(u_ticket_verifier.verify_issuer_signature),
+            bind(self.execute_verify_xxx_u_ticket),
         )
         return verification_and_execution_result
 
     ######################################################
-    # Execute Operation based on verify_xxx_ticket
+    # Execute Operation based on verify_xxx_u_ticket
     ######################################################
-    def execute_verify_xxx_ticket(
-        self, ticket_in: Ticket
-    ) -> Result[Ticket, RuntimeError]:
-        failure_msg = f"-> FAILURE: WIRED TICKET TYPE {ticket_in.ticket_type}"
+    def execute_verify_xxx_u_ticket(
+        self, u_ticket_in: UTicket
+    ) -> Result[UTicket, RuntimeError]:
+        failure_msg = f"-> FAILURE: WIRED UTICKET TYPE {u_ticket_in.u_ticket_type}"
 
-        # (E-Z) Execute TICKET
-        if ticket_in.ticket_type == ticket.TYPE_INITIALIZATION_TICKET:
-            result = self.execute_one_time_initialize_iot_device(ticket_in)
-        elif ticket_in.ticket_type == ticket.TYPE_MANAGEMENT_TICKET:
-            result = self.execute_ownership_transfer(ticket_in)
-        elif ticket_in.ticket_type == ticket.TYPE_ACCESS_PERMISSION_TICKET:
+        # (E-Z) Execute UTICKET
+        if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            result = self.execute_one_time_initialize_iot_device(u_ticket_in)
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
+            result = self.execute_ownership_transfer(u_ticket_in)
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
             # Generate session_key (Device)
             self.execute_update_current_holder_pub_key(
                 serialization_util.str_to_key(
-                    ticket_in.holder_id, key_type="ecc-public-key"
+                    u_ticket_in.holder_id, key_type="ecc-public-key"
                 )
             )
-            # To-Do: Auto-Generate Challenge Ticket
+            # To-Do: Auto-Generate Challenge UTicket
             result = Success(None)
-        # (E-N) Execute TICKET
-        elif ticket_in.ticket_type == ticket.TYPE_CHALLENGE_TICKET:
-            # To-Do: Auto-Generate Response Ticket
+        # (E-N) Execute UTICKET
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
+            # To-Do: Auto-Generate Response UTicket
             result = Success(None)
-        elif ticket_in.ticket_type == ticket.TYPE_RESPONSE_TICKET:
-            # To-Do: Auto-Generate Key Exchange Ticket
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
+            # To-Do: Auto-Generate Key Exchange UTicket
             result = Success(None)
-        elif ticket_in.ticket_type == ticket.TYPE_KEY_EXCHANGE_TICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
             # Generate session_key (Person)
             result = self.execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_person.person_priv_key,
                 salt_byte=serialization_util.base64str_backto_byte(
-                    ticket_in.task_scope
+                    u_ticket_in.task_scope
                 ),
                 info_byte=b"",
                 peer_public_key_obj=serialization_util.str_to_key(
-                    ticket_in.device_id, key_type="ecc-public-key"
+                    u_ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
             # To-Do: Create Session
-            # To-Do: Auto-Generate Command Ticket
+            # To-Do: Auto-Generate Command UTicket
         else:  # pragma: no cover
-            # Never reach here: Because of verify_ticket_type()
+            # Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
         return result
 
     ######################################################
-    # Execute Initialization & Managment Ticket (E-Z)
+    # Execute Initialization & Managment UTicket (E-Z)
     ######################################################
     def execute_one_time_initialize_iot_device(
-        self, new_ticket: Ticket
+        self, new_u_ticket: UTicket
     ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is intializing...")
 
-        if self.this_device.device_type != ticket.IOT_DEVICE:
+        if self.this_device.device_type != u_ticket.IOT_DEVICE:
             failure_msg = (
                 "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
             )
@@ -322,7 +322,7 @@ class DeviceController:
         ######################################################
         # RAM
         self.this_device.owner_pub_key = serialization_util.str_to_key(
-            new_ticket.holder_id
+            new_u_ticket.holder_id
         )
 
         ######################################################
@@ -334,26 +334,26 @@ class DeviceController:
 
         return Success(None)
 
-    def execute_ownership_transfer(self, new_ticket: Ticket) -> None:
+    def execute_ownership_transfer(self, new_u_ticket: UTicket) -> None:
         logging.info(f"+ {self.this_device.device_name} is transferring ownership...")
 
         ######################################################
         # Decode Request Body
         ######################################################
         task_scope_dict = serialization_util.jsonstr_to_dict(
-            new_ticket.task_scope
+            new_u_ticket.task_scope
         )  # sort_keys = True
 
         ######################################################
         # Update Device Owner
         ######################################################
         if (
-            task_scope_dict[ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
-            == ticket.MANAGEMENT_OWNER
+            task_scope_dict[u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
+            == u_ticket.MANAGEMENT_OWNER
         ):
             # RAM
             self.this_device.owner_pub_key = serialization_util.str_to_key(
-                new_ticket.holder_id, key_type="ecc-public-key"
+                new_u_ticket.holder_id, key_type="ecc-public-key"
             )
 
         ######################################################
@@ -366,7 +366,7 @@ class DeviceController:
         return Success(None)
 
     ######################################################
-    # Execute Access Permission Ticket (E-N)
+    # Execute Access Permission UTicket (E-N)
     ######################################################
     def execute_update_current_holder_pub_key(
         self,

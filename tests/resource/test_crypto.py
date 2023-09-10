@@ -90,7 +90,7 @@ class TestCrypto:
         (ciphertext, shared_iv) = ecdh.cbc_encrypt(plaintext, session_key1)
         logging.debug("ciphertext: " + serialization_util.byte_to_base64str(ciphertext))
 
-        # WHEN: Transfer the Ciphertext || HMAC (or signature in Ticket) || 16-byte Shared_IV
+        # WHEN: Transfer the Ciphertext || HMAC (or signature in UTicket) || 16-byte Shared_IV
         # WHEN: Message Decryption
         decrypted_plaintext = ecdh.cbc_decrypt(ciphertext, session_key2, shared_iv)
         logging.debug(

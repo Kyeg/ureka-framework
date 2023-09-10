@@ -11,7 +11,7 @@ from tests.conftest import (
 from ureka_framework.logic.device_controller import (
     DeviceController,
 )
-import ureka_framework.data_model.ticket as ticket
+import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -30,7 +30,11 @@ class TestIntializeDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_initialization_ticket(self) -> None:
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_apply_initialization_u_ticket_with_storage_and_comm(self) -> None:
+        current_test_given_log()
+
+    def test_apply_initialization_u_ticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
@@ -38,7 +42,7 @@ class TestIntializeDevice:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=ticket.IOT_DEVICE,
+            device_type=u_ticket.IOT_DEVICE,
             device_name="iot_device",
         )
         assert self.iot_device.this_device.is_initialized == False
@@ -48,16 +52,16 @@ class TestIntializeDevice:
         assert self.iot_device.this_person.person_priv_key_str == ""
         assert self.iot_device.this_person.person_pub_key_str == ""
 
-        # WHEN: DM's CS apply_initialization_ticket() on Uninitialized IoTD
+        # WHEN: DM's CS apply_initialization_u_ticket() on Uninitialized IoTD
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-        result = self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
+        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to initialize DM's IoTD
         assert type(result) == Success
@@ -95,7 +99,7 @@ class TestIntializeDevice:
         assert self.iot_device.this_person.person_priv_key_str == ""
         assert self.iot_device.this_person.person_pub_key_str == ""
 
-    def test_apply_initialization_ticket_reintialized_failed(self) -> None:
+    def test_apply_initialization_u_ticket_reintialized_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS and DM's IoTD
@@ -104,21 +108,21 @@ class TestIntializeDevice:
             self.iot_device,
         ) = device_manufacturer_server_and_her_device()
 
-        # WHEN: DM's CS apply_initialization_ticket() on Initialized IoTD
+        # WHEN: DM's CS apply_initialization_u_ticket() on Initialized IoTD
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-        result = self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
+        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to re-initialize DM's IoTD
         assert type(result) == Failure
 
-    def test_apply_initialization_ticket_to_agent_or_server_failed(self) -> None:
+    def test_apply_initialization_u_ticket_to_agent_or_server_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
@@ -126,20 +130,20 @@ class TestIntializeDevice:
 
         # GIVEN: Uninitialized UA
         self.user_agent = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="user_agent",
         )
 
-        # WHEN: DM's CS apply_initialization_ticket() on UA
+        # WHEN: DM's CS apply_initialization_u_ticket() on UA
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_INITIALIZATION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.cloud_server_dm.generate_xxx_ticket(test_request)
-        result = self.user_agent.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
+        result = self.user_agent.verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to initialize UA
         assert type(result) == Failure

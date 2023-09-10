@@ -7,11 +7,11 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
-from ureka_framework.data_model import ticket
-from ureka_framework.data_model.ticket import (
-    Ticket,
-    jsonstr_to_ticket,
-    ticket_to_jsonstr,
+from ureka_framework.data_model import u_ticket
+from ureka_framework.data_model.u_ticket import (
+    UTicket,
+    jsonstr_to_u_ticket,
+    u_ticket_to_jsonstr,
 )
 from ureka_framework.data_model.this_device import (
     this_device_to_jsonstr,
@@ -102,28 +102,32 @@ class TestStorage:
         test_request_1: dict = {
             "device_id": f"device_id_1",
             "holder_id": f"",
-            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"",
         }
-        ticket_json_1: str = self.cloud_server_dm.generate_xxx_ticket(test_request_1)
+        u_ticket_json_1: str = self.cloud_server_dm.generate_xxx_u_ticket(
+            test_request_1
+        )
 
         test_request_2: dict = {
             "device_id": f"device_id_1",
             "holder_id": f"",
-            "ticket_type": f"{ticket.TYPE_MANAGEMENT_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"",
         }
-        ticket_json_2: str = self.cloud_server_dm.generate_xxx_ticket(test_request_2)
+        u_ticket_json_2: str = self.cloud_server_dm.generate_xxx_u_ticket(
+            test_request_2
+        )
 
         self.cloud_server_dm.device_table["device_id_1"] = OtherDevice(
             device_id="device_id_1",
             device_name="device_id_1's name",
-            device_ticket=ticket_json_1,
+            device_u_ticket=u_ticket_json_1,
         )
         self.cloud_server_dm.device_table["device_id_2"] = OtherDevice(
             device_id="device_id_2",
             device_name="device_id_2's name",
-            device_ticket=ticket_json_2,
+            device_u_ticket=u_ticket_json_2,
         )
         logging.debug(
             f"Modified Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}"
@@ -154,12 +158,12 @@ class TestStorage:
         assert updated_device_table["device_id_2"].device_id == "device_id_2"
         assert updated_device_table["device_id_2"].device_name == "device_id_2's name"
         assert (
-            self.cloud_server_dm.device_table["device_id_1"].device_ticket
-            == ticket_json_1
+            self.cloud_server_dm.device_table["device_id_1"].device_u_ticket
+            == u_ticket_json_1
         )
         assert (
-            self.cloud_server_dm.device_table["device_id_2"].device_ticket
-            == ticket_json_2
+            self.cloud_server_dm.device_table["device_id_2"].device_u_ticket
+            == u_ticket_json_2
         )
 
     def test_create_existed_dir(self) -> None:
