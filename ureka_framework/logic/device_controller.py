@@ -10,7 +10,11 @@ from ureka_framework.logic.u_ticket_verifier import (
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.other_device import OtherDevice, device_table_to_jsonstr
 from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.u_ticket import UTicket, jsonstr_to_u_ticket
+from ureka_framework.data_model.u_ticket import (
+    UTicket,
+    jsonstr_to_u_ticket,
+    u_ticket_to_jsonstr,
+)
 import ureka_framework.data_model.u_ticket as u_ticket
 
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
@@ -60,33 +64,52 @@ class DeviceController:
         )
 
     ######################################################
-    # [IO-level] TODO
+    # [IO-level]
     # REQ: holder_issue_request()
     # CST: issuer_respond_received_request() / issuer_issue_consent()
     # APY: holder_access_device()
+    # TODO: More complete Tx (with DID, etc.))
+    # TODO: Rollback (e.g., delete the temperary stored state and stored message) if fail
     ######################################################
-    def issuer_issue_consent(self, arbitrary_dict: dict) -> str:
-        generated_u_ticket: str = self._generate_xxx_u_ticket(arbitrary_dict)
-        self._send_xxx_u_ticket(generated_u_ticket)
-        return generated_u_ticket
+    def issuer_issue_consent_to_herself(self, arbitrary_dict: dict) -> str:
+        # [Func-level: RVE'GT'S]
+        generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
+        self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
+        return generated_u_ticket_json
+
+    def issuer_issue_consent_to_holder(self, arbitrary_dict: dict) -> str:
+        # [Func-level: RVE'GTS']
+        generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
+        self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
+        self._send_xxx_u_ticket(generated_u_ticket_json)
+        return generated_u_ticket_json
 
     def holder_receive_consent(self) -> str:
-        received_u_ticket: str = self._recv_xxx_u_ticket()
-        return received_u_ticket
+        # [Func-level: 'R'VEG'T'S]
+        received_u_ticket_json: str = self._recv_xxx_u_ticket()
+        # Can optionally verify whether the received_u_ticket_json is correct
+        self._store_recieved_xxx_u_ticket(received_u_ticket_json)
+        return received_u_ticket_json
 
     def holder_access_device(self, device_id: str) -> str:
-        stored_u_ticket: str = self.device_table[device_id].device_u_ticket
-        self._send_xxx_u_ticket(stored_u_ticket)
-        return stored_u_ticket
+        # [Func-level: RVEGT'S']
+        stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
+        # Also can add command in u_ticket
+        self._send_xxx_u_ticket(stored_u_ticket_json)
+        return stored_u_ticket_json
 
-    def device_be_accessed(self) -> Result[UTicket, RuntimeError]:
-        forwarded_u_ticket: str = self._recv_xxx_u_ticket()
-        result = self._verify_xxx_u_ticket(forwarded_u_ticket)
+    def device_be_accessed(self) -> str:
+        # [Func-level: 'RVE'GTS]
+        forwarded_u_ticket_json: str = self._recv_xxx_u_ticket()
+        result = self._verify_xxx_u_ticket(forwarded_u_ticket_json)
+
+        # [Func-level: RVE'GTS']
         # TODO: Return result in R-Ticket
-        return forwarded_u_ticket
+
+        return forwarded_u_ticket_json
 
     ######################################################
-    # [Func-level: 'R'VEGE"S"] Message Communication
+    # [Func-level: 'R'VEGT"S"] Message Communication
     ######################################################
     def _connect(self, comm_channel: FakeCommChannel) -> None:
         self.comm_channel = comm_channel
@@ -103,9 +126,29 @@ class DeviceController:
                     f"+ {self.this_device.device_name} is receiving u_ticket from {end.this_device.device_name}..."
                 )
                 # logging.debug(f"+ UTicket=\n{self.comm_channel.message_in_channel}")
+        recveived_u_ticket_json = self.comm_channel.message_in_channel
 
-        # TODO: [R'VE'GES] Verify Message -> Update Device Table (Role, State, etc.)
+        return recveived_u_ticket_json
+
+    def _send_xxx_u_ticket(self, u_ticket_json: str) -> None:
+        self.comm_channel.message_in_channel = u_ticket_json
+        for end in self.comm_channel.ends:
+            if end.this_device.device_name != self.this_device.device_name:
+                logging.info(
+                    f"+ {self.this_device.device_name} is sending u_ticket to {end.this_device.device_name}..."
+                )
+                # logging.debug(f"+ UTicket=\n{self.comm_channel.message_in_channel}")
+
+    ######################################################
+    # [Func-level: RVEG'T'S] Message Storage (after Receiving)
+    ######################################################
+    def _store_recieved_xxx_u_ticket(self, received_u_ticket_json: str) -> str:
+        generated_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
+
+        ######################################################
+        # Update Device Table (Role, State, etc.)
         # RAM: Add Device & UTicket in Device Table
+        ######################################################
         recveived_u_ticket_json = self.comm_channel.message_in_channel
         recveived_u_ticket = jsonstr_to_u_ticket(recveived_u_ticket_json)
         if recveived_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET:
@@ -122,19 +165,10 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person
         )
 
-        return recveived_u_ticket_json
-
-    def _send_xxx_u_ticket(self, u_ticket_json: str) -> None:
-        self.comm_channel.message_in_channel = u_ticket_json
-        for end in self.comm_channel.ends:
-            if end.this_device.device_name != self.this_device.device_name:
-                logging.info(
-                    f"+ {self.this_device.device_name} is sending u_ticket to {end.this_device.device_name}..."
-                )
-                # logging.debug(f"+ UTicket=\n{self.comm_channel.message_in_channel}")
+        return received_u_ticket_json
 
     ######################################################
-    # [Func-level: R'V'EGES] Message Verification
+    # [Func-level: R'VE'GTS] Message Verification
     ######################################################
     def _verify_xxx_u_ticket(
         self, arbitrary_json: str
@@ -154,7 +188,7 @@ class DeviceController:
         return verification_and_execution_result
 
     ######################################################
-    # [Func-level: RV'E'GES] Message Execution (after Verification)
+    # [Func-level: R'VE'GTS] Message Execution (after Verification)
     ######################################################
     def _execute_verify_xxx_u_ticket(
         self, u_ticket_in: UTicket
@@ -208,8 +242,10 @@ class DeviceController:
     def _execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
+        ######################################################
         # Determine device type name, but still be uninitialized
         # Determine device name (for test)
+        ######################################################
         self.this_device.is_initialized = False
         self.this_device.has_device_type = True
         self.this_device.device_type = device_type
@@ -399,26 +435,47 @@ class DeviceController:
         # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
     ######################################################
-    # [Func-level: RVE'G'ES] Message Generation
+    # [Func-level: RVE'G'TS] Message Generation
     ######################################################
     def _generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
         logging.info(f"+ {self.this_device.device_name} is generating u_ticket...")
 
         u_ticket_generator = UTicketGenerator(self.this_device, self.this_person)
-        generated_u_ticket_json = flow(
+        generated_u_ticket = flow(
             arbitrary_dict,
             u_ticket_generator.generate_arbitrary_u_ticket,
         )
-        self._execute_generate_xxx_u_ticket(generated_u_ticket_json)
+        generated_u_ticket_json = u_ticket_to_jsonstr(generated_u_ticket)
+
         return generated_u_ticket_json
 
     ######################################################
-    # [Func-level: RVEG'E'S] Message Execution (after Generation)
+    # [Func-level: RVEG'T'S] Message Storage (after Generation)
     ######################################################
-    def _execute_generate_xxx_u_ticket(self, generated_u_ticket_json) -> None:
+    def _stored_generated_xxx_u_ticket(self, generated_u_ticket_json: str) -> str:
         generated_u_ticket = jsonstr_to_u_ticket(generated_u_ticket_json)
 
+        ######################################################
+        # Update Device Table (Role, State, etc.)
+        # RAM: Add Device & UTicket in Device Table
+        ######################################################
+        self.device_table[generated_u_ticket.device_id] = OtherDevice(
+            device_id=generated_u_ticket.device_id,
+            device_name="device_id's name",
+            device_u_ticket=generated_u_ticket_json,
+        )
+
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person
+        )
+
+        ######################################################
+        # TODO: Shouldn't be here
         # RAM: Generate session_key (Device)
+        ######################################################
         if generated_u_ticket.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
             self._execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_device.device_priv_key,
@@ -431,4 +488,4 @@ class DeviceController:
                 ),
             )
 
-        # TODO: [RVEG'E'S] Update Device Table (Role, State, etc.)
+        return generated_u_ticket_json

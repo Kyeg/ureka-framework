@@ -1,6 +1,8 @@
+import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
+    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
@@ -30,9 +32,57 @@ class TestIntializeDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Implemented but not tested yet")
     def test_apply_initialization_u_ticket_in_io_level(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        self.cloud_server_dm = device_manufacturer_server()
+
+        # GIVEN: Uninitialized IoTD
+        self.iot_device = DeviceController(
+            device_type=u_ticket.IOT_DEVICE,
+            device_name="iot_device",
+        )
+        assert self.iot_device.this_device.is_initialized == False
+        assert self.iot_device.this_device.device_priv_key_str == ""
+        assert self.iot_device.this_device.device_pub_key_str == ""
+        assert self.iot_device.this_device.owner_pub_key_str == ""
+        assert self.iot_device.this_person.person_priv_key_str == ""
+        assert self.iot_device.this_person.person_pub_key_str == ""
+
+        # WHEN:
+        current_test_when_and_then_log()
+        # WHEN: Issuer [RVEGTS]: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
+        create_comm_connection(self.cloud_server_dm, self.iot_device)
+        generated_request: dict = {
+            "device_id": f"",
+            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
+            "task_scope": f"",
+        }
+        generated_u_ticket = self.cloud_server_dm.issuer_issue_consent_to_herself(
+            generated_request
+        )
+        logging.debug(f"Generated UTicket: {generated_u_ticket}")
+        stored_u_ticket = self.cloud_server_dm.holder_access_device(
+            self.iot_device.this_device.device_pub_key_str
+        )
+        logging.debug(f"Stored UTicket: {stored_u_ticket}")
+
+        # WHEN: Device [RVEGTS]: DO's IoTD receive the intialization_u_ticket
+        forwarded_u_ticket = self.iot_device.device_be_accessed()
+        logging.debug(f"Forwarded UTicket: {forwarded_u_ticket}")
+
+        # THEN: Succeed to initialize DM's IoTD
+        assert self.iot_device.this_device.is_initialized == True
+        assert self.iot_device.this_device.device_priv_key_str != ""
+        assert self.iot_device.this_device.device_pub_key_str != ""
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.cloud_server_dm.this_person.person_pub_key_str
+        )
+        assert self.iot_device.this_person.person_priv_key_str == ""
+        assert self.iot_device.this_person.person_pub_key_str == ""
 
     def test_apply_initialization_u_ticket(self) -> None:
         current_test_given_log()

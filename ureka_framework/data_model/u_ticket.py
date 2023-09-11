@@ -84,14 +84,12 @@ class UTicket(BaseModel):
 ################################################################################
 def u_ticket_to_jsonstr(u_ticket_obj: UTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    # return json.dumps(u_ticket_obj, indent=4, default=_u_ticket_to_dict, sort_keys=True)
     u_ticket_json = u_ticket_obj.model_dump_json(indent=4)
     return u_ticket_json
 
 
 def jsonstr_to_u_ticket(json_str: str) -> UTicket:
     try:
-        # return json.loads(json_str, object_hook=_dict_to_u_ticket)
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"

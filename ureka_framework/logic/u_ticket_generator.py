@@ -22,9 +22,7 @@ class UTicketGenerator:
     ######################################################
     # Message Generation Flow
     ######################################################
-    def generate_arbitrary_u_ticket(
-        self, arbitrary_dict: dict
-    ) -> Result[str, RuntimeError]:
+    def generate_arbitrary_u_ticket(self, arbitrary_dict: dict) -> UTicket:
         success_msg = "-> SUCCESS: GENERATE_UTICKET"
         failure_msg = "-> FAILURE: GENERATE_UTICKET"
 
@@ -75,9 +73,7 @@ class UTicketGenerator:
                 new_u_ticket, self.this_person.person_priv_key
             )
 
-        new_u_ticket_json = u_ticket_to_jsonstr(new_u_ticket)
-
-        return new_u_ticket_json
+        return new_u_ticket
 
     ######################################################
     # Add ECC Signature on UTicket
