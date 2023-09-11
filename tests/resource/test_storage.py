@@ -105,7 +105,7 @@ class TestStorage:
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"",
         }
-        u_ticket_json_1: str = self.cloud_server_dm.generate_xxx_u_ticket(
+        u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
         )
 
@@ -115,7 +115,7 @@ class TestStorage:
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"",
         }
-        u_ticket_json_2: str = self.cloud_server_dm.generate_xxx_u_ticket(
+        u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
         )
 

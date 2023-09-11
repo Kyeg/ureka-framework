@@ -66,9 +66,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.user_agent_do.generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
         logging.debug(f"ACCESS_PERMISSION_UTICKET: {test_u_ticket}")
-        self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
         #     - (<-) Challenge UTicket (<-)
@@ -79,9 +79,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.iot_device.generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         logging.debug(f"CHALLENGE_UTICKET: {test_u_ticket}")
-        self.cloud_server_ep.verify_xxx_u_ticket(test_u_ticket)
+        self.cloud_server_ep._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
         #     - (->) Repsonse UTicket (->)
@@ -92,9 +92,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_ep.generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
         logging.debug(f"RESPONSE_UTICKET: {test_u_ticket}")
-        self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
         #     - (<-) Key-exchange UTicket (<-)
@@ -105,9 +105,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.iot_device.generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         logging.debug(f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
-        result = self.cloud_server_ep.verify_xxx_u_ticket(test_u_ticket)
+        result = self.cloud_server_ep._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         assert type(result) == Success
@@ -170,8 +170,8 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.cloud_server_atk.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
         assert type(result) == Failure
@@ -218,8 +218,8 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.user_agent_do.generate_xxx_u_ticket(test_request)
-        self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
         #     - (<-) Challenge UTicket (<-)
@@ -230,8 +230,8 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.iot_device.generate_xxx_u_ticket(test_request)
-        self.cloud_server_atk.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        self.cloud_server_atk._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
         #     - (->) Repsonse UTicket (->)
@@ -242,8 +242,8 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_ep.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
         assert type(result) == Failure

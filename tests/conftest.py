@@ -73,7 +73,7 @@ def device_manufacturer_server() -> DeviceController:
         device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_dm",
     )
-    cloud_server_dm.execute_one_time_intialize_agent_or_server()
+    cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_dm
 
@@ -84,7 +84,7 @@ def device_owner_agent() -> DeviceController:
         device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
-    user_agent_do.execute_one_time_intialize_agent_or_server()
+    user_agent_do._execute_one_time_intialize_agent_or_server()
 
     return user_agent_do
 
@@ -106,8 +106,8 @@ def device_manufacturer_server_and_her_device() -> (
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         "task_scope": f"",
     }
-    test_u_ticket: str = cloud_server_dm.generate_xxx_u_ticket(test_request)
-    iot_device.verify_xxx_u_ticket(test_u_ticket)
+    test_u_ticket: str = cloud_server_dm._generate_xxx_u_ticket(test_request)
+    iot_device._verify_xxx_u_ticket(test_u_ticket)
 
     return (cloud_server_dm, iot_device)
 
@@ -124,7 +124,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
-    user_agent_do.execute_one_time_intialize_agent_or_server()
+    user_agent_do._execute_one_time_intialize_agent_or_server()
 
     # GIVEN: Initialized DO's IoTD
     test_request: dict = {
@@ -133,8 +133,8 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
         "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
     }
-    test_u_ticket: str = cloud_server_dm.generate_xxx_u_ticket(test_request)
-    iot_device.verify_xxx_u_ticket(test_u_ticket)
+    test_u_ticket: str = cloud_server_dm._generate_xxx_u_ticket(test_request)
+    iot_device._verify_xxx_u_ticket(test_u_ticket)
 
     return (user_agent_do, iot_device)
 
@@ -145,7 +145,7 @@ def enterprise_provider_server() -> DeviceController:
         device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_ep",
     )
-    cloud_server_ep.execute_one_time_intialize_agent_or_server()
+    cloud_server_ep._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_ep
 
@@ -156,7 +156,7 @@ def attacker_server() -> DeviceController:
         device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_atk",
     )
-    cloud_server_atk.execute_one_time_intialize_agent_or_server()
+    cloud_server_atk._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_atk
 

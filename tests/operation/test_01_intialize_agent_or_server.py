@@ -46,7 +46,7 @@ class TestIntializeAgentOrServer:
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Uninitialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
         assert type(result) == Success
@@ -83,7 +83,7 @@ class TestIntializeAgentOrServer:
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Initialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Failed to re-initialize DM's CS
         assert type(result) == Failure
@@ -103,7 +103,7 @@ class TestIntializeAgentOrServer:
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on IoTD
         current_test_when_and_then_log()
-        result = self.iot_device.execute_one_time_intialize_agent_or_server()
+        result = self.iot_device._execute_one_time_intialize_agent_or_server()
 
         # THEN: Failed to initialize IoTD
         assert type(result) == Failure

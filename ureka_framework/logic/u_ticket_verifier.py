@@ -22,7 +22,6 @@ class UTicketVerifier:
     ######################################################
     # Message Verification Flow
     ######################################################
-    # TODO: verify_u_ticket_schema()
     def verify_json_schema(self, arbitrary_json: str) -> Result[UTicket, RuntimeError]:
         success_msg = "-> SUCCESS: VERIFY_JSON_SCHEMA"
         failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"

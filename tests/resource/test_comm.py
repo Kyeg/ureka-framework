@@ -44,8 +44,8 @@ class TestStorage:
         # WHEN: Construct a Comm Channel between two devices
         current_test_when_and_then_log()
         fake_comm_chanel = FakeCommChannel(ends=[self.cloud_server_dm, self.iot_device])
-        self.cloud_server_dm.connect(fake_comm_chanel)
-        self.iot_device.connect(fake_comm_chanel)
+        self.cloud_server_dm._connect(fake_comm_chanel)
+        self.iot_device._connect(fake_comm_chanel)
 
         # WHEN: Send/Recv the message through Comm Channel
         test_request: dict = {
@@ -54,11 +54,11 @@ class TestStorage:
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
-        self.cloud_server_dm.send_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        self.cloud_server_dm._send_xxx_u_ticket(test_u_ticket)
 
-        self.iot_device.recv_xxx_u_ticket()
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        self.iot_device._recv_xxx_u_ticket()
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: The messages sent and received are the same
         assert (

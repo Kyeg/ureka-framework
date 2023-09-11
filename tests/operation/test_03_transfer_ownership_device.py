@@ -52,7 +52,7 @@ class TestTransferOwnershipDevice:
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
         }
-        generated_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(
+        generated_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(
             generated_request
         )
         logging.debug(f"Generated UTicket: {generated_u_ticket}")
@@ -61,10 +61,10 @@ class TestTransferOwnershipDevice:
         fake_comm_chanel = FakeCommChannel(
             ends=[self.cloud_server_dm, self.user_agent_do]
         )
-        self.cloud_server_dm.connect(fake_comm_chanel)
-        self.user_agent_do.connect(fake_comm_chanel)
-        self.cloud_server_dm.send_xxx_u_ticket(generated_u_ticket)
-        received_u_ticket: str = self.user_agent_do.recv_xxx_u_ticket()
+        self.cloud_server_dm._connect(fake_comm_chanel)
+        self.user_agent_do._connect(fake_comm_chanel)
+        self.cloud_server_dm._send_xxx_u_ticket(generated_u_ticket)
+        received_u_ticket: str = self.user_agent_do._recv_xxx_u_ticket()
         logging.debug(f"Recveived UTicket: {received_u_ticket}")
 
         # WHEN: DO's UA query the management_u_ticket from device table
@@ -75,12 +75,12 @@ class TestTransferOwnershipDevice:
 
         # WHEN: DO's UA foward the management_u_ticket on DM's IoTD through Comm Channel
         fake_comm_chanel = FakeCommChannel(ends=[self.user_agent_do, self.iot_device])
-        self.user_agent_do.connect(fake_comm_chanel)
-        self.iot_device.connect(fake_comm_chanel)
-        self.user_agent_do.send_xxx_u_ticket(stored_u_ticket)
-        forwarded_u_ticket: str = self.iot_device.recv_xxx_u_ticket()
+        self.user_agent_do._connect(fake_comm_chanel)
+        self.iot_device._connect(fake_comm_chanel)
+        self.user_agent_do._send_xxx_u_ticket(stored_u_ticket)
+        forwarded_u_ticket: str = self.iot_device._recv_xxx_u_ticket()
         logging.debug(f"Forwarded UTicket: {forwarded_u_ticket}")
-        result = self.iot_device.verify_xxx_u_ticket(forwarded_u_ticket)
+        result = self.iot_device._verify_xxx_u_ticket(forwarded_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
@@ -109,8 +109,8 @@ class TestTransferOwnershipDevice:
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
         }
-        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
@@ -158,8 +158,8 @@ class TestTransferOwnershipDevice:
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
         }
-        test_u_ticket: str = self.cloud_server_atk.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure

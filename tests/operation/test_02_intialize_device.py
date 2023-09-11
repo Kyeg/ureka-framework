@@ -60,8 +60,8 @@ class TestIntializeDevice:
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to initialize DM's IoTD
         assert type(result) == Success
@@ -116,8 +116,8 @@ class TestIntializeDevice:
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to re-initialize DM's IoTD
         assert type(result) == Failure
@@ -142,8 +142,8 @@ class TestIntializeDevice:
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        test_u_ticket: str = self.cloud_server_dm.generate_xxx_u_ticket(test_request)
-        result = self.user_agent.verify_xxx_u_ticket(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        result = self.user_agent._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to initialize UA
         assert type(result) == Failure
