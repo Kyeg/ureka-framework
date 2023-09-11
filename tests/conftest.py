@@ -3,6 +3,7 @@ import logging
 from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
 from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from typing import Tuple
 
 
@@ -67,6 +68,12 @@ def current_teardown_log() -> None:
 ######################################################
 # Helper Functions (Reusable Test Data)
 ######################################################
+def create_comm_connection(end1: DeviceController, end2: DeviceController):
+    fake_comm_ch = FakeCommChannel(ends=[end1, end2])
+    end1._connect(fake_comm_ch)
+    end2._connect(fake_comm_ch)
+
+
 def device_manufacturer_server() -> DeviceController:
     # GIVEN: Initialized DM's CS
     cloud_server_dm = DeviceController(

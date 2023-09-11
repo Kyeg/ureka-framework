@@ -31,7 +31,7 @@ class TestIntializeDevice:
         SimpleStorage.delete_storage_in_test()
 
     @pytest.mark.skip(reason="Implemented but not tested yet")
-    def test_apply_initialization_u_ticket_with_storage_and_comm(self) -> None:
+    def test_apply_initialization_u_ticket_in_io_level(self) -> None:
         current_test_given_log()
 
     def test_apply_initialization_u_ticket(self) -> None:

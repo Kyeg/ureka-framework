@@ -29,6 +29,10 @@ class TestIntializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_intialize_agent_or_server_in_io_level(self) -> None:
+        current_test_given_log()
+
     def test_intialize_agent_or_server(self) -> None:
         current_test_given_log()
 

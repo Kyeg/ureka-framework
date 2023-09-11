@@ -60,12 +60,30 @@ class DeviceController:
         )
 
     ######################################################
-    # [IO-level]
-    # TODO
+    # [IO-level] TODO
     # REQ: holder_issue_request()
     # CST: issuer_respond_received_request() / issuer_issue_consent()
     # APY: holder_access_device()
     ######################################################
+    def issuer_issue_consent(self, arbitrary_dict: dict) -> str:
+        generated_u_ticket: str = self._generate_xxx_u_ticket(arbitrary_dict)
+        self._send_xxx_u_ticket(generated_u_ticket)
+        return generated_u_ticket
+
+    def holder_receive_consent(self) -> str:
+        received_u_ticket: str = self._recv_xxx_u_ticket()
+        return received_u_ticket
+
+    def holder_access_device(self, device_id: str) -> str:
+        stored_u_ticket: str = self.device_table[device_id].device_u_ticket
+        self._send_xxx_u_ticket(stored_u_ticket)
+        return stored_u_ticket
+
+    def device_be_accessed(self) -> Result[UTicket, RuntimeError]:
+        forwarded_u_ticket: str = self._recv_xxx_u_ticket()
+        result = self._verify_xxx_u_ticket(forwarded_u_ticket)
+        # TODO: Return result in R-Ticket
+        return forwarded_u_ticket
 
     ######################################################
     # [Func-level: 'R'VEGE"S"] Message Communication
@@ -147,7 +165,8 @@ class DeviceController:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             result = self._execute_one_time_initialize_iot_device(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
-            result = self._execute_ownership_transfer(u_ticket_in)
+            self._execute_ownership_transfer(u_ticket_in)
+            result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
             # Generate session_key (Device)
             self._execute_update_current_holder_pub_key(
@@ -156,17 +175,17 @@ class DeviceController:
                 )
             )
             # To-Do: Auto-Generate Challenge UTicket
-            result = Success(None)
+            result = Success(u_ticket_in)
         # (E-N) Execute UTICKET
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
             # To-Do: Auto-Generate Response UTicket
-            result = Success(None)
+            result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
             # To-Do: Auto-Generate Key Exchange UTicket
-            result = Success(None)
+            result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
             # Generate session_key (Person)
-            result = self._execute_update_current_session_key_byte(
+            self._execute_update_current_session_key_byte(
                 server_private_key_obj=self.this_person.person_priv_key,
                 salt_byte=serialization_util.base64str_backto_byte(
                     u_ticket_in.task_scope
@@ -176,6 +195,7 @@ class DeviceController:
                     u_ticket_in.device_id, key_type="ecc-public-key"
                 ),
             )
+            result = Success(u_ticket_in)
             # To-Do: Create Session
             # To-Do: Auto-Generate Command UTicket
         else:  # pragma: no cover
@@ -256,8 +276,8 @@ class DeviceController:
         return Success(None)
 
     def _execute_one_time_initialize_iot_device(
-        self, new_u_ticket: UTicket
-    ) -> Result[None, RuntimeError]:
+        self, u_ticket_in: UTicket
+    ) -> Result[UTicket, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is intializing...")
 
         if self.this_device.device_type != u_ticket.IOT_DEVICE:
@@ -288,7 +308,7 @@ class DeviceController:
         ######################################################
         # RAM
         self.this_device.owner_pub_key = serialization_util.str_to_key(
-            new_u_ticket.holder_id
+            u_ticket_in.holder_id
         )
 
         ######################################################
@@ -298,7 +318,7 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person
         )
 
-        return Success(None)
+        return Success(u_ticket_in)
 
     def _execute_ownership_transfer(self, new_u_ticket: UTicket) -> None:
         logging.info(f"+ {self.this_device.device_name} is transferring ownership...")
@@ -329,12 +349,10 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person
         )
 
-        return Success(None)
-
     def _execute_update_current_holder_pub_key(
         self,
         new_current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> Result[None, RuntimeError]:
+    ) -> None:
         logging.info(
             f"+ {self.this_device.device_name} is updating current holder pub key..."
         )
@@ -350,15 +368,13 @@ class DeviceController:
         ######################################################
         # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
-        return Success(None)
-
     def _execute_update_current_session_key_byte(
         self,
         server_private_key_obj: ec.EllipticCurvePrivateKey,
         salt_byte: bytes,
         info_byte: bytes,
         peer_public_key_obj: ec.EllipticCurvePublicKey,
-    ) -> Result[None, RuntimeError]:
+    ) -> None:
         logging.info(
             f"+ {self.this_device.device_name} is updating current session key byte..."
         )
@@ -381,8 +397,6 @@ class DeviceController:
         # Storage (RAM Only)
         ######################################################
         # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
-
-        return Success(None)
 
     ######################################################
     # [Func-level: RVE'G'ES] Message Generation

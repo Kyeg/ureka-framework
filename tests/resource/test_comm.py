@@ -1,6 +1,7 @@
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
+    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
@@ -43,9 +44,7 @@ class TestStorage:
 
         # WHEN: Construct a Comm Channel between two devices
         current_test_when_and_then_log()
-        fake_comm_chanel = FakeCommChannel(ends=[self.cloud_server_dm, self.iot_device])
-        self.cloud_server_dm._connect(fake_comm_chanel)
-        self.iot_device._connect(fake_comm_chanel)
+        create_comm_connection(self.cloud_server_dm, self.iot_device)
 
         # WHEN: Send/Recv the message through Comm Channel
         test_request: dict = {
