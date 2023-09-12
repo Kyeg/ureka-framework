@@ -80,6 +80,7 @@ class UTicketVerifier:
             # To-Do: Return UTicket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(u_ticket_in)
+        # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET, TYPE_RESPONSE_UTICKET
         else:
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 logging.info(success_msg)

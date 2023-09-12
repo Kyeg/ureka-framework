@@ -6,6 +6,7 @@ from tests.conftest import (
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+    device_manufacturer_server_and_her_device,
     device_owner_agent_and_her_device_and_attacker,
     enterprise_provider_server,
 )
@@ -31,6 +32,9 @@ class TestArbitraryInput:
             self.cloud_server_atk,
         ) = device_owner_agent_and_her_device_and_attacker()
 
+        # GIVEN: A Public Key
+        self.device_pub_key_str = self.iot_device.this_device.device_pub_key_str
+
         # WHEN+THEN:
         yield
 
@@ -38,11 +42,22 @@ class TestArbitraryInput:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_wrong_json_schema(self) -> None:
+    def test_apply_wrong_json_schema_in_u_ticket(self) -> None:
         # WHEN: Not fit with json format '{"key": "value"}'
         current_test_when_and_then_log()
         test_u_ticket: str = "WRONG-JSON-SCHEMA"
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+
+        # THEN: Raise the RuntimeError (Invalid JSON)
+        assert type(result) == Failure
+
+    def test_apply_wrong_json_schema_in_r_ticket(self) -> None:
+        # WHEN: Not fit with json format '{"key": "value"}'
+        current_test_when_and_then_log()
+        test_r_ticket: str = "WRONG-JSON-SCHEMA"
+        result = self.iot_device._verify_xxx_r_ticket(
+            test_r_ticket, self.device_pub_key_str
+        )
 
         # THEN: Raise the RuntimeError (Invalid JSON)
         assert type(result) == Failure
@@ -68,6 +83,27 @@ class TestArbitraryInput:
             == "-> FAILURE: GENERATE_UTICKET"
         )
 
+    def test_generate_wrong_r_ticket_schema_undefined_type(self) -> None:
+        current_test_given_log()
+
+        # WHEN: Wrong r_ticket schema type
+        current_test_when_and_then_log()
+        test_request: dict = {
+            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "audit_start": f"u_ticket_id",
+            "audit_end": 123,
+            "result": f"Success/Failure",
+            "return_value": f"",
+        }
+        with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
+            test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
+
+        # THEN: Raise the RuntimeError (Input should be a valid string)
+        assert (
+            str(generate_xxx_r_ticket_error_info.value)
+            == "-> FAILURE: GENERATE_RTICKET"
+        )
+
     def test_generate_wrong_u_ticket_schema_undefined_field(self) -> None:
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -89,6 +125,27 @@ class TestArbitraryInput:
         assert (
             str(generate_xxx_u_ticket_error_info.value)
             == "-> FAILURE: GENERATE_UTICKET"
+        )
+
+    def test_generate_wrong_r_ticket_schema_undefined_field(self) -> None:
+        # WHEN: All other formats are correct, but exist undefined u_ticket field in UTicket
+        current_test_when_and_then_log()
+        test_request: dict = {
+            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "audit_start": f"u_ticket_id",
+            "audit_end": 123,
+            "result": f"Success/Failure",
+            "return_value": f"",
+            "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
+        }
+        with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
+            test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
+            logging.debug(f"test_r_ticket = {test_r_ticket}")
+
+        # THEN: Raise the RuntimeError
+        assert (
+            str(generate_xxx_r_ticket_error_info.value)
+            == "-> FAILURE: GENERATE_RTICKET"
         )
 
     def test_apply_wrong_u_ticket_schema_undefined_field(self) -> None:
@@ -125,13 +182,24 @@ class TestArbitraryInput:
             == "-> FAILURE: VERIFY_JSON_SCHEMA: NOT VALID JSON or VALID SCHEMA"
         )
 
-    def test_apply_wrong_protocol_version(self) -> None:
+    def test_apply_wrong_protocol_version_in_u_ticket(self) -> None:
         # WHEN: Wrong u_ticket protocol version
         current_test_when_and_then_log()
         test_u_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
+        assert type(result) == Failure
+
+    def test_apply_wrong_protocol_version_in_r_ticket(self) -> None:
+        # WHEN: Wrong r_ticket protocol version
+        current_test_when_and_then_log()
+        test_r_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
+        result = self.iot_device._verify_xxx_r_ticket(
+            test_r_ticket, self.device_pub_key_str
+        )
+
+        # THEN: Fail to audit R-Ticket
         assert type(result) == Failure
 
     def test_apply_wrong_u_ticket_type(self) -> None:
@@ -147,6 +215,24 @@ class TestArbitraryInput:
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
+        assert type(result) == Failure
+
+    def test_apply_wrong_r_ticket_type(self) -> None:
+        # WHEN: Wrong r_ticket type
+        current_test_when_and_then_log()
+        test_request: dict = {
+            "r_ticket_type": f"WRONG-RTICKET-TYPE",
+            "audit_start": f"u_ticket_id",
+            "audit_end": f"",
+            "result": f"Success/Failure",
+            "return_value": f"",
+        }
+        test_r_ticket: str = self.cloud_server_atk._generate_xxx_r_ticket(test_request)
+        result = self.iot_device._verify_xxx_r_ticket(
+            test_r_ticket, self.device_pub_key_str
+        )
+
+        # THEN: Fail to audit R-Ticket
         assert type(result) == Failure
 
     def test_apply_wrong_device_id(self) -> None:

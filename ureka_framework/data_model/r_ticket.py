@@ -1,71 +1,28 @@
 import logging
 from pydantic import BaseModel, ConfigDict, ValidationError
-
-
-######################################################
-# Protocol Version
-######################################################
-PROTOCOL_VERSION: str = "UREKA-1.0"
-
-######################################################
-# UTicket Type
-######################################################
-TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
-TYPE_MANAGEMENT_UTICKET: str = "MANAGEMENT"
-TYPE_ACCESS_PERMISSION_UTICKET: str = "ACCESS-PERMISSION"
-TYPE_CHALLENGE_UTICKET: str = "CHALLENGE"
-TYPE_RESPONSE_UTICKET: str = "RESPONSE"
-TYPE_KEY_EXCHANGE_UTICKET: str = "KEY-EXCHANGE"
-# TYPE_COMMAND_UTICKET: str = "COMMAND"
-# TYPE_RETURN_UTICKET: str = "RETURN"
-# TYPE_QUERY_UTICKET: str = "QUERY"
-LEGAL_UTICKET_TYPES: {str} = {
-    TYPE_INITIALIZATION_UTICKET,
-    TYPE_MANAGEMENT_UTICKET,
-    TYPE_ACCESS_PERMISSION_UTICKET,
-    TYPE_CHALLENGE_UTICKET,
-    TYPE_RESPONSE_UTICKET,
-    TYPE_KEY_EXCHANGE_UTICKET,
-}
-
-######################################################
-# Request Body Type
-######################################################
-REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: str = "MANAGEMENT-TYPE"
-REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: str = "RESOURCE-TREE"
-
-######################################################
-# Device Type
-######################################################
-USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
-IOT_DEVICE: str = "IOT_DEVICE"
-
-######################################################
-# Management Type
-######################################################
-MANAGEMENT_OWNER: str = "NEW-OWNER"
-# MANAGEMENT_MANAGER: str = "NEW-MANAGER"
+import ureka_framework.data_model.u_ticket as u_ticket
 
 
 ######################################################
 # Data Model
 ######################################################
-# ToDo
 class RTicket(BaseModel):
-    protocol_verision: str = PROTOCOL_VERSION
-    u_ticket_id: str = ""
+    protocol_verision: str = u_ticket.PROTOCOL_VERSION
+    r_ticket_id: str = ""
 
-    u_ticket_type: str = ""
+    r_ticket_type: str = ""
 
-    device_id: str = ""
-    holder_id: str = ""
-    task_scope: str = ""
+    audit_start: str = ""
+    audit_end: str = ""
 
-    issuer_signature: str = ""
+    result: str = ""
+    return_value: str = ""
+
+    device_signature: str = ""
 
     def __eq__(self, other):
         if isinstance(other, RTicket):
-            return self.u_ticket_id == other.u_ticket_id
+            return self.r_ticket_id == other.r_ticket_id
         return False
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
@@ -74,7 +31,7 @@ class RTicket(BaseModel):
 
 
 ################################################################################
-#                                < UTicket_obj >                               #
+#                                < RTicket_obj >                               #
 #                                       | self-defined serilaization           #
 #                                       | (all str, which is native type)      #
 #                                       v                                      #
@@ -83,13 +40,13 @@ class RTicket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def u_ticket_to_jsonstr(u_ticket_obj: RTicket) -> str:
+def r_ticket_to_jsonstr(r_ticket_obj: RTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    u_ticket_json = u_ticket_obj.model_dump_json(indent=4)
-    return u_ticket_json
+    r_ticket_json = r_ticket_obj.model_dump_json(indent=4)
+    return r_ticket_json
 
 
-def jsonstr_to_u_ticket(json_str: str) -> RTicket:
+def jsonstr_to_r_ticket(json_str: str) -> RTicket:
     try:
         return RTicket.model_validate_json(json_str)
     except ValidationError as error:

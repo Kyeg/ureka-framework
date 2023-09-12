@@ -1,6 +1,9 @@
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
+from ureka_framework.data_model.r_ticket import RTicket, r_ticket_to_jsonstr
+from ureka_framework.logic.r_ticket_generator import RTicketGenerator
+from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
 from ureka_framework.logic.u_ticket_generator import (
     UTicketGenerator,
 )
@@ -189,7 +192,20 @@ class DeviceController:
         )
         return verification_and_execution_result
 
-    # ToDo: _verify_xxx_r_ticket
+    def _verify_xxx_r_ticket(
+        self, arbitrary_json: str, device_public_key_str: str
+    ) -> Result[RTicket, RuntimeError]:
+        logging.info(f"+ {self.this_device.device_name} is verifying r_ticket...")
+
+        r_ticket_verifier = RTicketVerifier(device_public_key_str)
+        verification_and_execution_result = flow(
+            arbitrary_json,
+            r_ticket_verifier.verify_json_schema,
+            bind(r_ticket_verifier.verify_protocol_version),
+            bind(r_ticket_verifier.verify_r_ticket_type),
+            bind(r_ticket_verifier.verify_device_signature),
+        )
+        return verification_and_execution_result
 
     ######################################################
     # [Func-level: R'VE'GTS] Message Execution (after Verification)
@@ -455,7 +471,17 @@ class DeviceController:
 
         return generated_u_ticket_json
 
-    # ToDo: _generate_xxx_r_ticket
+    def _generate_xxx_r_ticket(self, arbitrary_dict: dict) -> str:
+        logging.info(f"+ {self.this_device.device_name} is generating r_ticket...")
+
+        r_ticket_generator = RTicketGenerator(self.this_device, self.this_person)
+        generated_r_ticket = flow(
+            arbitrary_dict,
+            r_ticket_generator.generate_arbitrary_r_ticket,
+        )
+        generated_r_ticket_json = r_ticket_to_jsonstr(generated_r_ticket)
+
+        return generated_r_ticket_json
 
     ######################################################
     # [Func-level: RVEG'T'S] Message Storage (after Generation)
