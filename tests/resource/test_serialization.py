@@ -148,6 +148,8 @@ class TestSerialization:
         assert f"device_id" == u_ticket_obj.device_id
         assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == u_ticket_obj.u_ticket_type
 
+    # ToDo: test_r_ticket_serialization
+
     def test_json_serialization_failed(self) -> None:
         current_test_given_log()
 

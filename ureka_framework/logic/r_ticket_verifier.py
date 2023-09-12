@@ -14,7 +14,8 @@ from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
 
 
-class UTicketVerifier:
+# ToDo
+class RTicketVerifier:
     def __init__(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
         self.this_device = this_device
         self.this_person = this_person
@@ -120,7 +121,7 @@ class UTicketVerifier:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
-        # Verify HOLDER_SIGNATURE
+        # Verify HOLDER_SIGNATUREureka_framework/logic/u_ticket_verifier.py
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
             # To-Do: Return UTicket - to get DEVICE_ID after initialization
             logging.info(success_msg)

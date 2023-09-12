@@ -167,6 +167,8 @@ class DeviceController:
 
         return received_u_ticket_json
 
+    # ToDo: _store_recieved_xxx_r_ticket
+
     ######################################################
     # [Func-level: R'VE'GTS] Message Verification
     ######################################################
@@ -186,6 +188,8 @@ class DeviceController:
             bind(self._execute_verify_xxx_u_ticket),
         )
         return verification_and_execution_result
+
+    # ToDo: _verify_xxx_r_ticket
 
     ######################################################
     # [Func-level: R'VE'GTS] Message Execution (after Verification)
@@ -434,6 +438,8 @@ class DeviceController:
         ######################################################
         # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
 
+    # ToDo: _execute_verify_xxx_r_ticket
+
     ######################################################
     # [Func-level: RVE'G'TS] Message Generation
     ######################################################
@@ -448,6 +454,8 @@ class DeviceController:
         generated_u_ticket_json = u_ticket_to_jsonstr(generated_u_ticket)
 
         return generated_u_ticket_json
+
+    # ToDo: _generate_xxx_r_ticket
 
     ######################################################
     # [Func-level: RVEG'T'S] Message Storage (after Generation)
@@ -489,3 +497,5 @@ class DeviceController:
             )
 
         return generated_u_ticket_json
+
+    # ToDo: _stored_generated_xxx_r_ticket
