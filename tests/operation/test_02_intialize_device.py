@@ -52,27 +52,25 @@ class TestIntializeDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer [RTVEGTS]: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
+        # WHEN: Issuer: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
         create_comm_connection(self.cloud_server_dm, self.iot_device)
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        generated_u_ticket = self.cloud_server_dm.issuer_issue_consent_to_herself(
-            generated_request
+        self.cloud_server_dm.issuer_issue_consent_to_herself(
+            device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        logging.debug(f"Generated UTicket: {generated_u_ticket}")
-        stored_u_ticket = self.cloud_server_dm.holder_access_device(
-            id_for_initialization_u_ticket
-        )
-        logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
+        self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
-        # WHEN: Device [RTVEGTS]: DO's IoTD receive the intialization_u_ticket
-        generated_r_ticket = self.iot_device.device_be_accessed()
-        logging.debug(f"Generated RTicket = {generated_r_ticket}")
+        # WHEN: Device: DO's IoTD receive the intialization_u_ticket
+        self.iot_device.device_be_accessed()
+
+        # WHEN: Holder: DM's CS receive the intialization_r_ticket
+        self.cloud_server_dm.holder_receive_r_ticket()
 
         # THEN: Succeed to initialize DM's IoTD
         assert self.iot_device.this_device.is_initialized == True
@@ -98,27 +96,25 @@ class TestIntializeDevice:
 
         # WHEN: DM's CS apply_initialization_u_ticket() on Initialized IoTD
         current_test_when_and_then_log()
-        # WHEN: Issuer [RTVEGTS]: DM's CS generate & send the intialization_u_ticket to Initialized IoTD
+        # WHEN: Issuer: DM's CS generate & send the intialization_u_ticket to Initialized IoTD
         create_comm_connection(self.cloud_server_dm, self.iot_device)
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
         }
-        generated_u_ticket = self.cloud_server_dm.issuer_issue_consent_to_herself(
-            generated_request
+        self.cloud_server_dm.issuer_issue_consent_to_herself(
+            device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        logging.debug(f"Generated UTicket: {generated_u_ticket}")
-        stored_u_ticket = self.cloud_server_dm.holder_access_device(
-            id_for_initialization_u_ticket
-        )
-        logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
+        self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
-        # WHEN: Device [RTVEGTS]: DO's IoTD receive the intialization_u_ticket
-        generated_r_ticket = self.iot_device.device_be_accessed()
-        logging.debug(f"Generated RTicket = {generated_r_ticket}")
+        # WHEN: Device: DO's IoTD receive the intialization_u_ticket
+        self.iot_device.device_be_accessed()
+
+        # WHEN: Holder: DM's CS receive the intialization_r_ticket
+        self.cloud_server_dm.holder_receive_r_ticket()
 
         # THEN: Failed to re-initialize DM's IoTD
 
@@ -142,8 +138,10 @@ class TestIntializeDevice:
 
         # WHEN: DM's CS apply_initialization_u_ticket() on Uninitialized IoTD
         current_test_when_and_then_log()
+
+        id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
@@ -198,8 +196,9 @@ class TestIntializeDevice:
 
         # WHEN: DM's CS apply_initialization_u_ticket() on Initialized IoTD
         current_test_when_and_then_log()
+        id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",
@@ -225,8 +224,9 @@ class TestIntializeDevice:
 
         # WHEN: DM's CS apply_initialization_u_ticket() on UA
         current_test_when_and_then_log()
+        id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",

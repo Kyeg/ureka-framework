@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 class RTicketVerifier:
     def __init__(self, device_public_key_str: str) -> None:
-        self.device_public_key_str = device_public_key_str
+        self.device_pub_key_str = device_public_key_str
 
     ######################################################
     # Message Verification Flow
@@ -31,6 +31,7 @@ class RTicketVerifier:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
+    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
     def verify_protocol_version(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -48,6 +49,7 @@ class RTicketVerifier:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
     def verify_r_ticket_type(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -61,16 +63,22 @@ class RTicketVerifier:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
+    def verify_device_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
+        failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
+
+        if r_ticket_in.device_id == self.device_pub_key_str:
+            logging.info(success_msg)
+            return Success(r_ticket_in)
+        else:
+            logging.error(failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
     # ToDo: Completely verify R-Ticket
-
-    # def verify_audit_start(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
-    #     pass
-
-    # def verify_audit_end(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
-    #     pass
-
-    # def verify_result(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
-    #     pass
+    # verify_audit_start
+    # verify_audit_end
+    # verify_result
 
     def verify_device_signature(
         self,
@@ -86,7 +94,7 @@ class RTicketVerifier:
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET
         ):
             if self._verify_device_signature_on_r_ticket(
-                r_ticket_in, serialization_util.str_to_key(self.device_public_key_str)
+                r_ticket_in, serialization_util.str_to_key(self.device_pub_key_str)
             ):
                 logging.info(success_msg)
                 return Success(r_ticket_in)

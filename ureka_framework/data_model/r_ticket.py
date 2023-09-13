@@ -12,6 +12,7 @@ class RTicket(BaseModel):
 
     r_ticket_type: str = ""
 
+    device_id: str = ""
     audit_start: str = ""
     audit_end: str = ""
 

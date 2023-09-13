@@ -69,15 +69,18 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            # No need to verify DEVICE_ID
-            logging.info(success_msg)
-            return Success(u_ticket_in)
+            # To-Do: Return UTicket - to get DEVICE_ID after initialization
+            if u_ticket_in.device_id == "no_id":
+                logging.info(success_msg)
+                return Success(u_ticket_in)
+            else:
+                logging.error(failure_msg)
+                return Failure(RuntimeError(failure_msg))
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET
         ):
             # No need to verify DEVICE_ID
-            # To-Do: Return UTicket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(u_ticket_in)
         # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET, TYPE_RESPONSE_UTICKET

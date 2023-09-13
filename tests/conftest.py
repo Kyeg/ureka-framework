@@ -107,8 +107,9 @@ def device_manufacturer_server_and_her_device() -> (
         device_type=u_ticket.IOT_DEVICE,
         device_name="iot_device",
     )
+    id_for_initialization_u_ticket = "no_id"
     test_request: dict = {
-        "device_id": f"",
+        "device_id": f"{id_for_initialization_u_ticket}",
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         "task_scope": f"",

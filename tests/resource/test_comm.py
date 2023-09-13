@@ -47,8 +47,9 @@ class TestStorage:
         create_comm_connection(self.cloud_server_dm, self.iot_device)
 
         # WHEN: Send/Recv the message through Comm Channel
+        id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
-            "device_id": f"",
+            "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "task_scope": f"",

@@ -200,7 +200,8 @@ class TestSerialization:
         current_test_when_and_then_log()
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "audit_start": f"u_ticket_id",
+            "device_id": f"{device_public_key_str}",
+            "audit_start": f"",
             "audit_end": f"",
             "result": f"Success/Failure",
             "return_value": f"",

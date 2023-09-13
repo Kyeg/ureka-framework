@@ -47,7 +47,7 @@ class TestAccessDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer [RTVEGTS]: DO's UA generate & send the accesspermission_u_ticket to EP's CS
+        # WHEN: Issuer: DO's UA generate & send the accesspermission_u_ticket to EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         permission_resource_tree = serialization_util.dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
@@ -68,18 +68,18 @@ class TestAccessDevice:
         )
         logging.debug(f"Generated UTicket: {generated_u_ticket}")
 
-        # WHEN: Holder [RTVEGTS]: EP's CS receive & store the accesspermission_u_ticket
+        # WHEN: Holder: EP's CS receive & store the accesspermission_u_ticket
         received_u_ticket = self.cloud_server_ep.holder_receive_consent()
         logging.debug(f"Recveived UTicket: {received_u_ticket}")
 
-        # WHEN: Holder [RTVEGTS]: EP's CS forward the accesspermission_u_ticket
+        # WHEN: Holder: EP's CS forward the accesspermission_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         stored_u_ticket = self.cloud_server_ep.holder_access_device(
             self.iot_device.this_device.device_pub_key_str
         )
         logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
 
-        # WHEN: Device [RTVEGTS]: DO's IoTD receive the accesspermission_u_ticket
+        # WHEN: Device: DO's IoTD receive the accesspermission_u_ticket
         # TODO: Concatenate CR-KE-PS
         # generated_r_ticket = self.iot_device.device_be_accessed()
 
