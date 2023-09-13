@@ -50,7 +50,7 @@ class TestTransferOwnershipDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer [RVEGTS]: DM's CS generate & send the management_u_ticket to DO's UA
+        # WHEN: Issuer [RTVEGTS]: DM's CS generate & send the management_u_ticket to DO's UA
         create_comm_connection(self.cloud_server_dm, self.user_agent_do)
         generated_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
@@ -63,26 +63,65 @@ class TestTransferOwnershipDevice:
         )
         logging.debug(f"Generated UTicket: {generated_u_ticket}")
 
-        # WHEN: Holder [RVEGTS]: DO's UA receive & store the management_u_ticket
+        # WHEN: Holder [RTVEGTS]: DO's UA receive & store the management_u_ticket
         received_u_ticket = self.user_agent_do.holder_receive_consent()
         logging.debug(f"Recveived UTicket: {received_u_ticket}")
 
-        # WHEN: Holder [RVEGTS]: DO's UA forward the management_u_ticket
+        # WHEN: Holder [RTVEGTS]: DO's UA forward the management_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
         stored_u_ticket = self.user_agent_do.holder_access_device(
             self.iot_device.this_device.device_pub_key_str
         )
-        logging.debug(f"Stored UTicket: {stored_u_ticket}")
+        logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
 
-        # WHEN: Device [RVEGTS]: DO's IoTD receive the management_u_ticket
-        forwarded_u_ticket = self.iot_device.device_be_accessed()
-        logging.debug(f"Forwarded UTicket: {forwarded_u_ticket}")
+        # WHEN: Device [RTVEGTS]: DO's IoTD receive the management_u_ticket
+        generated_r_ticket = self.iot_device.device_be_accessed()
+        logging.debug(f"Generated RTicket = {generated_r_ticket}")
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
         )
+
+    def test_apply_management_u_ticket_wrong_owner_failed_in_io_level(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # GIVEN: Initialized ATK's CS
+        self.cloud_server_atk = attacker_server()
+
+        # WHEN: DO's UA do not allow ATK's CS to apply_management_u_ticket() on DO's IoTD
+        current_test_when_and_then_log()
+        # WHEN: Issuer [RTVEGTS]: ATK's CS generate & send the management_u_ticket for herself
+        generated_request: dict = {
+            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+        }
+        generated_u_ticket = self.cloud_server_atk.issuer_issue_consent_to_herself(
+            generated_request
+        )
+        logging.debug(f"Generated UTicket: {generated_u_ticket}")
+
+        # WHEN: Holder [RTVEGTS]: ATK's CS forward the management_u_ticket
+        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        stored_u_ticket = self.cloud_server_atk.holder_access_device(
+            self.iot_device.this_device.device_pub_key_str
+        )
+        logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
+
+        # WHEN: Device [RTVEGTS]: DO's IoTD receive the management_u_ticket
+        generated_r_ticket = self.iot_device.device_be_accessed()
+        logging.debug(f"Generated RTicket = {generated_r_ticket}")
+
+        # THEN: Fail to transfer ownership (still DO's IoTD)
 
     def test_apply_management_u_ticket_with_storage_and_comm(self) -> None:
         current_test_given_log()
@@ -102,7 +141,7 @@ class TestTransferOwnershipDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer: [RVEGTS]
+        # WHEN: Issuer: [RTVEGTS]
         # WHEN: DM's CS generate & send the management_u_ticket for DO's UA
         create_comm_connection(self.cloud_server_dm, self.user_agent_do)
         generated_request: dict = {
@@ -115,26 +154,26 @@ class TestTransferOwnershipDevice:
             generated_request
         )
         logging.debug(f"Generated UTicket: {generated_u_ticket}")
-        self.cloud_server_dm._send_xxx_u_ticket(generated_u_ticket)
+        self.cloud_server_dm._send_xxx_message(generated_u_ticket)
 
-        # WHEN: Holder: [RVEGTS]
+        # WHEN: Holder: [RTVEGTS]
         # WHEN: DO's UA receive & store the management_u_ticket
-        received_u_ticket: str = self.user_agent_do._recv_xxx_u_ticket()
+        received_u_ticket: str = self.user_agent_do._recv_xxx_message()
         self.user_agent_do._store_recieved_xxx_u_ticket(received_u_ticket)
         logging.debug(f"Recveived UTicket: {received_u_ticket}")
 
-        # WHEN: Holder: [RVEGTS]
+        # WHEN: Holder: [RTVEGTS]
         # WHEN: DO's UA forward the management_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
         stored_u_ticket: str = self.user_agent_do.device_table[
             self.iot_device.this_device.device_pub_key_str
         ].device_u_ticket
         logging.debug(f"Stored UTicket: {stored_u_ticket}")
-        self.user_agent_do._send_xxx_u_ticket(stored_u_ticket)
+        self.user_agent_do._send_xxx_message(stored_u_ticket)
 
-        # WHEN: Device: [RVEGTS]
+        # WHEN: Device: [RTVEGTS]
         # WHEN: DO's IoTD receive the management_u_ticket
-        forwarded_u_ticket: str = self.iot_device._recv_xxx_u_ticket()
+        forwarded_u_ticket: str = self.iot_device._recv_xxx_message()
         self.user_agent_do._store_recieved_xxx_u_ticket(forwarded_u_ticket)
         logging.debug(f"Forwarded UTicket: {forwarded_u_ticket}")
         result = self.iot_device._verify_xxx_u_ticket(forwarded_u_ticket)
@@ -220,6 +259,10 @@ class TestTransferOwnershipDevice:
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure
+        assert (
+            result.failure().args[0]
+            == "-> FAILURE: VERIFY_ISSUER_SIGNATURE on MANAGEMENT UTICKET"
+        )
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str

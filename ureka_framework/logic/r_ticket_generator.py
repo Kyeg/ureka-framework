@@ -41,6 +41,10 @@ class RTicketGenerator:
         ######################################################
         # Signed RTicket
         ######################################################
+        # Generate Return Value
+        if new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            new_r_ticket.return_value = self.this_device.device_pub_key_str
+
         # Generate Signature
         if new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             new_r_ticket = self._add_device_signature_on_r_ticket(

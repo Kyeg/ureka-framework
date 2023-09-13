@@ -133,7 +133,7 @@ class TestArbitraryInput:
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": 123,
+            "audit_end": f"",
             "result": f"Success/Failure",
             "return_value": f"",
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
