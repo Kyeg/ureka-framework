@@ -116,15 +116,13 @@ def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
         )
     if this_device_obj.current_holder_pub_key == None:
         this_device_dict["current_holder_pub_key"] = None
-    else:  # pragma: no cover
-        # Never reach here: Because the current_holder_pub_key is not persistently stored
+    else:  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
         this_device_dict["current_holder_pub_key"] = key_to_str(
             this_device_obj.current_holder_pub_key, "ecc-public-key"
         )
     if this_device_obj.current_session_key_byte == b"":
         this_device_dict["current_session_key_byte"] = None
-    else:  # pragma: no cover
-        # Never reach here: Because the current_session_key_byte is not persistently stored
+    else:  # pragma: no cover -> Never reach here: Because the current_session_key_byte is not persistently stored
         this_device_dict["current_session_key_byte"] = byte_to_base64str(
             this_device_obj.current_session_key_byte
         )
@@ -153,8 +151,9 @@ def _dict_to_this_device(
         this_device_obj.owner_pub_key = str_to_key(
             this_device_dict["owner_pub_key"], "ecc-public-key"
         )
-    if this_device_dict["current_holder_pub_key"] != None:  # pragma: no cover
-        # Never reach here: Because the current_holder_pub_key is not persistently stored
+    if (
+        this_device_dict["current_holder_pub_key"] != None
+    ):  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
         this_device_obj.current_holder_pub_key = str_to_key(
             this_device_dict["current_holder_pub_key"], "ecc-public-key"
         )

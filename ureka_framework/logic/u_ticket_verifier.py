@@ -68,13 +68,13 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            # To-Do: Return UTicket - to get DEVICE_ID after initialization
             if u_ticket_in.device_id == "no_id":
                 logging.info(success_msg)
                 return Success(u_ticket_in)
             else:
                 logging.error(failure_msg)
                 return Failure(RuntimeError(failure_msg))
+        # TO-DO: CR-KE-PS (Shouldn't be here)
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET
@@ -123,21 +123,17 @@ class UTicketVerifier:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
-        # Verify HOLDER_SIGNATURE
+        # TO-DO: CR-KE-PS (Shouldn't be here)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
-            # To-Do: Return UTicket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
-            # To-Do: Need to check whether the CHALLENGE in the RESPONSE_UTICKET is correct
-
-            # Check the u_ticket holder is allowed by owner (in access permission u_ticket)
+            # TO-DO: Remember authorized holder & task scope (in access permission u_ticket)
             if self.this_device.current_holder_pub_key_str != u_ticket_in.holder_id:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG HOLDER_ID")
                 return Failure(RuntimeError(failure_msg))
-
-            # To-Do: Authenticate the u_ticket holder
+            # TO-DO: Authenticate the u_ticket holder
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.current_holder_pub_key
             ):
@@ -147,13 +143,10 @@ class UTicketVerifier:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG AUTHENTICATION")
                 return Failure(RuntimeError(failure_msg))
-
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            # To-Do: Return UTicket - to get DEVICE_ID after initialization
             logging.info(success_msg)
             return Success(u_ticket_in)
-        else:  # pragma: no cover
-            # Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 

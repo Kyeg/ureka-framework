@@ -50,7 +50,7 @@ class TestAccessDevice:
         # WHEN: Issuer: DO's UA generate & send the accesspermission_u_ticket to EP's CS
 
         # WHEN: Device: DO's IoTD receive the accesspermission_u_ticket
-        # TODO: Concatenate CR-KE-PS
+        # TO-DO: Concatenate CR-KE-PS
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD

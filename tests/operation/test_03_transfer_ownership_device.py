@@ -165,14 +165,12 @@ class TestTransferOwnershipDevice:
         generated_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(
             generated_request
         )
-        logging.debug(f"Generated UTicket: {generated_u_ticket}")
         self.cloud_server_dm._send_xxx_message(generated_u_ticket)
 
         # WHEN: Holder:
         # WHEN: DO's UA receive & store the management_u_ticket
-        received_u_ticket: str = self.user_agent_do._recv_xxx_message()
-        device_id = self.user_agent_do._store_recieved_xxx_u_ticket(received_u_ticket)
-        logging.debug(f"Recveived UTicket: {received_u_ticket}")
+        str = self.user_agent_do._recv_xxx_message()
+        device_id = self.user_agent_do._store_recieved_xxx_u_ticket()
 
         # WHEN: Holder:
         # WHEN: DO's UA forward the management_u_ticket
@@ -180,13 +178,12 @@ class TestTransferOwnershipDevice:
         stored_u_ticket: str = self.user_agent_do.device_table[
             device_id
         ].device_u_ticket
-        logging.debug(f"Stored & Forwarded UTicket: {stored_u_ticket}")
         self.user_agent_do._send_xxx_message(stored_u_ticket)
 
         # WHEN: Device:
         # WHEN: DO's IoTD receive the management_u_ticket
         recveived_u_ticket: str = self.iot_device._recv_xxx_message()
-        self.user_agent_do._store_recieved_xxx_u_ticket(recveived_u_ticket)
+        self.user_agent_do._store_recieved_xxx_u_ticket()
         result = self.iot_device._verify_xxx_u_ticket(recveived_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
