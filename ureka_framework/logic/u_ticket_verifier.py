@@ -15,9 +15,8 @@ from ureka_framework.data_model.this_person import ThisPerson
 
 
 class UTicketVerifier:
-    def __init__(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
+    def __init__(self, this_device: ThisDevice) -> None:
         self.this_device = this_device
-        self.this_person = this_person
 
     ######################################################
     # Message Verification Flow

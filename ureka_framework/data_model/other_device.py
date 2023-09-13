@@ -20,6 +20,7 @@ class OtherDevice:
 
     # URequest, UTicket, UReject, RTicket, etc.
     device_u_ticket: str = ""
+    device_r_ticket: str = ""
 
 
 ################################################################################

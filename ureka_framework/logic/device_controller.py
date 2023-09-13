@@ -72,9 +72,10 @@ class DeviceController:
 
     ######################################################
     # [IO-level]
-    # REQ: holder_issue_request()
-    # CST: issuer_respond_received_request() / issuer_issue_consent()
-    # APY: holder_access_device()
+    # REQ: holder_issue_request_to_issuer()
+    # CST: issuer_issue_consent_to_herself
+    # CST: issuer_issue_consent_to_holder() -> holder_receive_consent()
+    # APY: holder_access_device() -> device_be_accessed() -> holder_receive_r_ticket()
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
     ######################################################
@@ -92,29 +93,43 @@ class DeviceController:
             logging.error(failure_msg)
             return failure_msg
 
-    def issuer_issue_consent_to_holder(self, arbitrary_dict: dict) -> str:
+    def issuer_issue_consent_to_holder(
+        self, device_id: str, arbitrary_dict: dict
+    ) -> str:
         # [Func-level: RTVE'GTS']
-        generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
-        logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
-        self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
-        self._send_xxx_message(generated_u_ticket_json)
-        return generated_u_ticket_json
+        if device_id in self.device_table:
+            generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
+            logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
+            self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
+            self._send_xxx_message(generated_u_ticket_json)
+            return generated_u_ticket_json
+        else:
+            failure_msg = f"FAILURE: YOU DO NOT OWN {device_id}"
+            logging.error(failure_msg)
+            return failure_msg
 
     def holder_receive_consent(self) -> str:
         # [Func-level: 'RT'VEGTS]
         received_u_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received UTicket: {received_u_ticket_json}")
-        # Can optionally _verify_xxx_u_ticket
         self._store_recieved_xxx_u_ticket(received_u_ticket_json)
+        # [Func-level: RT'VEGTS']
+        # Can optionally _verify_xxx_u_ticket
+        # Can optionally _generate_xxx_r_ticket & _send_xxx_message
         return received_u_ticket_json
 
     def holder_access_device(self, device_id: str) -> str:
         # [Func-level: RTVEGT'S']
-        stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
-        logging.debug(f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
-        # Also can add command in u_ticket
-        self._send_xxx_message(stored_u_ticket_json)
-        return stored_u_ticket_json
+        if device_id in self.device_table:
+            stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
+            logging.debug(f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
+            # Also can add command in u_ticket
+            self._send_xxx_message(stored_u_ticket_json)
+            return stored_u_ticket_json
+        else:
+            failure_msg = f"FAILURE: YOU DO NOT OWN {device_id}"
+            logging.error(failure_msg)
+            return failure_msg
 
     def device_be_accessed(self) -> str:
         # [Func-level: 'RTVE'GTS]
@@ -151,12 +166,6 @@ class DeviceController:
 
     def holder_receive_r_ticket(self) -> str:
         # [Func-level: 'RTVE'GTS]
-        # TODO: Verify R-Ticket
-        # ToDo: _recv_xxx_message
-        # ToDo: _store_recieved_xxx_r_ticket
-        # ToDo: _verify_xxx_r_ticket
-        # ToDo: _execute_verify_xxx_r_ticket
-
         recieved_r_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received RTicket: {recieved_r_ticket_json}")
         device_id = self._store_recieved_xxx_r_ticket(recieved_r_ticket_json)
@@ -248,7 +257,7 @@ class DeviceController:
         self.device_table[recveived_r_ticket.device_id] = OtherDevice(
             device_id=recveived_r_ticket.device_id,
             device_name="device_id's name",
-            device_u_ticket=recveived_r_ticket_json,
+            device_r_ticket=recveived_r_ticket_json,
         )
 
         ######################################################
@@ -268,7 +277,7 @@ class DeviceController:
     ) -> Result[UTicket, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is verifying u_ticket...")
 
-        u_ticket_verifier = UTicketVerifier(self.this_device, self.this_person)
+        u_ticket_verifier = UTicketVerifier(self.this_device)
         verification_and_execution_result = flow(
             arbitrary_json,
             u_ticket_verifier.verify_json_schema,
@@ -636,5 +645,3 @@ class DeviceController:
             )
 
         return generated_u_ticket_json
-
-    # ToDo: _stored_generated_xxx_r_ticket

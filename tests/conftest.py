@@ -102,20 +102,31 @@ def device_manufacturer_server_and_her_device() -> (
     # GIVEN: Initialized DM's CS
     cloud_server_dm = device_manufacturer_server()
 
-    # GIVEN: Initialized DM's IoTD
+    # GIVEN: Uninitialized IoTD
     iot_device = DeviceController(
         device_type=u_ticket.IOT_DEVICE,
         device_name="iot_device",
     )
+
+    # WHEN: Issuer: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
+    create_comm_connection(cloud_server_dm, iot_device)
     id_for_initialization_u_ticket = "no_id"
-    test_request: dict = {
+    generated_request: dict = {
         "device_id": f"{id_for_initialization_u_ticket}",
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         "task_scope": f"",
     }
-    test_u_ticket: str = cloud_server_dm._generate_xxx_u_ticket(test_request)
-    iot_device._verify_xxx_u_ticket(test_u_ticket)
+    cloud_server_dm.issuer_issue_consent_to_herself(
+        device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
+    )
+    cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
+
+    # WHEN: Device: DO's IoTD receive the intialization_u_ticket
+    iot_device.device_be_accessed()
+
+    # WHEN: Holder: DM's CS receive the intialization_r_ticket
+    cloud_server_dm.holder_receive_r_ticket()
 
     return (cloud_server_dm, iot_device)
 
@@ -128,21 +139,33 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     ) = device_manufacturer_server_and_her_device()
 
     # GIVEN: Initialized DO's UA
-    user_agent_do = DeviceController(
-        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
-        device_name="user_agent_do",
-    )
-    user_agent_do._execute_one_time_intialize_agent_or_server()
+    user_agent_do = device_owner_agent()
 
-    # GIVEN: Initialized DO's IoTD
-    test_request: dict = {
-        "device_id": f"{iot_device.this_device.device_pub_key_str}",
+    # WHEN: Issuer: DM's CS generate & send the management_u_ticket to DO's UA
+    create_comm_connection(cloud_server_dm, user_agent_do)
+    owned_device_id = iot_device.this_device.device_pub_key_str
+    generated_request: dict = {
+        "device_id": f"{owned_device_id}",
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
         "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
     }
-    test_u_ticket: str = cloud_server_dm._generate_xxx_u_ticket(test_request)
-    iot_device._verify_xxx_u_ticket(test_u_ticket)
+    cloud_server_dm.issuer_issue_consent_to_holder(
+        device_id=owned_device_id, arbitrary_dict=generated_request
+    )
+
+    # WHEN: Holder: DO's UA receive & store the management_u_ticket
+    user_agent_do.holder_receive_consent()
+
+    # WHEN: Holder: DO's UA forward the management_u_ticket
+    create_comm_connection(user_agent_do, iot_device)
+    user_agent_do.holder_access_device(iot_device.this_device.device_pub_key_str)
+
+    # WHEN: Device: DO's IoTD receive the management_u_ticket
+    iot_device.device_be_accessed()
+
+    # WHEN: Holder: DO's UA receive the management_r_ticket
+    user_agent_do.holder_receive_r_ticket()
 
     return (user_agent_do, iot_device)
 

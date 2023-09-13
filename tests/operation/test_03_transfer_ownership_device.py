@@ -53,13 +53,16 @@ class TestTransferOwnershipDevice:
         current_test_when_and_then_log()
         # WHEN: Issuer: DM's CS generate & send the management_u_ticket to DO's UA
         create_comm_connection(self.cloud_server_dm, self.user_agent_do)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
         generated_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
         }
-        self.cloud_server_dm.issuer_issue_consent_to_holder(generated_request)
+        self.cloud_server_dm.issuer_issue_consent_to_holder(
+            device_id=owned_device_id, arbitrary_dict=generated_request
+        )
 
         # WHEN: Holder: DO's UA receive & store the management_u_ticket
         self.user_agent_do.holder_receive_consent()

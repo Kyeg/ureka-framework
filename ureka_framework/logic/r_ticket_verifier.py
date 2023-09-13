@@ -31,7 +31,7 @@ class RTicketVerifier:
             logging.error(f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
-    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
+    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
     def verify_protocol_version(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -49,7 +49,7 @@ class RTicketVerifier:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
+    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
     def verify_r_ticket_type(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -63,7 +63,7 @@ class RTicketVerifier:
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    # Although the U-Ticket Id (in audit_end) will be auditted, we still hope these field won't be maliciously replaced
+    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
     def verify_device_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
