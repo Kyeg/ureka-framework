@@ -1,6 +1,8 @@
+import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
+    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
@@ -9,7 +11,7 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
-import ureka_framework.data_model.ticket as ticket
+import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
@@ -28,11 +30,8 @@ class TestAccessDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Implemented but not tested yet")
-    def test_apply_access_permission_ticket_with_storage_and_comm(self) -> None:
-        current_test_given_log()
-
-    def test_apply_access_permission_ticket(self) -> None:
+    @pytest.mark.skip(reason="Concatenate the handshakes in Mutual Authentication")
+    def test_apply_access_permission_u_ticket_in_io_level(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -46,63 +45,96 @@ class TestAccessDevice:
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
-        # WHEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
+        # WHEN:
+        current_test_when_and_then_log()
+        # WHEN: Issuer: DO's UA generate & send the accesspermission_u_ticket to EP's CS
+
+        # WHEN: Device: DO's IoTD receive the accesspermission_u_ticket
+        # TO-DO: Concatenate CR-KE-PS
+
+        # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
+        # THEN: Still DO's IoTD
+        # THEN: EP's CS can open a session with DO's IoTD
+
+    def test_apply_access_permission_u_ticket(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+        assert self.iot_device.this_device.current_holder_pub_key_str == ""
+        assert self.iot_device.this_device.current_session_key_byte == b""
+
+        # GIVEN: Initialized EP's CS
+        self.cloud_server_ep = enterprise_provider_server()
+
+        # WHEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission Ticket (->)
+        #     - (->) Access Permission UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = serialization_util.dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
             {
-                ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
+                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
             }
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_ticket: str = self.user_agent_do.generate_xxx_ticket(test_request)
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        self.user_agent_do._stored_generated_xxx_u_ticket(test_u_ticket)
+        logging.debug(f"ACCESS_PERMISSION_UTICKET: {test_u_ticket}")
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
-        #     - (<-) Challenge Ticket (<-)
+        #     - (<-) Challenge UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_CHALLENGE_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
-        self.cloud_server_ep.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
+        logging.debug(f"CHALLENGE_UTICKET: {test_u_ticket}")
+        self.cloud_server_ep._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
-        #     - (->) Repsonse Ticket (->)
+        #     - (->) Repsonse UTicket (->)
         # -----------------------------------------------------
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_RESPONSE_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
+        self.cloud_server_ep._stored_generated_xxx_u_ticket(test_u_ticket)
+        logging.debug(f"RESPONSE_UTICKET: {test_u_ticket}")
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
-        #     - (<-) Key-exchange Ticket (<-)
+        #     - (<-) Key-exchange UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_KEY_EXCHANGE_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
-        result = self.cloud_server_ep.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
+        logging.debug(f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
+        result = self.cloud_server_ep._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         assert type(result) == Success
@@ -122,19 +154,19 @@ class TestAccessDevice:
         )
 
     @pytest.mark.skip(reason="Implemented but not tested yet")
-    def test_apply_access_permission_ticket_with_reboot(self) -> None:
+    def test_apply_access_permission_u_ticket_with_reboot(self) -> None:
         current_test_given_log()
         # GIVEN: Initialized DO's UA and DO's IoTD
         # GIVEN: Initialized EP's CS
-        # GIVEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
+        # GIVEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
         # GIVEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
 
         # WHEN: Reboot the DO's IoTD
 
         # THEN: Becuase the session between EP's CS and DO's IoTD is not persistently stored,
-        #       so EP's CS need to create a new session by re-issue the Ticket
+        #       so EP's CS need to create a new session by re-issue the UTicket
 
-    def test_apply_access_permission_ticket_wrong_owner_failed(self) -> None:
+    def test_apply_access_permission_u_ticket_wrong_owner_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -146,27 +178,27 @@ class TestAccessDevice:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: DO's UA do not allow ATK's CS to apply_access_permission_ticket() on DO's IoTD
+        # WHEN: DO's UA do not allow ATK's CS to apply_access_permission_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission Ticket (->)
+        #     - (->) Access Permission UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = serialization_util.dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
             {
-                ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
+                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
             }
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_ticket: str = self.cloud_server_atk.generate_xxx_ticket(test_request)
-        result = self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
         assert type(result) == Failure
@@ -178,7 +210,7 @@ class TestAccessDevice:
         # THEN: ATK's CS cannot open a session with DO's IoTD
         assert self.iot_device.this_device.current_session_key_byte == b""
 
-    def test_apply_access_permission_ticket_unauthorized_holder_failed(self) -> None:
+    def test_apply_access_permission_u_ticket_unauthorized_holder_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -193,52 +225,52 @@ class TestAccessDevice:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
+        # WHEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
         # WHEN: But the ATK's CS attempt to replace the holder in this session
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission Ticket (->)
+        #     - (->) Access Permission UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = serialization_util.dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
             {
-                ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
+                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
             }
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_ACCESS_PERMISSION_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_ticket: str = self.user_agent_do.generate_xxx_ticket(test_request)
-        self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
-        #     - (<-) Challenge Ticket (<-)
+        #     - (<-) Challenge UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_CHALLENGE_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.iot_device.generate_xxx_ticket(test_request)
-        self.cloud_server_atk.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        self.cloud_server_atk._verify_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
-        #     - (->) Repsonse Ticket (->)
+        #     - (->) Repsonse UTicket (->)
         # -----------------------------------------------------
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
-            "ticket_type": f"{ticket.TYPE_RESPONSE_TICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
             "task_scope": f"",
         }
-        test_ticket: str = self.cloud_server_ep.generate_xxx_ticket(test_request)
-        result = self.iot_device.verify_xxx_ticket(test_ticket)
+        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
+        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
         assert type(result) == Failure
@@ -251,7 +283,9 @@ class TestAccessDevice:
         assert self.iot_device.this_device.current_session_key_byte == b""
 
     @pytest.mark.skip(reason="Not implemented yet")
-    def test_apply_access_permission_ticket_unauthenticated_holder_failed(self) -> None:
-        # WHEN: DO's UA allow EP's CS to apply_access_permission_ticket() on DO's IoTD
-        # WHEN: But the ATK's CS pretend EP's CS and try to use this Access Permission Ticket
+    def test_apply_access_permission_u_ticket_unauthenticated_holder_failed(
+        self,
+    ) -> None:
+        # WHEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
+        # WHEN: But the ATK's CS pretend EP's CS and try to use this Access Permission UTicket
         current_test_when_and_then_log()

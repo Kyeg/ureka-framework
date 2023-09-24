@@ -19,10 +19,10 @@ from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
-from ureka_framework.data_model.ticket import (
-    Ticket,
-    jsonstr_to_ticket,
-    ticket_to_jsonstr,
+from ureka_framework.data_model.u_ticket import (
+    UTicket,
+    jsonstr_to_u_ticket,
+    u_ticket_to_jsonstr,
 )
 
 
@@ -39,7 +39,9 @@ class SimpleStorage:
         # File Path for Data Model
         self.path_this_device: Path = self.path_device_controller / "this_device.json"
         self.path_device_table: Path = self.path_device_controller / "device_table.json"
-        self.path_ticket_table: Path = self.path_device_controller / "ticket_table.json"
+        self.path_u_ticket_table: Path = (
+            self.path_device_controller / "u_ticket_table.json"
+        )
         self.path_this_person: Path = self.path_device_controller / "this_person.json"
 
     def _create_root_directory_for_each_device_controller(self) -> None:

@@ -19,7 +19,8 @@ class OtherDevice:
     # execution_state: str = ""
 
     # URequest, UTicket, UReject, RTicket, etc.
-    device_ticket: str = ""
+    device_u_ticket: str = ""
+    device_r_ticket: str = ""
 
 
 ################################################################################

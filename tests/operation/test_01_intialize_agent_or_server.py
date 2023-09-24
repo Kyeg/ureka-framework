@@ -10,7 +10,7 @@ from tests.conftest import (
 from ureka_framework.logic.device_controller import (
     DeviceController,
 )
-import ureka_framework.data_model.ticket as ticket
+import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -29,12 +29,16 @@ class TestIntializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_intialize_agent_or_server_in_io_level(self) -> None:
+        current_test_given_log()
+
     def test_intialize_agent_or_server(self) -> None:
         current_test_given_log()
 
         # GIVEN: Uninitialized CS
         self.cloud_server_dm = DeviceController(
-            device_type=ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
         )
         assert self.cloud_server_dm.this_device.is_initialized == False
@@ -46,7 +50,7 @@ class TestIntializeAgentOrServer:
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Uninitialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
         assert type(result) == Success
@@ -83,7 +87,7 @@ class TestIntializeAgentOrServer:
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Initialized CS
         current_test_when_and_then_log()
-        result = self.cloud_server_dm.execute_one_time_intialize_agent_or_server()
+        result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Failed to re-initialize DM's CS
         assert type(result) == Failure
@@ -97,13 +101,13 @@ class TestIntializeAgentOrServer:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=ticket.IOT_DEVICE,
+            device_type=u_ticket.IOT_DEVICE,
             device_name="iot_device",
         )
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on IoTD
         current_test_when_and_then_log()
-        result = self.iot_device.execute_one_time_intialize_agent_or_server()
+        result = self.iot_device._execute_one_time_intialize_agent_or_server()
 
         # THEN: Failed to initialize IoTD
         assert type(result) == Failure
