@@ -17,7 +17,6 @@ class RTicket(BaseModel):
     audit_end: str = ""
 
     result: str = ""
-    return_value: str = ""
 
     device_signature: str = ""
 

@@ -146,6 +146,7 @@ class DeviceController:
             # logging.debug(f"Failed result = {result.failure().args[0]}")
             result_message = f"{result.failure().args[0]}"
 
+        # TO-DO: No CR / CR-KE-PS
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         r_ticket_request: dict = {
             "r_ticket_type": f"{received_u_ticket.u_ticket_type}",
@@ -153,7 +154,6 @@ class DeviceController:
             "audit_start": f"{received_u_ticket.u_ticket_id}",
             "audit_end": f"",
             "result": f"{result_message}",
-            "return_value": f"",
         }
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
@@ -168,7 +168,7 @@ class DeviceController:
         # [Func-level: 'RTVE'GTS]
         recieved_r_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received RTicket: {recieved_r_ticket_json}")
-        device_id = self._store_recieved_xxx_r_ticket(recieved_r_ticket_json)
+        device_id = self._store_recieved_xxx_r_ticket()
 
         recieved_r_ticket = jsonstr_to_r_ticket(recieved_r_ticket_json)
         if device_id in self.device_table:
@@ -263,7 +263,7 @@ class DeviceController:
 
         return recveived_u_ticket.device_id
 
-    def _store_recieved_xxx_r_ticket(self, received_u_ticket_json: str) -> str:
+    def _store_recieved_xxx_r_ticket(self) -> str:
         ######################################################
         # Update Device Table (Role, State, etc.)
         # RAM: Add Device & UTicket in Device Table
@@ -337,7 +337,7 @@ class DeviceController:
             bind(r_ticket_verifier.verify_device_id),
             bind(r_ticket_verifier.verify_audit_start),
             bind(r_ticket_verifier.verify_audit_end),
-            bind(r_ticket_verifier.verify_return_value),
+            bind(r_ticket_verifier.verify_result),
             bind(r_ticket_verifier.verify_device_signature),
             bind(self._execute_verify_xxx_r_ticket),
         )

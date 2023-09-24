@@ -108,19 +108,12 @@ class RTicketVerifier:
         logging.info(success_msg)
         return Success(r_ticket_in)
 
-    def verify_return_value(
-        self, r_ticket_in: RTicket
-    ) -> Result[RTicket, RuntimeError]:
-        success_msg = f"-> SUCCESS: VERIFY_RETURN_VALUE"
-        failure_msg = f"-> FAILURE: VERIFY_RETURN_VALUE"
+    def verify_result(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_RESULT"
+        failure_msg = f"-> FAILURE: VERIFY_RESULT"
 
-        # TO-DO: for PS in CR-KE-PS
         logging.info(success_msg)
         return Success(r_ticket_in)
-
-    # ToDo: Completely verify R-Ticket
-    # verify_audit_end
-    # verify_result
 
     def verify_device_signature(
         self,

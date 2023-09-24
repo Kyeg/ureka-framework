@@ -168,7 +168,6 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
             test_request
@@ -205,7 +204,6 @@ class TestSerialization:
             "audit_start": f"",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         r_ticket_json: str = self.iot_device._generate_xxx_r_ticket(test_request)
         logging.warning(f"r_ticket_json = {r_ticket_json}")
@@ -405,7 +403,6 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
         logging.warning(f"r_ticket_json_1 = {r_ticket_json_1}")
@@ -422,7 +419,6 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)
         logging.warning(f"r_ticket_json_2 = {r_ticket_json_2}")

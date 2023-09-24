@@ -27,7 +27,7 @@ class RTicketGenerator:
         ######################################################
         # Unsigned RTicket
         ######################################################
-        # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, return_value, etc.)
+        # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, etc.)
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
             logging.info(success_msg)
@@ -41,12 +41,6 @@ class RTicketGenerator:
         ######################################################
         # Signed RTicket
         ######################################################
-        # Generate Return Value
-        # # No use for TYPE_INITIALIZATION_UTICKET:
-        # #   because r_ticket_device_id also = "newly-created device public key string"
-        # if new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-        #     new_r_ticket.return_value = self.this_device.device_pub_key_str
-
         # Generate Signature
         if new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             new_r_ticket = self._add_device_signature_on_r_ticket(

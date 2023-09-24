@@ -95,7 +95,6 @@ class TestArbitraryInput:
             "audit_start": f"u_ticket_id",
             "audit_end": 123,
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
             test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
@@ -137,7 +136,6 @@ class TestArbitraryInput:
             "audit_start": f"u_ticket_id",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
@@ -229,7 +227,6 @@ class TestArbitraryInput:
             "audit_start": f"u_ticket_id",
             "audit_end": f"",
             "result": f"Success/Failure",
-            "return_value": f"",
         }
         test_r_ticket: str = self.cloud_server_atk._generate_xxx_r_ticket(test_request)
         result = self.iot_device._verify_xxx_r_ticket(
