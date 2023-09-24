@@ -56,6 +56,7 @@ class TestAccessDevice:
         # THEN: Still DO's IoTD
         # THEN: EP's CS can open a session with DO's IoTD
 
+    @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_permission_u_ticket(self) -> None:
         current_test_given_log()
 
@@ -153,19 +154,7 @@ class TestAccessDevice:
             == self.cloud_server_ep.this_device.current_session_key_byte
         )
 
-    @pytest.mark.skip(reason="Implemented but not tested yet")
-    def test_apply_access_permission_u_ticket_with_reboot(self) -> None:
-        current_test_given_log()
-        # GIVEN: Initialized DO's UA and DO's IoTD
-        # GIVEN: Initialized EP's CS
-        # GIVEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
-        # GIVEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
-
-        # WHEN: Reboot the DO's IoTD
-
-        # THEN: Becuase the session between EP's CS and DO's IoTD is not persistently stored,
-        #       so EP's CS need to create a new session by re-issue the UTicket
-
+    @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_permission_u_ticket_wrong_owner_failed(self) -> None:
         current_test_given_log()
 
@@ -210,6 +199,7 @@ class TestAccessDevice:
         # THEN: ATK's CS cannot open a session with DO's IoTD
         assert self.iot_device.this_device.current_session_key_byte == b""
 
+    @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_permission_u_ticket_unauthorized_holder_failed(self) -> None:
         current_test_given_log()
 
@@ -282,10 +272,15 @@ class TestAccessDevice:
         # THEN: ATK's CS cannot open a session with DO's IoTD
         assert self.iot_device.this_device.current_session_key_byte == b""
 
-    @pytest.mark.skip(reason="Not implemented yet")
-    def test_apply_access_permission_u_ticket_unauthenticated_holder_failed(
-        self,
-    ) -> None:
-        # WHEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
-        # WHEN: But the ATK's CS pretend EP's CS and try to use this Access Permission UTicket
-        current_test_when_and_then_log()
+    @pytest.mark.skip(reason="Implemented but not tested yet")
+    def test_apply_access_permission_u_ticket_with_reboot(self) -> None:
+        current_test_given_log()
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        # GIVEN: Initialized EP's CS
+        # GIVEN: DO's UA allow EP's CS to apply_access_permission_u_ticket() on DO's IoTD
+        # GIVEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
+
+        # WHEN: Reboot the DO's IoTD
+
+        # THEN: Becuase the session between EP's CS and DO's IoTD is not persistently stored,
+        #       so EP's CS need to create a new session by re-issue the UTicket

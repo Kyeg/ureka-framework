@@ -74,15 +74,7 @@ class UTicketVerifier:
             else:
                 logging.error(failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        # TO-DO: CR-KE-PS (Shouldn't be here)
-        elif (
-            u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET
-        ):
-            # No need to verify DEVICE_ID
-            logging.info(success_msg)
-            return Success(u_ticket_in)
-        # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET, TYPE_RESPONSE_UTICKET
+        # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET
         else:
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 logging.info(success_msg)
@@ -123,29 +115,6 @@ class UTicketVerifier:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
-        # TO-DO: CR-KE-PS (Shouldn't be here)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
-            logging.info(success_msg)
-            return Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
-            # TO-DO: Remember authorized holder & task scope (in access permission u_ticket)
-            if self.this_device.current_holder_pub_key_str != u_ticket_in.holder_id:
-                logging.error(failure_msg)
-                logging.error("-> FAILURE: WRONG HOLDER_ID")
-                return Failure(RuntimeError(failure_msg))
-            # TO-DO: Authenticate the u_ticket holder
-            if self._verify_issuer_signature_on_u_ticket(
-                u_ticket_in, self.this_device.current_holder_pub_key
-            ):
-                logging.info(success_msg)
-                return Success(u_ticket_in)
-            else:
-                logging.error(failure_msg)
-                logging.error("-> FAILURE: WRONG AUTHENTICATION")
-                return Failure(RuntimeError(failure_msg))
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            logging.info(success_msg)
-            return Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))

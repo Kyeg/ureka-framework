@@ -183,48 +183,6 @@ class TestSerialization:
         # THEN: The result of serialization/deserialization should be the same
         assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == r_ticket_obj.r_ticket_type
 
-    @pytest.mark.skip(reason="Broken Test")
-    def test_r_ticket_verification(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DM's CS and DM's IoTD
-        (
-            self.cloud_server_dm,
-            self.iot_device,
-        ) = device_manufacturer_server_and_her_device()
-
-        # GIVEN: DM's CS known the Device Public Key
-        device_public_key_str: str = self.iot_device.this_device.device_pub_key_str
-
-        # WHEN: DM's IoTD generate R-Ticket
-        current_test_when_and_then_log()
-        test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "device_id": f"{device_public_key_str}",
-            "audit_start": f"",
-            "audit_end": f"",
-            "result": f"Success/Failure",
-        }
-        r_ticket_json: str = self.iot_device._generate_xxx_r_ticket(test_request)
-        logging.warning(f"r_ticket_json = {r_ticket_json}")
-
-        # WHEN: DM's CS verify R-Ticket by Device Public Key
-        result = self.cloud_server_dm._verify_xxx_r_ticket(
-            arbitrary_json=r_ticket_json,
-            device_public_key_str=device_public_key_str,
-        )
-
-        # WHEN: DM's CS verify R-Ticket by Device Public Key
-        wrong_pub_key = self.cloud_server_dm.this_device.device_pub_key_str
-        result2 = self.cloud_server_dm._verify_xxx_r_ticket(
-            arbitrary_json=r_ticket_json,
-            device_public_key_str=wrong_pub_key,
-        )
-
-        # THEN: DM's CS succeed to verify R-Ticket
-        assert type(result) == Success
-        assert type(result2) == Failure
-
     def test_json_serialization_failed(self) -> None:
         current_test_given_log()
 

@@ -15,7 +15,7 @@ from ureka_framework.logic.u_ticket_verifier import (
     UTicketVerifier,
 )
 from ureka_framework.data_model.this_device import ThisDevice
-from ureka_framework.data_model.other_device import OtherDevice, device_table_to_jsonstr
+from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.u_ticket import (
     UTicket,
@@ -72,10 +72,21 @@ class DeviceController:
 
     ######################################################
     # [IO-level]
-    # REQ: holder_issue_request_to_issuer()
-    # CST: issuer_issue_consent_to_herself
+    # CST: issuer_issue_consent_to_herself()
+    # REQ: issuer_receive_request() <- holder_issue_request_to_issuer()
     # CST: issuer_issue_consent_to_holder() -> holder_receive_consent()
-    # APY: holder_access_device() -> device_be_accessed() -> holder_receive_r_ticket()
+    # APY: holder_access_device() -> device_be_accessed()
+    #       holder_receive_r_ticket() <- device_send_r_ticket()
+    # CR-KE-PS:
+    #      holder_access_device() -> device_be_accessed()
+    #                     holder_recv_cr_ke_1() <- device_send_cr_ke_1()
+    #                     holder_send_cr_ke_2() -> device_recv_cr_ke_2()
+    #           device_recv_1st_data_r_ticket() <- device_send_1st_data_r_ticket()
+    #                     holder_send_command() -> device_recv_command()
+    #                        holder_recv_data() <- device_send_data()
+    #                                           ...
+    #       holder_receive_r_ticket() <- device_send_r_ticket()
+    #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
     ######################################################
@@ -357,30 +368,7 @@ class DeviceController:
             self._execute_ownership_transfer(u_ticket_in)
             result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
-            # Generate session_key (Device)
-            self._execute_update_current_holder_pub_key(
-                serialization_util.str_to_key(
-                    u_ticket_in.holder_id, key_type="ecc-public-key"
-                )
-            )
-            result = Success(u_ticket_in)
-        # TO-DO: CR-KE-PS (Shouldn't be here)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
-            result = Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
-            result = Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            # Generate session_key (Person)
-            self._execute_update_current_session_key_byte(
-                server_private_key_obj=self.this_person.person_priv_key,
-                salt_byte=serialization_util.base64str_backto_byte(
-                    u_ticket_in.task_scope
-                ),
-                info_byte=b"",
-                peer_public_key_obj=serialization_util.str_to_key(
-                    u_ticket_in.device_id, key_type="ecc-public-key"
-                ),
-            )
+            # To-Do: CR-KE-PS
             result = Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
@@ -652,21 +640,5 @@ class DeviceController:
         self.simple_storage.store_storage(
             self.this_device, self.device_table, self.this_person
         )
-
-        ######################################################
-        # TO-DO: CR-KE-PS (Shouldn't be here)
-        # RAM: Generate session_key (Device)
-        ######################################################
-        if generated_u_ticket.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            self._execute_update_current_session_key_byte(
-                server_private_key_obj=self.this_device.device_priv_key,
-                salt_byte=serialization_util.base64str_backto_byte(
-                    generated_u_ticket.task_scope
-                ),
-                info_byte=b"",
-                peer_public_key_obj=serialization_util.str_to_key(
-                    generated_u_ticket.holder_id, key_type="ecc-public-key"
-                ),
-            )
 
         return generated_u_ticket_json

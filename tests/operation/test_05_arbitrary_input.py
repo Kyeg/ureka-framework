@@ -6,7 +6,6 @@ from tests.conftest import (
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
-    device_manufacturer_server_and_her_device,
     device_owner_agent_and_her_device_and_attacker,
     enterprise_provider_server,
 )
@@ -42,24 +41,11 @@ class TestArbitraryInput:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Broken Test")
     def test_apply_wrong_json_schema_in_u_ticket(self) -> None:
         # WHEN: Not fit with json format '{"key": "value"}'
         current_test_when_and_then_log()
         test_u_ticket: str = "WRONG-JSON-SCHEMA"
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
-
-        # THEN: Raise the RuntimeError (Invalid JSON)
-        assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_json_schema_in_r_ticket(self) -> None:
-        # WHEN: Not fit with json format '{"key": "value"}'
-        current_test_when_and_then_log()
-        test_r_ticket: str = "WRONG-JSON-SCHEMA"
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
 
         # THEN: Raise the RuntimeError (Invalid JSON)
         assert type(result) == Failure
@@ -191,18 +177,6 @@ class TestArbitraryInput:
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
 
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_protocol_version_in_r_ticket(self) -> None:
-        # WHEN: Wrong r_ticket protocol version
-        current_test_when_and_then_log()
-        test_r_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
-
-        # THEN: Fail to audit R-Ticket
-        assert type(result) == Failure
-
     def test_apply_wrong_u_ticket_type(self) -> None:
         # WHEN: Wrong u_ticket type
         current_test_when_and_then_log()
@@ -216,24 +190,6 @@ class TestArbitraryInput:
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
-        assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_r_ticket_type(self) -> None:
-        # WHEN: Wrong r_ticket type
-        current_test_when_and_then_log()
-        test_request: dict = {
-            "r_ticket_type": f"WRONG-RTICKET-TYPE",
-            "audit_start": f"u_ticket_id",
-            "audit_end": f"",
-            "result": f"Success/Failure",
-        }
-        test_r_ticket: str = self.cloud_server_atk._generate_xxx_r_ticket(test_request)
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
-
-        # THEN: Fail to audit R-Ticket
         assert type(result) == Failure
 
     def test_apply_wrong_device_id(self) -> None:
@@ -250,8 +206,3 @@ class TestArbitraryInput:
 
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Not implemented yet")
-    def test_apply_no_signature(self) -> None:
-        # WHEN: ...
-        current_test_when_and_then_log()

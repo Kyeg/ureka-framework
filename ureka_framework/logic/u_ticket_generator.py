@@ -43,32 +43,8 @@ class UTicketGenerator:
         ######################################################
         # Signed UTicket
         ######################################################
-        # Generate Random Salt for Challenge-response or Key-exchange
-        if new_u_ticket.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
-            random_salt_byte = ecdh.generate_random_byte(32)
-            new_u_ticket.task_scope = serialization_util.byte_to_base64str(
-                random_salt_byte
-            )
-        elif new_u_ticket.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            random_salt_byte = ecdh.generate_random_byte(32)
-            new_u_ticket.task_scope = serialization_util.byte_to_base64str(
-                random_salt_byte
-            )
-
         # Generate Signature
-        if new_u_ticket.u_ticket_type == u_ticket.TYPE_CHALLENGE_UTICKET:
-            new_u_ticket = self._add_issuer_signature_on_u_ticket(
-                new_u_ticket, self.this_device.device_priv_key
-            )
-        elif new_u_ticket.u_ticket_type == u_ticket.TYPE_RESPONSE_UTICKET:
-            new_u_ticket = self._add_issuer_signature_on_u_ticket(
-                new_u_ticket, self.this_person.person_priv_key
-            )
-        elif new_u_ticket.u_ticket_type == u_ticket.TYPE_KEY_EXCHANGE_UTICKET:
-            new_u_ticket = self._add_issuer_signature_on_u_ticket(
-                new_u_ticket, self.this_device.device_priv_key
-            )
-        elif new_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET:
+        if new_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET:
             new_u_ticket = self._add_issuer_signature_on_u_ticket(
                 new_u_ticket, self.this_person.person_priv_key
             )
