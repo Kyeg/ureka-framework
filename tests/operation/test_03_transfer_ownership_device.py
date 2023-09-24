@@ -58,7 +58,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         self.cloud_server_dm.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
@@ -111,7 +111,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         self.cloud_server_atk.issuer_issue_consent_to_herself(
             device_id=target_device_id, arbitrary_dict=generated_request
@@ -153,7 +153,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
@@ -183,7 +183,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)

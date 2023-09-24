@@ -23,6 +23,7 @@ from ureka_framework.data_model.u_ticket import (
     u_ticket_to_jsonstr,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.data_model.r_ticket as r_ticket
 
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -72,6 +73,7 @@ class DeviceController:
 
     ######################################################
     # [IO-level]
+    #
     # CST: issuer_issue_consent_to_herself()
     # REQ: issuer_receive_request() <- holder_issue_request_to_issuer()
     # CST: issuer_issue_consent_to_holder() -> holder_receive_consent()
@@ -142,7 +144,7 @@ class DeviceController:
             logging.error(failure_msg)
             return failure_msg
 
-    def device_be_accessed(self) -> str:
+    def device_be_accessed(self) -> None:
         # [Func-level: 'RTVE'GTS]
         received_u_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received UTicket: {received_u_ticket_json}")
@@ -151,14 +153,36 @@ class DeviceController:
 
         # [Func-level: RTVE'GTS']
         if type(result) == Success:
-            # logging.debug(f"Successful result = {result.unwrap()}")
             result_message = f"Success"
         elif type(result) == Failure:
-            # logging.debug(f"Failed result = {result.failure().args[0]}")
             result_message = f"{result.failure().args[0]}"
 
-        # TO-DO: No CR / CR-KE-PS
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
+        # CR-KE-PS
+        if received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+            self._device_send_cr_ke_1(received_u_ticket, result_message)
+        # No CR
+        else:
+            self._device_send_r_ticket(received_u_ticket, result_message)
+
+    def _device_send_cr_ke_1(
+        self, received_u_ticket: UTicket, result_message: str
+    ) -> None:
+        r_ticket_request: dict = {
+            "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
+            "device_id": f"{received_u_ticket.device_id}",
+            "result": f"{result_message}",
+        }
+        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+        logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
+
+        # Can optionally _stored_generated_xxx_r_ticket
+
+        self._send_xxx_message(generated_r_ticket_json)
+
+    def _device_send_r_ticket(
+        self, received_u_ticket: UTicket, result_message: str
+    ) -> None:
         r_ticket_request: dict = {
             "r_ticket_type": f"{received_u_ticket.u_ticket_type}",
             "device_id": f"{self.this_device.device_pub_key_str}",
@@ -172,8 +196,6 @@ class DeviceController:
         # Can optionally _stored_generated_xxx_r_ticket
 
         self._send_xxx_message(generated_r_ticket_json)
-
-        return generated_r_ticket_json
 
     def holder_receive_r_ticket(self) -> str:
         # [Func-level: 'RTVE'GTS]
@@ -199,10 +221,8 @@ class DeviceController:
             )
 
             if type(result) == Success:
-                # logging.debug(f"Successful result = {result.unwrap()}")
                 result_message = f"Success (meaningful R-Ticket)"
             elif type(result) == Failure:  # pragma: no cover -> Weird R-Ticket
-                # logging.debug(f"Failed result = {result.failure().args[0]}")
                 result_message = f"{result.failure().args[0]}"
             logging.debug(f"result_message = {result_message}")
         else:  # pragma: no cover -> IO-level
@@ -368,7 +388,6 @@ class DeviceController:
             self._execute_ownership_transfer(u_ticket_in)
             result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
-            # To-Do: CR-KE-PS
             result = Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
@@ -506,10 +525,7 @@ class DeviceController:
         ######################################################
         # Update Device Owner
         ######################################################
-        if (
-            task_scope_dict[u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE]
-            == u_ticket.MANAGEMENT_OWNER
-        ):
+        if task_scope_dict[u_ticket.TASK_SCOPE_MANAGEMENT] == u_ticket.MANAGEMENT_OWNER:
             # RAM
             self.this_device.owner_pub_key = serialization_util.str_to_key(
                 new_u_ticket.holder_id, key_type="ecc-public-key"

@@ -30,7 +30,6 @@ class TestAccessDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Concatenate the handshakes in Mutual Authentication")
     def test_apply_access_permission_u_ticket_in_io_level(self) -> None:
         current_test_given_log()
 
@@ -47,10 +46,37 @@ class TestAccessDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer: DO's UA generate & send the accesspermission_u_ticket to EP's CS
 
-        # WHEN: Device: DO's IoTD receive the accesspermission_u_ticket
-        # TO-DO: Concatenate CR-KE-PS
+        # WHEN: Issuer: DO's UA generate & send the access_permission_u_ticket to EP's CS
+        create_comm_connection(self.user_agent_do, self.cloud_server_ep)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        resource_tree = serialization_util.dict_to_jsonstr(
+            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+        )
+        generated_task_scope = serialization_util.dict_to_jsonstr(
+            {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
+        )
+        generated_request: dict = {
+            "device_id": f"{owned_device_id}",
+            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_PERMISSION_UTICKET}",
+            "task_scope": f"{generated_task_scope}",
+        }
+        self.user_agent_do.issuer_issue_consent_to_holder(
+            device_id=owned_device_id, arbitrary_dict=generated_request
+        )
+
+        # WHEN: Holder: DO's UA receive & store the access_permission_u_ticket
+        self.cloud_server_ep.holder_receive_consent()
+
+        # WHEN: Holder: DO's UA forward the access_permission_u_ticket
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        self.cloud_server_ep.holder_access_device(
+            self.iot_device.this_device.device_pub_key_str
+        )
+
+        # WHEN: Device: DO's IoTD receive the access_permission_u_ticket
+        self.iot_device.device_be_accessed()
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD
@@ -80,9 +106,7 @@ class TestAccessDevice:
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
-            {
-                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
-            }
+            {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
@@ -176,9 +200,7 @@ class TestAccessDevice:
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
-            {
-                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
-            }
+            {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
@@ -225,9 +247,7 @@ class TestAccessDevice:
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
         task_scope = serialization_util.dict_to_jsonstr(
-            {
-                u_ticket.REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: permission_resource_tree
-            }
+            {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",

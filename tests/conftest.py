@@ -148,7 +148,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         "device_id": f"{owned_device_id}",
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
     }
     cloud_server_dm.issuer_issue_consent_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request

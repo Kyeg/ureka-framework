@@ -3,6 +3,7 @@ import logging
 from returns.result import Result, Success, Failure
 import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.data_model.u_ticket import UTicket
+import ureka_framework.data_model.r_ticket as r_ticket
 from ureka_framework.data_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
@@ -63,8 +64,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
 
-        # if r_ticket_in.r_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
-        if r_ticket_in.r_ticket_type == self.audit_start_ticket.u_ticket_type:
+        if r_ticket_in.r_ticket_type in r_ticket.LEGAL_RTICKET_TYPES:
+            logging.info(success_msg)
+            return Success(r_ticket_in)
+        elif r_ticket_in.r_ticket_type == self.audit_start_ticket.u_ticket_type:
             logging.info(success_msg)
             return Success(r_ticket_in)
         else:  # pragma: no cover -> Weird R-Ticket

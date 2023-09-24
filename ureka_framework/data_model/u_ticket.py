@@ -21,10 +21,10 @@ LEGAL_UTICKET_TYPES: {str} = {
 }
 
 ######################################################
-# Request Body Type
+# Task Scope
 ######################################################
-REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: str = "MANAGEMENT-TYPE"
-REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: str = "RESOURCE-TREE"
+TASK_SCOPE_MANAGEMENT: str = "TASK-SCOPE-MANAGEMENT"
+TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
 
 ######################################################
 # Device Type

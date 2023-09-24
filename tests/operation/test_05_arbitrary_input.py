@@ -60,7 +60,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": 123,
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
             test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
@@ -101,7 +101,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
             "undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
@@ -144,7 +144,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
         logging.debug(f"test_u_ticket = {test_u_ticket}")

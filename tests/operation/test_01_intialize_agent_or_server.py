@@ -53,6 +53,7 @@ class TestIntializeAgentOrServer:
         result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
+        # logging.debug(f"Successful result = {result.unwrap()}")
         assert type(result) == Success
         assert self.cloud_server_dm.this_device.is_initialized == True
         assert self.cloud_server_dm.this_device.device_priv_key_str != ""

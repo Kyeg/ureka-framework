@@ -2,6 +2,18 @@ import logging
 from pydantic import BaseModel, ConfigDict, ValidationError
 import ureka_framework.data_model.u_ticket as u_ticket
 
+######################################################
+# RTicket Type
+######################################################
+TYPE_CRKE1_RTICKET: str = "CR-KE-1"
+TYPE_CRKE2_RTICKET: str = "CR-KE-2"
+TYPE_CRKE3_RTICKET: str = "CR-KE-3"
+LEGAL_RTICKET_TYPES: {str} = {
+    TYPE_CRKE1_RTICKET,
+    TYPE_CRKE2_RTICKET,
+    TYPE_CRKE3_RTICKET,
+}
+
 
 ######################################################
 # Data Model
@@ -17,6 +29,16 @@ class RTicket(BaseModel):
     audit_end: str = ""
 
     result: str = ""
+
+    # CR-KE-PS
+    challenge_1: str = ""
+    challenge_2: str = ""
+    key_exchange_salt_1: str = ""
+    key_exchange_salt_2: str = ""
+    iv_1: str = ""
+    cipher_text_1: str = ""
+    iv_2: str = ""
+    cipher_text_2: str = ""
 
     device_signature: str = ""
 
