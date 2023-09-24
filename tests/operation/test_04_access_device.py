@@ -38,8 +38,8 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
-        assert self.iot_device.this_device.current_holder_pub_key_str == ""
-        assert self.iot_device.this_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_holder_pub_key_str == None
+        assert self.iot_device.this_device.current_session_key_byte == None
 
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -91,8 +91,8 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
-        assert self.iot_device.this_device.current_holder_pub_key_str == ""
-        assert self.iot_device.this_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_holder_pub_key_str == None
+        assert self.iot_device.this_device.current_session_key_byte == None
 
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -126,7 +126,6 @@ class TestAccessDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
@@ -140,7 +139,6 @@ class TestAccessDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
         self.cloud_server_ep._stored_generated_xxx_u_ticket(test_u_ticket)
@@ -154,7 +152,6 @@ class TestAccessDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
@@ -219,7 +216,7 @@ class TestAccessDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
-        assert self.iot_device.this_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_session_key_byte == None
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_permission_u_ticket_unauthorized_holder_failed(self) -> None:
@@ -265,7 +262,6 @@ class TestAccessDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         self.cloud_server_atk._verify_xxx_u_ticket(test_u_ticket)
@@ -277,7 +273,6 @@ class TestAccessDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
@@ -290,7 +285,7 @@ class TestAccessDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
-        assert self.iot_device.this_device.current_session_key_byte == b""
+        assert self.iot_device.this_device.current_session_key_byte == None
 
     @pytest.mark.skip(reason="Implemented but not tested yet")
     def test_apply_access_permission_u_ticket_with_reboot(self) -> None:

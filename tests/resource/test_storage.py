@@ -101,9 +101,7 @@ class TestStorage:
 
         test_request_1: dict = {
             "device_id": f"device_id_1",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -111,9 +109,7 @@ class TestStorage:
 
         test_request_2: dict = {
             "device_id": f"device_id_1",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2

@@ -10,17 +10,17 @@ from typing import Union, Dict
 @dataclass
 class OtherDevice:
     # Use device public key as Primary key in Table
-    device_id: str = ""
+    device_id: None | str = None
 
-    device_name: str = ""
-    # role: str = ""
+    device_name: None | str = None
+    # role: None | str = None
 
-    # consent_state: str = ""
-    # execution_state: str = ""
+    # consent_state: None | str = None
+    # execution_state: None | str = None
 
     # URequest, UTicket, UReject, RTicket, etc.
-    device_u_ticket: str = ""
-    device_r_ticket: str = ""
+    device_u_ticket: None | str = None
+    device_r_ticket: None | str = None
 
 
 ################################################################################

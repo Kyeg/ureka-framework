@@ -132,7 +132,7 @@ class UTicketVerifier:
 
         # Verify Signature on Signed UTicket, but Prevent side effect on Signed UTicket
         unsigned_u_ticket = copy.deepcopy(signed_u_ticket)
-        unsigned_u_ticket.issuer_signature = ""
+        unsigned_u_ticket.issuer_signature = None
 
         unsigned_u_ticket_str = u_ticket_to_jsonstr(unsigned_u_ticket)
         unsigned_u_ticket_byte = serialization_util.str_to_byte(unsigned_u_ticket_str)

@@ -35,7 +35,7 @@ import logging
 
 
 class DeviceController:
-    def __init__(self, device_type: str = "", device_name: str = "") -> None:
+    def __init__(self, device_type: str = None, device_name: str = None) -> None:
         # Data Model
         self.this_device: ThisDevice = ThisDevice()
         self.device_table: dict[str, OtherDevice] = {}
@@ -187,7 +187,6 @@ class DeviceController:
             "r_ticket_type": f"{received_u_ticket.u_ticket_type}",
             "device_id": f"{self.this_device.device_pub_key_str}",
             "audit_start": f"{received_u_ticket.u_ticket_id}",
-            "audit_end": f"",
             "result": f"{result_message}",
         }
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)

@@ -120,7 +120,6 @@ class TestArbitraryInput:
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
         }
@@ -181,10 +180,7 @@ class TestArbitraryInput:
         # WHEN: Wrong u_ticket type
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"",
-            "holder_id": f"",
             "u_ticket_type": f"WRONG-UTICKET-TYPE",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
@@ -197,9 +193,7 @@ class TestArbitraryInput:
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"WRONG-DEVICE-ID",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)

@@ -158,7 +158,7 @@ class RTicketVerifier:
 
         # Verify Signature on Signed RTicket, but Prevent side effect on Signed RTicket
         unsigned_r_ticket = copy.deepcopy(signed_r_ticket)
-        unsigned_r_ticket.device_signature = ""
+        unsigned_r_ticket.device_signature = None
 
         unsigned_r_ticket_str = r_ticket_to_jsonstr(unsigned_r_ticket)
         unsigned_r_ticket_byte = serialization_util.str_to_byte(unsigned_r_ticket_str)

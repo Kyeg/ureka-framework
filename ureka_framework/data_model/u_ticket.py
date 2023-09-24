@@ -43,16 +43,16 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 # Data Model
 ######################################################
 class UTicket(BaseModel):
-    protocol_verision: str = PROTOCOL_VERSION
-    u_ticket_id: str = ""
+    protocol_verision: None | str = PROTOCOL_VERSION
+    u_ticket_id: None | str = None
 
-    u_ticket_type: str = ""
+    u_ticket_type: None | str = None
 
-    device_id: str = ""
-    holder_id: str = ""
-    task_scope: str = ""
+    device_id: None | str = None
+    holder_id: None | str = None
+    task_scope: None | str = None
 
-    issuer_signature: str = ""
+    issuer_signature: None | str = None
 
     def __eq__(self, other):
         if isinstance(other, UTicket):
@@ -76,7 +76,7 @@ class UTicket(BaseModel):
 ################################################################################
 def u_ticket_to_jsonstr(u_ticket_obj: UTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    u_ticket_json = u_ticket_obj.model_dump_json(indent=4)
+    u_ticket_json = u_ticket_obj.model_dump_json(indent=4, exclude_none=True)
     return u_ticket_json
 
 

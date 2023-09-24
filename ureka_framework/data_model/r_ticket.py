@@ -19,28 +19,28 @@ LEGAL_RTICKET_TYPES: {str} = {
 # Data Model
 ######################################################
 class RTicket(BaseModel):
-    protocol_verision: str = u_ticket.PROTOCOL_VERSION
-    r_ticket_id: str = ""
+    protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
+    r_ticket_id: None | str = None
 
-    r_ticket_type: str = ""
+    r_ticket_type: None | str = None
 
-    device_id: str = ""
-    audit_start: str = ""
-    audit_end: str = ""
+    device_id: None | str = None
+    audit_start: None | str = None
+    audit_end: None | str = None
 
-    result: str = ""
+    result: None | str = None
 
     # CR-KE-PS
-    challenge_1: str = ""
-    challenge_2: str = ""
-    key_exchange_salt_1: str = ""
-    key_exchange_salt_2: str = ""
-    iv_1: str = ""
-    cipher_text_1: str = ""
-    iv_2: str = ""
-    cipher_text_2: str = ""
+    challenge_1: None | str = None
+    challenge_2: None | str = None
+    key_exchange_salt_1: None | str = None
+    key_exchange_salt_2: None | str = None
+    iv_1: None | str = None
+    cipher_text_1: None | str = None
+    iv_2: None | str = None
+    cipher_text_2: None | str = None
 
-    device_signature: str = ""
+    device_signature: None | str = None
 
     def __eq__(self, other):
         if isinstance(other, RTicket):
@@ -64,7 +64,7 @@ class RTicket(BaseModel):
 ################################################################################
 def r_ticket_to_jsonstr(r_ticket_obj: RTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    r_ticket_json = r_ticket_obj.model_dump_json(indent=4)
+    r_ticket_json = r_ticket_obj.model_dump_json(indent=4, exclude_none=True)
     return r_ticket_json
 
 

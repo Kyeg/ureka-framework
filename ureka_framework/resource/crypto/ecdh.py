@@ -115,7 +115,7 @@ def cbc_decrypt(ciphertext: bytes, key: bytes, iv: bytes) -> bytes:
 #       <Ref> https://cryptography.io/en/3.4.2/hazmat/primitives/symmetric-encryption.html#cryptography.hazmat.primitives.ciphers.modes.GCM
 #   Can add Associated Plaintext (authenticated but not encrypted) in message:
 #       In ureka protocol, we assume all command & data are authenticated & encrypted,
-#           so associated_plaintext can be set as b"".
+#           so associated_plaintext can be set as None.
 ######################################################
 def gcm_encrypt(
     plaintext: bytes, associated_plaintext: bytes, key: bytes

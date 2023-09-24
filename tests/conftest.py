@@ -115,7 +115,6 @@ def device_manufacturer_server_and_her_device() -> (
         "device_id": f"{id_for_initialization_u_ticket}",
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-        "task_scope": f"",
     }
     cloud_server_dm.issuer_issue_consent_to_herself(
         device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request

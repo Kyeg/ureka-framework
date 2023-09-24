@@ -136,9 +136,7 @@ class TestSerialization:
 
         test_request: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request
@@ -166,7 +164,6 @@ class TestSerialization:
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
@@ -308,9 +305,7 @@ class TestSerialization:
 
         test_request_1: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -326,9 +321,7 @@ class TestSerialization:
 
         test_request_2: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
@@ -359,7 +352,6 @@ class TestSerialization:
         test_request_1: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
@@ -375,7 +367,6 @@ class TestSerialization:
         test_request_2: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)

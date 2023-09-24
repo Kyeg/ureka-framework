@@ -10,4 +10,4 @@ if TYPE_CHECKING:  # pragma: no cover
 class FakeCommChannel:
     # "Mutable default values" are problematic in Python because they are shared among all instances of the class.
     ends: list["DeviceController"] = field(default_factory=list)
-    message_in_channel: str = ""
+    message_in_channel: str = None
