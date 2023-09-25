@@ -77,7 +77,7 @@ class TestAccessDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: EP's CS receive the access_permission_r_tickets (i.e., CR-KE-PS_r_tickets)
-        # self.cloud_server_ep._holder_receive_cr_ke_1()
+        self.cloud_server_ep._holder_receive_cr_ke_1()
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD

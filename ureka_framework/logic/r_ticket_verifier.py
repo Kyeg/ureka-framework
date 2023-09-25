@@ -125,7 +125,7 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
 
-        # Verify DEVICE_SIGNATURE
+        # Verify DEVICE_SIGNATURE through device_id
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET

@@ -109,7 +109,7 @@ class DeviceController:
         # [FUNC-level: RTVE'GT'S]
         if device_id in self.device_table or device_id == "no_id":
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
-            logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
+            # logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
             self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
             return generated_u_ticket_json
         else:  # pragma: no cover -> IO-level
@@ -123,7 +123,7 @@ class DeviceController:
         # [FUNC-level: RTVE'GTS']
         if device_id in self.device_table:
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
-            logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
+            # logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
             self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
             self._send_xxx_message(generated_u_ticket_json)
             return generated_u_ticket_json
@@ -173,24 +173,6 @@ class DeviceController:
         else:
             self._device_send_r_ticket(received_u_ticket, result_message)
 
-    def _device_send_cr_ke_1(
-        self, received_u_ticket: UTicket, result_message: str
-    ) -> None:
-        # Generate CR-KE RTicket
-        r_ticket_request: dict = {
-            "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
-            "device_id": f"{received_u_ticket.device_id}",
-            "result": f"{result_message}",
-            "challenge_1": f"{self.current_session.challenge_1}",
-            "key_exchange_salt_1": f"{self.current_session.key_exchange_salt_1}",
-        }
-        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
-        logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
-
-        # Can optionally _stored_generated_xxx_r_ticket
-
-        self._send_xxx_message(generated_r_ticket_json)
-
     def _device_send_r_ticket(
         self, received_u_ticket: UTicket, result_message: str
     ) -> None:
@@ -201,13 +183,13 @@ class DeviceController:
             "result": f"{result_message}",
         }
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
-        logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
+        # logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
 
         # Can optionally _stored_generated_xxx_r_ticket
 
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_receive_r_ticket(self) -> str:
+    def _holder_receive_r_ticket(self) -> None:
         # [FUNC-level: 'RT'VEGTS]
         recieved_r_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received RTicket: {recieved_r_ticket_json}")
@@ -240,9 +222,28 @@ class DeviceController:
                 f"FAILURE: YOU DO NOT HAVE CORRESPONDING UTICKET FOR THIS DEVICE"
             )
             logging.error(failure_msg)
-            return failure_msg
 
-        return recieved_r_ticket_json
+    def _device_send_cr_ke_1(
+        self, received_u_ticket: UTicket, result_message: str
+    ) -> None:
+        # Generate CR-KE RTicket
+        r_ticket_request: dict = {
+            "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
+            "device_id": f"{received_u_ticket.device_id}",
+            "audit_start": f"{received_u_ticket.u_ticket_id}",
+            "result": f"{result_message}",
+            "challenge_1": f"{self.current_session.challenge_1}",
+            "key_exchange_salt_1": f"{self.current_session.key_exchange_salt_1}",
+        }
+        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+        # logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
+
+        # Can optionally _stored_generated_xxx_r_ticket
+
+        self._send_xxx_message(generated_r_ticket_json)
+
+    def _holder_receive_cr_ke_1(self) -> None:
+        self._holder_receive_r_ticket()
 
     ######################################################
     # [FUNC-level: 'R'TVEGT"S"] Message Communication

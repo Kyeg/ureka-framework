@@ -16,17 +16,23 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Data Model
 ######################################################
 class CurrentSession(BaseModel):
-    # CR-KE-PS
+    # Access Permission UT
+    # current_u_ticket_id: None | str = None
+    # current_device_id: None | str = None
+    # current_holder_id: None | str = None
+    # current_task_scope: None | str = None
+
+    # CR-KE
     challenge_1: None | str = None
     challenge_2: None | str = None
     key_exchange_salt_1: None | str = None
     key_exchange_salt_2: None | str = None
+
+    # PS
     iv_1: None | str = None
     cipher_text_1: None | str = None
     iv_2: None | str = None
     cipher_text_2: None | str = None
-
-    # current_holder_pub_key: None | ec.EllipticCurvePublicKey = None
     # current_session_key_byte: None | bytes = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
