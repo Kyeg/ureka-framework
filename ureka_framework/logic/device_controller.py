@@ -17,6 +17,11 @@ from ureka_framework.logic.u_ticket_verifier import (
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.this_person import ThisPerson
+from ureka_framework.data_model.current_session import (
+    CurrentSession,
+    jsonstr_to_current_session,
+    current_session_to_jsonstr,
+)
 from ureka_framework.data_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
@@ -41,6 +46,7 @@ class DeviceController:
         self.device_table: dict[str, OtherDevice] = {}
         # Data Model (User Agent or Cloud Server only)
         self.this_person: ThisPerson = ThisPerson()
+        self.current_session: CurrentSession = CurrentSession()
 
         # Set Storage
         self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
@@ -52,6 +58,7 @@ class DeviceController:
             self.this_device,
             self.device_table,
             self.this_person,
+            self.current_session,
         ) = self.simple_storage.load_storage()
 
         # Set Device Type (must after loading storage)
@@ -149,7 +156,7 @@ class DeviceController:
         received_u_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received UTicket: {received_u_ticket_json}")
         # Can optionally _store_recieved_xxx_u_ticket
-        result = self._verify_xxx_u_ticket(received_u_ticket_json)
+        result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
 
         # [Func-level: RTVE'GTS']
         if type(result) == Success:
@@ -168,10 +175,13 @@ class DeviceController:
     def _device_send_cr_ke_1(
         self, received_u_ticket: UTicket, result_message: str
     ) -> None:
+        # Generate CR-KE RTicket
         r_ticket_request: dict = {
             "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
             "device_id": f"{received_u_ticket.device_id}",
             "result": f"{result_message}",
+            "challenge_1": f"{self.current_session.challenge_1}",
+            "key_exchange_salt_1": f"{self.current_session.key_exchange_salt_1}",
         }
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         logging.debug(f"Generated RTicket: {generated_r_ticket_json}")
@@ -197,11 +207,12 @@ class DeviceController:
         self._send_xxx_message(generated_r_ticket_json)
 
     def holder_receive_r_ticket(self) -> str:
-        # [Func-level: 'RTVE'GTS]
+        # [Func-level: 'RT'VEGTS]
         recieved_r_ticket_json: str = self._recv_xxx_message()
         logging.debug(f"Received RTicket: {recieved_r_ticket_json}")
         device_id = self._store_recieved_xxx_r_ticket()
 
+        # [Func-level: RT'VE'GTS]
         recieved_r_ticket = jsonstr_to_r_ticket(recieved_r_ticket_json)
         if device_id in self.device_table:
             # Query Corresponding UTicket(s)
@@ -213,7 +224,7 @@ class DeviceController:
                 self.device_table[device_id].device_u_ticket
             )
 
-            result = self._verify_xxx_r_ticket(
+            result = self._verify_and_execute_xxx_r_ticket(
                 arbitrary_json=recieved_r_ticket_json,
                 audit_start_ticket=stored_u_ticket,
                 audit_end_ticket="",
@@ -288,7 +299,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return recveived_u_ticket.device_id
@@ -322,7 +333,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return recveived_r_ticket.device_id
@@ -330,7 +341,7 @@ class DeviceController:
     ######################################################
     # [Func-level: RT'VE'GTS] Message Verification
     ######################################################
-    def _verify_xxx_u_ticket(
+    def _verify_and_execute_xxx_u_ticket(
         self, arbitrary_json: str
     ) -> Result[UTicket, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is verifying u_ticket...")
@@ -343,11 +354,11 @@ class DeviceController:
             bind(u_ticket_verifier.verify_u_ticket_type),
             bind(u_ticket_verifier.verify_device_id),
             bind(u_ticket_verifier.verify_issuer_signature),
-            bind(self._execute_verify_xxx_u_ticket),
+            bind(self._execute_xxx_u_ticket),
         )
         return verification_and_execution_result
 
-    def _verify_xxx_r_ticket(
+    def _verify_and_execute_xxx_r_ticket(
         self,
         arbitrary_json: str,
         audit_start_ticket: UTicket,
@@ -369,14 +380,14 @@ class DeviceController:
             bind(r_ticket_verifier.verify_audit_end),
             bind(r_ticket_verifier.verify_result),
             bind(r_ticket_verifier.verify_device_signature),
-            bind(self._execute_verify_xxx_r_ticket),
+            bind(self._execute_xxx_r_ticket),
         )
         return verification_and_execution_result
 
     ######################################################
     # [Func-level: RT'VE'GTS] Message Execution (after Verification)
     ######################################################
-    def _execute_verify_xxx_u_ticket(
+    def _execute_xxx_u_ticket(
         self, u_ticket_in: UTicket
     ) -> Result[UTicket, RuntimeError]:
         failure_msg = f"-> FAILURE: WIRED UTICKET TYPE {u_ticket_in.u_ticket_type}"
@@ -387,6 +398,8 @@ class DeviceController:
             self._execute_ownership_transfer(u_ticket_in)
             result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+            # TO-DO
+            self._execute_update_current_session()
             result = Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             logging.error(failure_msg)
@@ -410,7 +423,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return Success(None)
@@ -461,7 +474,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return Success(None)
@@ -506,7 +519,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return Success(u_ticket_in)
@@ -534,59 +547,35 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
-    def _execute_update_current_holder_pub_key(
-        self,
-        new_current_holder_pub_key: ec.EllipticCurvePublicKey,
-    ) -> None:
-        logging.info(
-            f"+ {self.this_device.device_name} is updating current holder pub key..."
-        )
+    # TO-DO
+    def _execute_update_current_session(self) -> None:
+        logging.info(f"+ {self.this_device.device_name} is updating current session...")
 
         ######################################################
         # Update Session
         ######################################################
         # RAM
-        self.this_device.current_holder_pub_key = new_current_holder_pub_key
-
-        ######################################################
-        # Storage (RAM Only)
-        ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
-
-    def _execute_update_current_session_key_byte(
-        self,
-        server_private_key_obj: ec.EllipticCurvePrivateKey,
-        salt_byte: bytes,
-        info_byte: bytes,
-        peer_public_key_obj: ec.EllipticCurvePublicKey,
-    ) -> None:
-        logging.info(
-            f"+ {self.this_device.device_name} is updating current session key byte..."
+        self.current_session.challenge_1 = serialization_util.byte_to_base64str(
+            ecdh.generate_random_byte(32)
         )
-
-        ######################################################
-        # Update Session
-        ######################################################
-        # RAM
-        self.this_device.current_session_key_byte = ecdh.generate_ecdh_key(
-            server_private_key=server_private_key_obj,
-            salt=salt_byte,
-            info=info_byte,
-            peer_public_key=peer_public_key_obj,
+        self.current_session.key_exchange_salt_1 = serialization_util.byte_to_base64str(
+            ecdh.generate_random_byte(32)
         )
         logging.debug(
-            f"current_session_key_byte in {self.this_device.device_name}: {str(self.this_device.current_session_key_byte)}"
+            f"current_session_json = {current_session_to_jsonstr(self.current_session)}"
         )
 
         ######################################################
-        # Storage (RAM Only)
+        # Storage (Persistent vs. RAM Only)
         ######################################################
-        # self.simple_storage.store_storage(self.this_device, self.device_table, self.this_person)
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person, self.current_session
+        )
 
-    def _execute_verify_xxx_r_ticket(
+    def _execute_xxx_r_ticket(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
         # if r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
@@ -653,7 +642,7 @@ class DeviceController:
         # Storage
         ######################################################
         self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person
+            self.this_device, self.device_table, self.this_person, self.current_session
         )
 
         return generated_u_ticket_json

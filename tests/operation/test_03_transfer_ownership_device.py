@@ -156,7 +156,7 @@ class TestTransferOwnershipDevice:
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
@@ -186,7 +186,7 @@ class TestTransferOwnershipDevice:
             "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure

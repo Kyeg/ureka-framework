@@ -19,10 +19,10 @@ from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
-from ureka_framework.data_model.u_ticket import (
-    UTicket,
-    jsonstr_to_u_ticket,
-    u_ticket_to_jsonstr,
+from ureka_framework.data_model.current_session import (
+    CurrentSession,
+    jsonstr_to_current_session,
+    current_session_to_jsonstr,
 )
 
 
@@ -43,6 +43,9 @@ class SimpleStorage:
             self.path_device_controller / "u_ticket_table.json"
         )
         self.path_this_person: Path = self.path_device_controller / "this_person.json"
+        self.path_current_session: Path = (
+            self.path_device_controller / "current_session.json"
+        )
 
     def _create_root_directory_for_each_device_controller(self) -> None:
         # Create a new directory if it doesn't exist
@@ -59,6 +62,7 @@ class SimpleStorage:
         this_device: ThisDevice,
         device_table: dict[str, OtherDevice],
         this_person: ThisPerson,
+        current_session: CurrentSession,
     ) -> None:
         with self.path_this_device.open("w") as file:
             file.write(this_device_to_jsonstr(this_device))
@@ -69,13 +73,19 @@ class SimpleStorage:
         with self.path_this_person.open("w") as file:
             file.write(this_person_to_jsonstr(this_person))
 
+        with self.path_current_session.open("w") as file:
+            file.write(current_session_to_jsonstr(current_session))
+
     # The data access can be further optimized by more fine-grained interface
     # so that we can access each variable rather than access the whole object (faster, but more code)
-    def load_storage(self) -> Tuple[ThisDevice, dict[str, OtherDevice], ThisPerson]:
+    def load_storage(
+        self,
+    ) -> Tuple[ThisDevice, dict[str, OtherDevice], ThisPerson, CurrentSession]:
         # Before execute_one_time_set_time_device_type_and_name: Intialized Object with default value
         this_device: ThisDevice = ThisDevice()
         device_table: dict[str, OtherDevice] = {}
         this_person: ThisPerson = ThisPerson()
+        current_session: CurrentSession = CurrentSession()
 
         # After execute_one_time_set_time_device_type_and_name: the default value will be overwritten
         if Path(self.path_this_device).exists():
@@ -90,7 +100,11 @@ class SimpleStorage:
             with self.path_this_person.open("r") as file:
                 this_person = jsonstr_to_this_person(file.read())
 
-        return (this_device, device_table, this_person)
+        if Path(self.path_current_session).exists():
+            with self.path_current_session.open("r") as file:
+                current_session = jsonstr_to_current_session(file.read())
+
+        return (this_device, device_table, this_person, current_session)
 
     # Teardown - Development Only Function
     @classmethod

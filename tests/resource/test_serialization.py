@@ -31,6 +31,11 @@ from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
+from ureka_framework.data_model.current_session import (
+    CurrentSession,
+    jsonstr_to_current_session,
+    current_session_to_jsonstr,
+)
 from ureka_framework.resource.crypto import ecdh
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
@@ -202,6 +207,8 @@ class TestSerialization:
             other_device: str = jsonstr_to_device_table(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
             this_person: str = jsonstr_to_this_person(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_current_session_error_info:
+            current_session: str = jsonstr_to_current_session(wrong_json_schema)
 
         # THEN: Failed to serialize/deserialize an invalid json
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
@@ -216,6 +223,10 @@ class TestSerialization:
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
+        assert (
+            str(jsonstr_to_current_session_error_info.value)
+            == "NOT VALID JSON or VALID SCHEMA"
+        )
 
     def test_byte_serialization_failed(self) -> None:
         current_test_given_log()
