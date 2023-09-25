@@ -129,7 +129,7 @@ class RTicketVerifier:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
         ):
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,

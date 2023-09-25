@@ -69,7 +69,7 @@ class TestIntializeDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm.holder_receive_r_ticket()
+        self.cloud_server_dm._holder_receive_r_ticket()
 
         # THEN: Succeed to initialize DM's IoTD
         assert self.iot_device.this_device.is_initialized == True
@@ -112,7 +112,7 @@ class TestIntializeDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm.holder_receive_r_ticket()
+        self.cloud_server_dm._holder_receive_r_ticket()
 
         # THEN: Failed to re-initialize DM's IoTD
 

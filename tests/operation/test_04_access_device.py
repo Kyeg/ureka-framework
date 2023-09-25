@@ -64,10 +64,10 @@ class TestAccessDevice:
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: DO's UA receive & store the access_permission_u_ticket
+        # WHEN: Holder: EP's CS receive & store the access_permission_u_ticket
         self.cloud_server_ep.holder_receive_consent()
 
-        # WHEN: Holder: DO's UA forward the access_permission_u_ticket
+        # WHEN: Holder: EP's CS forward the access_permission_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         self.cloud_server_ep.holder_access_device(
             self.iot_device.this_device.device_pub_key_str
@@ -75,6 +75,9 @@ class TestAccessDevice:
 
         # WHEN: Device: DO's IoTD receive the access_permission_u_ticket
         self.iot_device.device_be_accessed()
+
+        # WHEN: Holder: EP's CS receive the access_permission_r_tickets (i.e., CR-KE-PS_r_tickets)
+        # self.cloud_server_ep._holder_receive_cr_ke_1()
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD

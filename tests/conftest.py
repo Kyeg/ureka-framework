@@ -125,7 +125,7 @@ def device_manufacturer_server_and_her_device() -> (
     iot_device.device_be_accessed()
 
     # WHEN: Holder: DM's CS receive the intialization_r_ticket
-    cloud_server_dm.holder_receive_r_ticket()
+    cloud_server_dm._holder_receive_r_ticket()
 
     return (cloud_server_dm, iot_device)
 
@@ -164,7 +164,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     iot_device.device_be_accessed()
 
     # WHEN: Holder: DO's UA receive the management_r_ticket
-    user_agent_do.holder_receive_r_ticket()
+    user_agent_do._holder_receive_r_ticket()
 
     return (user_agent_do, iot_device)
 

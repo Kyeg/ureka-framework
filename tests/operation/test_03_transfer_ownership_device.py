@@ -77,7 +77,7 @@ class TestTransferOwnershipDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: DO's UA receive the management_r_ticket
-        self.user_agent_do.holder_receive_r_ticket()
+        self.user_agent_do._holder_receive_r_ticket()
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
@@ -127,7 +127,7 @@ class TestTransferOwnershipDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: ATK's CS receive the management_r_ticket
-        self.cloud_server_atk.holder_receive_r_ticket()
+        self.cloud_server_atk._holder_receive_r_ticket()
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert (

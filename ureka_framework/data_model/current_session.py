@@ -1,6 +1,16 @@
 import logging
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+# Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
+from cryptography.hazmat.primitives.asymmetric import ec
+from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    byte_to_base64str,
+    key_to_str,
+    base64str_backto_byte,
+    str_to_key,
+)
+
 
 ######################################################
 # Data Model
@@ -15,6 +25,9 @@ class CurrentSession(BaseModel):
     cipher_text_1: None | str = None
     iv_2: None | str = None
     cipher_text_2: None | str = None
+
+    # current_holder_pub_key: None | ec.EllipticCurvePublicKey = None
+    # current_session_key_byte: None | bytes = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema
