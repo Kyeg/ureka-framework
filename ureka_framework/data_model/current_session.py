@@ -17,10 +17,10 @@ from ureka_framework.resource.crypto.serialization_util import (
 ######################################################
 class CurrentSession(BaseModel):
     # Access Permission UT
-    # current_u_ticket_id: None | str = None
-    # current_device_id: None | str = None
-    # current_holder_id: None | str = None
-    # current_task_scope: None | str = None
+    current_u_ticket_id: None | str = None
+    current_device_id: None | str = None
+    current_holder_id: None | str = None
+    current_task_scope: None | str = None
 
     # CR-KE
     challenge_1: None | str = None

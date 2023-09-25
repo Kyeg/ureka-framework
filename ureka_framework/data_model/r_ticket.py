@@ -8,7 +8,7 @@ import ureka_framework.data_model.u_ticket as u_ticket
 TYPE_CRKE1_RTICKET: str = "CR-KE-1"
 TYPE_CRKE2_RTICKET: str = "CR-KE-2"
 TYPE_CRKE3_RTICKET: str = "CR-KE-3"
-LEGAL_RTICKET_TYPES: {str} = {
+LEGAL_CRKE_TYPES: {str} = {
     TYPE_CRKE1_RTICKET,
     TYPE_CRKE2_RTICKET,
     TYPE_CRKE3_RTICKET,
