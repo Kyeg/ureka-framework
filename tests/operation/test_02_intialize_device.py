@@ -1,3 +1,5 @@
+import threading
+import time
 import logging
 from returns.result import Success, Failure
 import pytest
@@ -66,10 +68,17 @@ class TestIntializeDevice:
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
         # WHEN: Device: DO's IoTD receive the intialization_u_ticket
-        self.iot_device.device_be_accessed()
+        # self.iot_device._device_be_accessed()
 
         # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm._holder_receive_r_ticket()
+        # self.cloud_server_dm._holder_receive_r_ticket()
+
+        # [Test Only] Wait for all threads to finish their works
+        self.iot_device.wait_all_test_completed()
+        self.cloud_server_dm.wait_all_test_completed()
+        # logging.debug(f"+ [event] {threading.get_ident()}: sleep")
+        # time.sleep(3)
+        # logging.debug(f"+ [event] {threading.get_ident()}: wake up")
 
         # THEN: Succeed to initialize DM's IoTD
         assert self.iot_device.this_device.is_initialized == True
@@ -109,10 +118,10 @@ class TestIntializeDevice:
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
         # WHEN: Device: DO's IoTD receive the intialization_u_ticket
-        self.iot_device.device_be_accessed()
+        self.iot_device._device_be_accessed()
 
         # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm._holder_receive_r_ticket()
+        # self.cloud_server_dm._holder_receive_r_ticket()
 
         # THEN: Failed to re-initialize DM's IoTD
 

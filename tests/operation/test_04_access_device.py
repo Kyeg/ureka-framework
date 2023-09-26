@@ -65,7 +65,7 @@ class TestAccessDevice:
         )
 
         # WHEN: Holder: EP's CS receive & store the access_permission_u_ticket
-        self.cloud_server_ep.holder_receive_consent()
+        self.cloud_server_ep._holder_receive_consent()
 
         # WHEN: Holder: EP's CS forward the access_permission_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
@@ -74,7 +74,7 @@ class TestAccessDevice:
         )
 
         # WHEN: Device: DO's IoTD receive the access_permission_u_ticket
-        self.iot_device.device_be_accessed()
+        self.iot_device._device_be_accessed()
 
         # WHEN: Holder: EP's CS receive the access_permission_r_tickets (i.e., CR-KE-PS_r_tickets)
         self.cloud_server_ep._holder_recv_cr_ke_1()

@@ -61,8 +61,8 @@ class TestStorage:
 
         # THEN: The messages sent and received are the same
         assert (
-            self.cloud_server_dm.comm_channel.message_in_channel
-            == self.iot_device.comm_channel.message_in_channel
+            self.cloud_server_dm.comm_channel.recv_message
+            == self.iot_device.comm_channel.recv_message
             == test_u_ticket
         )
 
