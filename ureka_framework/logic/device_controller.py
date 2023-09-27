@@ -44,8 +44,8 @@ import logging
 
 class DeviceController:
     def __init__(self, device_type: str = None, device_name: str = None) -> None:
-        # Test Only Flag
-        self.test_stop_flag = False
+        # [TEST ONLY]
+        self.comm_done_flag = False
 
         # Data Model (Persistent)
         self.this_device: ThisDevice = ThisDevice()
@@ -80,18 +80,18 @@ class DeviceController:
         logging.info(f"+ Here is a {self.this_device.device_name}...")
 
     ######################################################
-    # Test Only Function
+    # [TEST ONLY] Function
     #   Pytest finishes this test when main thread is finished
     #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
     #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
     ######################################################
-    def wait_all_test_completed(self) -> None:
-        while not self.test_stop_flag:
+    def wait_comm_completed(self) -> None:
+        while not self.comm_done_flag:
             time.sleep(0.01)
-        logging.info(f"[TEST ONLY] {self.this_device.device_name}: all test completed")
+        # logging.info(f"{self.this_device.device_name}: this communication is completed")
 
-    def complete_test_in_this_device(self) -> None:
-        self.test_stop_flag = True
+    def complete_comm(self) -> None:
+        self.comm_done_flag = True
 
     ######################################################
     # Device Activity Cycle
@@ -118,7 +118,7 @@ class DeviceController:
         # [FUNC-level: RTVE'GT'S]
         if device_id in self.device_table or device_id == "no_id":
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
-            # logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
+            logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
             self._stored_generated_xxx_u_ticket(generated_u_ticket_json)
             return generated_u_ticket_json
         else:  # pragma: no cover -> IO-level
@@ -132,12 +132,12 @@ class DeviceController:
         # [FUNC-level: RTVE'GTS']
         if device_id in self.device_table:
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
-            # logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
+            logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
             self._send_xxx_message(generated_u_ticket_json)
             self.state = this_device.STATE_WAIT_FOR_RT
 
             # End Test
-            self.complete_test_in_this_device()
+            self.complete_comm()
 
             return generated_u_ticket_json
         else:  # pragma: no cover -> IO-level
@@ -148,14 +148,14 @@ class DeviceController:
     def _holder_receive_consent(self, received_u_ticket_json) -> str:
         # [FUNC-level: 'RT'VEGTS]
         # received_u_ticket_json: str = self._recv_xxx_message()
-        logging.debug(f"Received UTicket: {received_u_ticket_json}")
+        logging.debug(f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}")
         self._store_recieved_xxx_u_ticket(received_u_ticket_json)
         # [FUNC-level: RT'VEGTS']
         # Can optionally _verify_xxx_u_ticket
         # Can optionally _generate_xxx_r_ticket & _send_xxx_message
 
         # End Test
-        self.complete_test_in_this_device()
+        self.complete_comm()
 
         return received_u_ticket_json
 
@@ -197,7 +197,7 @@ class DeviceController:
         # [FUNC-level: 'RTVE'GTS]
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
-        logging.debug(f"Received UTicket: {received_u_ticket_json}")
+        # logging.debug(f"Received UTicket: {received_u_ticket_json}")
         # Can optionally _store_recieved_xxx_u_ticket
         result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
 
@@ -231,7 +231,7 @@ class DeviceController:
         self.state = this_device.STATE_WAIT_FOR_UT
 
         # End Test
-        self.complete_test_in_this_device()
+        self.complete_comm()
 
     def _holder_receive_r_ticket(self, recieved_r_ticket_json) -> None:
         # [FUNC-level: 'RT'VEGTS]
@@ -268,7 +268,7 @@ class DeviceController:
             logging.error(failure_msg)
 
         # End Test
-        self.complete_test_in_this_device()
+        self.complete_comm()
 
     ######################################################
     # [IO-level]
@@ -304,7 +304,7 @@ class DeviceController:
         self.state = this_device.STATE_WAIT_FOR_CRKE2
 
         # TO-DO: End Test
-        self.complete_test_in_this_device()
+        self.complete_comm()
 
     def _holder_recv_cr_ke_1(self, recieved_r_ticket_json) -> None:
         self._holder_recv_cr_ke_r_tickets(recieved_r_ticket_json)
@@ -329,15 +329,15 @@ class DeviceController:
         logging.debug(f"result_message = {result_message}")
 
         # End Test
-        self.complete_test_in_this_device()
+        self.complete_comm()
 
     ######################################################
     # [FUNC-level: 'R'TVEGT"S"] Message Communication
     ######################################################
     def _connect(self, end: "DeviceController") -> None:
-        logging.info(
-            f"+ {self.this_device.device_name} is connecting with {end.this_device.device_name}..."
-        )
+        # logging.info(
+        #     f"+ {self.this_device.device_name} is connecting with {end.this_device.device_name}..."
+        # )
         # Set Sender (on Main Thread)
         self.comm_channel.end = end
         self.comm_channel.sender_queue = end.comm_channel.reciever_queue

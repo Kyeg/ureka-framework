@@ -71,6 +71,26 @@ def create_comm_connection(end1: DeviceController, end2: DeviceController):
     end1._connect(end2)
     end2._connect(end1)
 
+    logging.info(
+        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is started..."
+    )
+
+
+def wait_comm_completed(end1: DeviceController, end2: DeviceController):
+    # Wait for all sender/receiver to finish their works (block last 1st make log beautiful)
+    end1.wait_comm_completed()
+    end2.wait_comm_completed()
+    # Re-wait the sender/receiver
+    end1.comm_done_flag = False
+    end2.comm_done_flag = False
+
+    logging.info(
+        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is completed..."
+    )
+    logging.info("")
+    logging.info("")
+    logging.info("")
+
 
 def device_manufacturer_server() -> DeviceController:
     # GIVEN: Initialized DM's CS
@@ -118,10 +138,7 @@ def device_manufacturer_server_and_her_device() -> (
         device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
     )
     cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
-
-    # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-    cloud_server_dm.wait_all_test_completed()
-    iot_device.wait_all_test_completed()
+    wait_comm_completed(cloud_server_dm, iot_device)
 
     return (cloud_server_dm, iot_device)
 
@@ -132,9 +149,6 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         cloud_server_dm,
         iot_device,
     ) = device_manufacturer_server_and_her_device()
-    # [Test Only] Restart the test
-    cloud_server_dm.test_stop_flag = False
-    iot_device.test_stop_flag = False
 
     # GIVEN: Initialized DO's UA
     user_agent_do = device_owner_agent()
@@ -150,19 +164,12 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     cloud_server_dm.issuer_issue_consent_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
-    # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-    user_agent_do.wait_all_test_completed()
-    cloud_server_dm.wait_all_test_completed()
-    # [Test Only] Restart the test
-    user_agent_do.test_stop_flag = False
+    wait_comm_completed(user_agent_do, cloud_server_dm)
 
     # WHEN: Holder: DO's UA forward the ownership_u_ticket
     create_comm_connection(user_agent_do, iot_device)
     user_agent_do.holder_access_device(owned_device_id)
-
-    # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-    user_agent_do.wait_all_test_completed()
-    iot_device.wait_all_test_completed()
+    wait_comm_completed(user_agent_do, iot_device)
 
     return (user_agent_do, iot_device)
 
@@ -197,9 +204,6 @@ def device_owner_agent_and_her_device_and_attacker() -> (
         user_agent_do,
         iot_device,
     ) = device_owner_agent_and_her_device()
-    # [Test Only] Restart the test
-    user_agent_do.test_stop_flag = False
-    iot_device.test_stop_flag = False
 
     # GIVEN: Initialized ATK's CS
     cloud_server_atk = attacker_server()

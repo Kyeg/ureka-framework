@@ -2,11 +2,12 @@ import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
-    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+    create_comm_connection,
+    wait_comm_completed,
     device_owner_agent_and_her_device,
     enterprise_provider_server,
     attacker_server,
@@ -38,9 +39,6 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
-        # [Test Only] Restart the test
-        self.user_agent_do.test_stop_flag = False
-        self.iot_device.test_stop_flag = False
 
         assert (
             self.iot_device.this_device.owner_pub_key_str
@@ -71,19 +69,12 @@ class TestAccessDevice:
         self.user_agent_do.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
-        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-        self.cloud_server_ep.wait_all_test_completed()
-        self.user_agent_do.wait_all_test_completed()
-        # [Test Only] Restart the test
-        self.cloud_server_ep.test_stop_flag = False
+        wait_comm_completed(self.cloud_server_ep, self.user_agent_do)
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         self.cloud_server_ep.holder_access_device(owned_device_id)
-
-        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-        self.cloud_server_ep.wait_all_test_completed()
-        self.iot_device.wait_all_test_completed()
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD

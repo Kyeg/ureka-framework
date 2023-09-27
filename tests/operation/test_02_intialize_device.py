@@ -1,11 +1,12 @@
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
-    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+    create_comm_connection,
+    wait_comm_completed,
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
@@ -64,10 +65,7 @@ class TestIntializeDevice:
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
-
-        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-        self.cloud_server_dm.wait_all_test_completed()
-        self.iot_device.wait_all_test_completed()
+        wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
         assert self.iot_device.this_device.is_initialized == True
@@ -105,10 +103,7 @@ class TestIntializeDevice:
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
-
-        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
-        self.cloud_server_dm.wait_all_test_completed()
-        self.iot_device.wait_all_test_completed()
+        wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Failed to re-initialize DM's IoTD
 
