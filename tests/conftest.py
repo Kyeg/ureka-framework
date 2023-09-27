@@ -120,11 +120,9 @@ def device_manufacturer_server_and_her_device() -> (
     )
     cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
-    # WHEN: Device: DO's IoTD receive the intialization_u_ticket
-    iot_device._device_be_accessed()
-
-    # WHEN: Holder: DM's CS receive the intialization_r_ticket
-    # cloud_server_dm._holder_receive_r_ticket()
+    # [Test Only] Wait for all threads to finish their works
+    cloud_server_dm.wait_all_test_completed()
+    iot_device.wait_all_test_completed()
 
     return (cloud_server_dm, iot_device)
 
@@ -152,18 +150,14 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
 
-    # WHEN: Holder: DO's UA receive & store the management_u_ticket
-    user_agent_do._holder_receive_consent()
-
     # WHEN: Holder: DO's UA forward the management_u_ticket
     create_comm_connection(user_agent_do, iot_device)
     user_agent_do.holder_access_device(iot_device.this_device.device_pub_key_str)
 
-    # WHEN: Device: DO's IoTD receive the management_u_ticket
-    iot_device._device_be_accessed()
-
-    # WHEN: Holder: DO's UA receive the management_r_ticket
-    # user_agent_do._holder_receive_r_ticket()
+    # [Test Only] Wait for all threads to finish their works
+    cloud_server_dm.wait_all_test_completed()
+    user_agent_do.wait_all_test_completed()
+    iot_device.wait_all_test_completed()
 
     return (user_agent_do, iot_device)
 

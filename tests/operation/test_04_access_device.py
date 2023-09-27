@@ -38,6 +38,9 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
+        # [Test Only] Restart the test
+        self.user_agent_do.test_stop_flag = False
+        self.iot_device.test_stop_flag = False
 
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -64,20 +67,16 @@ class TestAccessDevice:
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: EP's CS receive & store the access_permission_u_ticket
-        self.cloud_server_ep._holder_receive_consent()
-
         # WHEN: Holder: EP's CS forward the access_permission_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         self.cloud_server_ep.holder_access_device(
             self.iot_device.this_device.device_pub_key_str
         )
 
-        # WHEN: Device: DO's IoTD receive the access_permission_u_ticket
-        self.iot_device._device_be_accessed()
-
-        # WHEN: Holder: EP's CS receive the access_permission_r_tickets (i.e., CR-KE-PS_r_tickets)
-        self.cloud_server_ep._holder_recv_cr_ke_1()
+        # [Test Only] Wait for all threads to finish their works
+        self.user_agent_do.wait_all_test_completed()
+        self.cloud_server_ep.wait_all_test_completed()
+        self.iot_device.wait_all_test_completed()
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD

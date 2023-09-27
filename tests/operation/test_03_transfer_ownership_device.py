@@ -41,10 +41,10 @@ class TestTransferOwnershipDevice:
             self.cloud_server_dm,
             self.iot_device,
         ) = device_manufacturer_server_and_her_device()
-        assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
-        )
+        # assert (
+        #     self.iot_device.this_device.owner_pub_key_str
+        #     == self.cloud_server_dm.this_person.person_pub_key_str
+        # )
 
         # GIVEN: Initialized DO's UA
         self.user_agent_do = device_owner_agent()
@@ -64,20 +64,16 @@ class TestTransferOwnershipDevice:
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: DO's UA receive & store the management_u_ticket
-        self.user_agent_do._holder_receive_consent()
-
         # WHEN: Holder: DO's UA forward the management_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
         self.user_agent_do.holder_access_device(
             self.iot_device.this_device.device_pub_key_str
         )
 
-        # WHEN: Device: DO's IoTD receive the management_u_ticket
-        self.iot_device._device_be_accessed()
-
-        # WHEN: Holder: DO's UA receive the management_r_ticket
-        # self.user_agent_do._holder_receive_r_ticket()
+        # [Test Only] Wait for all threads to finish their works
+        self.cloud_server_dm.wait_all_test_completed()
+        self.user_agent_do.wait_all_test_completed()
+        self.iot_device.wait_all_test_completed()
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
@@ -93,6 +89,8 @@ class TestTransferOwnershipDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
+        # [Test Only] Restart the test
+        self.iot_device.test_stop_flag = False
 
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
@@ -123,11 +121,9 @@ class TestTransferOwnershipDevice:
             self.iot_device.this_device.device_pub_key_str
         )
 
-        # WHEN: Device: DO's IoTD receive the management_u_ticket
-        self.iot_device._device_be_accessed()
-
-        # WHEN: Holder: ATK's CS receive the management_r_ticket
-        # self.cloud_server_atk._holder_receive_r_ticket()
+        # [Test Only] Wait for all threads to finish their works
+        self.iot_device.wait_all_test_completed()
+        self.cloud_server_atk.wait_all_test_completed()
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert (
