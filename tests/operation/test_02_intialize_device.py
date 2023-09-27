@@ -65,7 +65,7 @@ class TestIntializeDevice:
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
-        # [Test Only] Wait for all threads to finish their works
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
         self.cloud_server_dm.wait_all_test_completed()
         self.iot_device.wait_all_test_completed()
 
@@ -106,7 +106,7 @@ class TestIntializeDevice:
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
 
-        # [Test Only] Wait for all threads to finish their works
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
         self.cloud_server_dm.wait_all_test_completed()
         self.iot_device.wait_all_test_completed()
 

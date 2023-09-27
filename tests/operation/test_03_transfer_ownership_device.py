@@ -40,10 +40,14 @@ class TestTransferOwnershipDevice:
             self.cloud_server_dm,
             self.iot_device,
         ) = device_manufacturer_server_and_her_device()
-        # assert (
-        #     self.iot_device.this_device.owner_pub_key_str
-        #     == self.cloud_server_dm.this_person.person_pub_key_str
-        # )
+        # [Test Only] Restart the test
+        self.cloud_server_dm.test_stop_flag = False
+        self.iot_device.test_stop_flag = False
+
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.cloud_server_dm.this_person.person_pub_key_str
+        )
 
         # GIVEN: Initialized DO's UA
         self.user_agent_do = device_owner_agent()
@@ -61,15 +65,17 @@ class TestTransferOwnershipDevice:
         self.cloud_server_dm.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
+        self.user_agent_do.wait_all_test_completed()
+        self.cloud_server_dm.wait_all_test_completed()
+        # [Test Only] Restart the test
+        self.user_agent_do.test_stop_flag = False
 
         # WHEN: Holder: DO's UA forward the ownership_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
-        self.user_agent_do.holder_access_device(
-            self.iot_device.this_device.device_pub_key_str
-        )
+        self.user_agent_do.holder_access_device(owned_device_id)
 
-        # [Test Only] Wait for all threads to finish their works
-        self.cloud_server_dm.wait_all_test_completed()
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
         self.user_agent_do.wait_all_test_completed()
         self.iot_device.wait_all_test_completed()
 
@@ -114,13 +120,11 @@ class TestTransferOwnershipDevice:
 
         # WHEN: Holder: ATK's CS forward the ownership_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        self.cloud_server_atk.holder_access_device(
-            self.iot_device.this_device.device_pub_key_str
-        )
+        self.cloud_server_atk.holder_access_device(target_device_id)
 
-        # [Test Only] Wait for all threads to finish their works
-        self.iot_device.wait_all_test_completed()
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
         self.cloud_server_atk.wait_all_test_completed()
+        self.iot_device.wait_all_test_completed()
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert (

@@ -133,7 +133,6 @@ class DeviceController:
         if device_id in self.device_table:
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
             # logging.debug(f"Generated UTicket: {generated_u_ticket_json}")
-            # Can optionally _stored_generated_xxx_u_ticket
             self._send_xxx_message(generated_u_ticket_json)
             self.state = this_device.STATE_WAIT_FOR_RT
 
@@ -154,6 +153,10 @@ class DeviceController:
         # [FUNC-level: RT'VEGTS']
         # Can optionally _verify_xxx_u_ticket
         # Can optionally _generate_xxx_r_ticket & _send_xxx_message
+
+        # End Test
+        self.complete_test_in_this_device()
+
         return received_u_ticket_json
 
     ######################################################
@@ -175,13 +178,16 @@ class DeviceController:
             # logging.debug(f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
             # Also can add command in u_ticket
             self._send_xxx_message(stored_u_ticket_json)
+
             if (
                 stored_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-                or u_ticket.TYPE_OWNERSHIP_UTICKET
+                or stored_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             ):
                 self.state = this_device.STATE_WAIT_FOR_RT
             elif stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
                 self.state = this_device.STATE_WAIT_FOR_CRKE1
+                # Update session
+                self._execute_update_current_session(stored_u_ticket, "holder")
 
         else:  # pragma: no cover -> IO-level
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
@@ -400,12 +406,6 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person, self.current_session
         )
 
-        ######################################################
-        # Update session if TYPE_ACCESS_UTICKET
-        ######################################################
-        if recveived_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            self._execute_update_current_session(recveived_u_ticket, "holder")
-
         return recveived_u_ticket.device_id
 
     def _store_recieved_xxx_r_ticket(self, recveived_r_ticket_json: str) -> str:
@@ -510,9 +510,9 @@ class DeviceController:
         # State
         ######################################################
         if self.this_device.device_type == this_device.IOT_DEVICE:
-            self.state: str = this_device.STATE_WAIT_FOR_UT
+            self.state = this_device.STATE_WAIT_FOR_UT
         elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
-            self.state: str = this_device.STATE_WAIT_FOR_UT
+            self.state = this_device.STATE_WAIT_FOR_UT
 
         ######################################################
         # Storage
@@ -673,7 +673,7 @@ class DeviceController:
                 self.current_session.current_device_id = ticket_in.device_id
                 self.current_session.current_holder_id = ticket_in.holder_id
                 self.current_session.current_task_scope = ticket_in.task_scope
-            if comm_end == "device":
+            elif comm_end == "device":
                 # Access Permission UT
                 self.current_session.current_u_ticket_id = ticket_in.u_ticket_id
                 self.current_session.current_device_id = ticket_in.device_id
@@ -768,11 +768,5 @@ class DeviceController:
         self.simple_storage.store_storage(
             self.this_device, self.device_table, self.this_person, self.current_session
         )
-
-        ######################################################
-        # Update session if TYPE_ACCESS_UTICKET
-        ######################################################
-        if generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            self._execute_update_current_session(generated_u_ticket, "holder")
 
         return generated_u_ticket_json

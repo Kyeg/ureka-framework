@@ -42,6 +42,11 @@ class TestAccessDevice:
         self.user_agent_do.test_stop_flag = False
         self.iot_device.test_stop_flag = False
 
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_person.person_pub_key_str
+        )
+
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
@@ -66,21 +71,31 @@ class TestAccessDevice:
         self.user_agent_do.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
+        self.cloud_server_ep.wait_all_test_completed()
+        self.user_agent_do.wait_all_test_completed()
+        # [Test Only] Restart the test
+        self.cloud_server_ep.test_stop_flag = False
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        self.cloud_server_ep.holder_access_device(
-            self.iot_device.this_device.device_pub_key_str
-        )
+        self.cloud_server_ep.holder_access_device(owned_device_id)
 
-        # [Test Only] Wait for all threads to finish their works
-        self.user_agent_do.wait_all_test_completed()
+        # [Test Only] Wait for all threads to finish their works (block last 1st make log beautiful)
         self.cloud_server_ep.wait_all_test_completed()
         self.iot_device.wait_all_test_completed()
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_person.person_pub_key_str
+        )
         # THEN: EP's CS can open a session with DO's IoTD
+        assert (
+            self.iot_device.current_session.current_holder_id
+            == self.cloud_server_ep.current_session.current_holder_id
+        )
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
