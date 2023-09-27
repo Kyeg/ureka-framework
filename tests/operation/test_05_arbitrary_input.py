@@ -59,8 +59,7 @@ class TestArbitraryInput:
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": 123,
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
             test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
@@ -77,7 +76,7 @@ class TestArbitraryInput:
         # WHEN: Wrong r_ticket schema type
         current_test_when_and_then_log()
         test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "audit_end": 123,
             "result": f"Success/Failure",
@@ -95,13 +94,12 @@ class TestArbitraryInput:
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
-        # WHEN: All other formats are correct (e.g., a legal management u_ticket here), but exist undefined u_ticket field in UTicket
+        # WHEN: All other formats are correct (e.g., a legal ownership u_ticket here), but exist undefined u_ticket field in UTicket
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
@@ -118,7 +116,7 @@ class TestArbitraryInput:
         # WHEN: All other formats are correct, but exist undefined u_ticket field in UTicket
         current_test_when_and_then_log()
         test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
@@ -137,13 +135,12 @@ class TestArbitraryInput:
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
-        # WHEN: All other formats are correct (e.g., a legal management u_ticket here)
+        # WHEN: All other formats are correct (e.g., a legal ownership u_ticket here)
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
         logging.debug(f"test_u_ticket = {test_u_ticket}")
@@ -195,7 +192,7 @@ class TestArbitraryInput:
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"WRONG-DEVICE-ID",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)

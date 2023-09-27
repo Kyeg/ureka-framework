@@ -10,8 +10,8 @@ from tests.conftest import (
 )
 from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
+import ureka_framework.data_model.this_device as this_device
 
-from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -39,7 +39,7 @@ class TestStorage:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=u_ticket.IOT_DEVICE,
+            device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
 

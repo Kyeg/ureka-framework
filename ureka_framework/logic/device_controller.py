@@ -22,7 +22,6 @@ from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.this_person import ThisPerson
 from ureka_framework.data_model.current_session import (
     CurrentSession,
-    jsonstr_to_current_session,
     current_session_to_jsonstr,
 )
 from ureka_framework.data_model.u_ticket import (
@@ -178,12 +177,10 @@ class DeviceController:
             self._send_xxx_message(stored_u_ticket_json)
             if (
                 stored_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-                or u_ticket.TYPE_MANAGEMENT_UTICKET
+                or u_ticket.TYPE_OWNERSHIP_UTICKET
             ):
                 self.state = this_device.STATE_WAIT_FOR_RT
-            elif (
-                stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET
-            ):
+            elif stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
                 self.state = this_device.STATE_WAIT_FOR_CRKE1
 
         else:  # pragma: no cover -> IO-level
@@ -204,7 +201,7 @@ class DeviceController:
         elif type(result) == Failure:
             result_message = f"{result.failure().args[0]}"
         # CR-KE-PS
-        if received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        if received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._device_send_cr_ke_1(received_u_ticket, result_message)
         # No CR
         else:
@@ -354,10 +351,10 @@ class DeviceController:
             logging.info(
                 f"+ {self.this_device.device_name} is receiving message from {self.comm_channel.end.this_device.device_name}..."
             )
-            if self.this_device.device_type == u_ticket.IOT_DEVICE:
+            if self.this_device.device_type == this_device.IOT_DEVICE:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._device_be_accessed(recveived_message_json)
-            if self.this_device.device_type == u_ticket.USER_AGENT_OR_CLOUD_SERVER:
+            if self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._holder_receive_consent(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_RT:
@@ -404,9 +401,9 @@ class DeviceController:
         )
 
         ######################################################
-        # Update session if TYPE_ACCESS_PERMISSION_UTICKET
+        # Update session if TYPE_ACCESS_UTICKET
         ######################################################
-        if recveived_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        if recveived_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._execute_update_current_session(recveived_u_ticket, "holder")
 
         return recveived_u_ticket.device_id
@@ -531,7 +528,7 @@ class DeviceController:
     ) -> Result[None, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is initializing...")
 
-        if self.this_device.device_type != u_ticket.USER_AGENT_OR_CLOUD_SERVER:
+        if self.this_device.device_type != this_device.USER_AGENT_OR_CLOUD_SERVER:
             failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             logging.error(failure_msg)
             return Failure(RuntimeError(failure_msg))
@@ -585,10 +582,10 @@ class DeviceController:
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             result = self._execute_one_time_initialize_iot_device(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             self._execute_ownership_transfer(u_ticket_in)
             result = Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._execute_update_current_session(u_ticket_in, "device")
             result = Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
@@ -602,7 +599,7 @@ class DeviceController:
     ) -> Result[UTicket, RuntimeError]:
         logging.info(f"+ {self.this_device.device_name} is intializing...")
 
-        if self.this_device.device_type != u_ticket.IOT_DEVICE:
+        if self.this_device.device_type != this_device.IOT_DEVICE:
             failure_msg = (
                 "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
             )
@@ -646,20 +643,12 @@ class DeviceController:
         logging.info(f"+ {self.this_device.device_name} is transferring ownership...")
 
         ######################################################
-        # Decode Request Body
-        ######################################################
-        task_scope_dict = serialization_util.jsonstr_to_dict(
-            new_u_ticket.task_scope
-        )  # sort_keys = True
-
-        ######################################################
         # Update Device Owner
         ######################################################
-        if task_scope_dict[u_ticket.TASK_SCOPE_MANAGEMENT] == u_ticket.MANAGEMENT_OWNER:
-            # RAM
-            self.this_device.owner_pub_key = serialization_util.str_to_key(
-                new_u_ticket.holder_id, key_type="ecc-public-key"
-            )
+        # RAM
+        self.this_device.owner_pub_key = serialization_util.str_to_key(
+            new_u_ticket.holder_id, key_type="ecc-public-key"
+        )
 
         ######################################################
         # Storage
@@ -677,7 +666,7 @@ class DeviceController:
         # Update Session
         ######################################################
         # RAM
-        if ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        if ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if comm_end == "holder":
                 # Access Permission UT
                 self.current_session.current_u_ticket_id = ticket_in.u_ticket_id
@@ -781,9 +770,9 @@ class DeviceController:
         )
 
         ######################################################
-        # Update session if TYPE_ACCESS_PERMISSION_UTICKET
+        # Update session if TYPE_ACCESS_UTICKET
         ######################################################
-        if generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        if generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._execute_update_current_session(generated_u_ticket, "holder")
 
         return generated_u_ticket_json

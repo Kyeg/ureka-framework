@@ -87,7 +87,7 @@ class RTicketVerifier:
             # u_ticket_device_id = "no_id"
             # r_ticket_device_id = "newly-created device public key string"
             return Success(r_ticket_in)
-        elif r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
+        elif r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             if r_ticket_in.device_id == self.audit_start_ticket.device_id:
                 logging.info(success_msg)
                 return Success(r_ticket_in)
@@ -108,7 +108,7 @@ class RTicketVerifier:
 
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
         ):
             if r_ticket_in.audit_start == self.audit_start_ticket.u_ticket_id:
                 logging.info(success_msg)
@@ -145,7 +145,7 @@ class RTicketVerifier:
 
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
         ):
             return Success(r_ticket_in)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
@@ -176,7 +176,7 @@ class RTicketVerifier:
         # Verify DEVICE_SIGNATURE through device_id
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
         ):
             if self._verify_device_signature_on_r_ticket(

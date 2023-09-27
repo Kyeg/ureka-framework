@@ -32,9 +32,7 @@ from ureka_framework.data_model.this_person import (
     this_person_to_jsonstr,
 )
 from ureka_framework.data_model.current_session import (
-    CurrentSession,
     jsonstr_to_current_session,
-    current_session_to_jsonstr,
 )
 from ureka_framework.resource.crypto import ecdh
 from ureka_framework.resource.crypto.serialization_util import (
@@ -47,7 +45,6 @@ from ureka_framework.resource.crypto.serialization_util import (
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
-from returns.result import Success, Failure
 
 
 class TestSerialization:
@@ -141,7 +138,7 @@ class TestSerialization:
 
         test_request: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request
@@ -156,7 +153,7 @@ class TestSerialization:
 
         # THEN: The result of serialization/deserialization should be the same
         assert f"device_id" == u_ticket_obj.device_id
-        assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == u_ticket_obj.u_ticket_type
+        assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == u_ticket_obj.u_ticket_type
 
     def test_r_ticket_serialization(self) -> None:
         current_test_given_log()
@@ -167,7 +164,7 @@ class TestSerialization:
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
         test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
@@ -183,7 +180,7 @@ class TestSerialization:
         logging.warning(f"r_ticket_json_aftr = {r_ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == r_ticket_obj.r_ticket_type
+        assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == r_ticket_obj.r_ticket_type
 
     def test_json_serialization_failed(self) -> None:
         current_test_given_log()
@@ -316,7 +313,7 @@ class TestSerialization:
 
         test_request_1: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -332,7 +329,7 @@ class TestSerialization:
 
         test_request_2: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
@@ -361,7 +358,7 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         test_request_1: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
@@ -376,7 +373,7 @@ class TestSerialization:
         logging.warning(f"r_ticket_obj_copy_1 = {r_ticket_obj_copy_1}")
 
         test_request_2: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }

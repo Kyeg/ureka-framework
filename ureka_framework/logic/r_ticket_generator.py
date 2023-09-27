@@ -45,7 +45,7 @@ class RTicketGenerator:
         # Generate Signature
         if (
             new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or new_r_ticket.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(

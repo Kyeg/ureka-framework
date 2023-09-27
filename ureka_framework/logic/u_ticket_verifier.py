@@ -11,7 +11,6 @@ import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
-from ureka_framework.data_model.this_person import ThisPerson
 
 
 class UTicketVerifier:
@@ -74,7 +73,7 @@ class UTicketVerifier:
             else:
                 logging.error(failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET
+        # TYPE_OWNERSHIP_UTICKET, TYPE_ACCESS_UTICKET
         else:
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 logging.info(success_msg)
@@ -95,7 +94,7 @@ class UTicketVerifier:
             # No need to verify ISSUER_SIGNATURE
             logging.info(success_msg)
             return Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
@@ -105,7 +104,7 @@ class UTicketVerifier:
                 logging.error(failure_msg)
                 logging.error("-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):

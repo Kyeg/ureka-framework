@@ -2,11 +2,9 @@ import copy
 import logging
 import uuid
 
-from returns.result import Result, Success, Failure
 from pydantic import ValidationError
 from ureka_framework.data_model.u_ticket import UTicket, u_ticket_to_jsonstr
 import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto import ecdh
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec

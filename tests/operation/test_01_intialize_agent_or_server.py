@@ -11,6 +11,7 @@ from ureka_framework.logic.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -38,7 +39,7 @@ class TestIntializeAgentOrServer:
 
         # GIVEN: Uninitialized CS
         self.cloud_server_dm = DeviceController(
-            device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
         )
         assert self.cloud_server_dm.this_device.is_initialized == False
@@ -84,7 +85,7 @@ class TestIntializeAgentOrServer:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=u_ticket.IOT_DEVICE,
+            device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
 

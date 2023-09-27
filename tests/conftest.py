@@ -2,8 +2,7 @@ import inspect
 import logging
 from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
-from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
+import ureka_framework.data_model.this_device as this_device
 from typing import Tuple
 
 
@@ -76,7 +75,7 @@ def create_comm_connection(end1: DeviceController, end2: DeviceController):
 def device_manufacturer_server() -> DeviceController:
     # GIVEN: Initialized DM's CS
     cloud_server_dm = DeviceController(
-        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_dm",
     )
     cloud_server_dm._execute_one_time_intialize_agent_or_server()
@@ -87,7 +86,7 @@ def device_manufacturer_server() -> DeviceController:
 def device_owner_agent() -> DeviceController:
     # GIVEN: Initialized DM's CS
     user_agent_do = DeviceController(
-        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
     user_agent_do._execute_one_time_intialize_agent_or_server()
@@ -103,7 +102,7 @@ def device_manufacturer_server_and_her_device() -> (
 
     # GIVEN: Uninitialized IoTD
     iot_device = DeviceController(
-        device_type=u_ticket.IOT_DEVICE,
+        device_type=this_device.IOT_DEVICE,
         device_name="iot_device",
     )
 
@@ -137,20 +136,19 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     # GIVEN: Initialized DO's UA
     user_agent_do = device_owner_agent()
 
-    # WHEN: Issuer: DM's CS generate & send the management_u_ticket to DO's UA
+    # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
     create_comm_connection(cloud_server_dm, user_agent_do)
     owned_device_id = iot_device.this_device.device_pub_key_str
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
-        "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+        "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
     }
     cloud_server_dm.issuer_issue_consent_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
 
-    # WHEN: Holder: DO's UA forward the management_u_ticket
+    # WHEN: Holder: DO's UA forward the ownership_u_ticket
     create_comm_connection(user_agent_do, iot_device)
     user_agent_do.holder_access_device(iot_device.this_device.device_pub_key_str)
 
@@ -165,7 +163,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 def enterprise_provider_server() -> DeviceController:
     # GIVEN: Initialized EP's CS
     cloud_server_ep = DeviceController(
-        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_ep",
     )
     cloud_server_ep._execute_one_time_intialize_agent_or_server()
@@ -176,7 +174,7 @@ def enterprise_provider_server() -> DeviceController:
 def attacker_server() -> DeviceController:
     # GIVEN: Initialized ATK's CS
     cloud_server_atk = DeviceController(
-        device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_atk",
     )
     cloud_server_atk._execute_one_time_intialize_agent_or_server()
