@@ -36,9 +36,13 @@ class RTicket(BaseModel):
     key_exchange_salt_1: None | str = None
     key_exchange_salt_2: None | str = None
     iv_1: None | str = None
-    cipher_text_1: None | str = None
+    associated_plaintext_1: None | str = None
+    ciphertext_1: None | str = None
+    gcm_authentication_tag_1: None | str = None
     iv_2: None | str = None
-    cipher_text_2: None | str = None
+    associated_plaintext_2: None | str = None
+    ciphertext_2: None | str = None
+    gcm_authentication_tag_2: None | str = None
 
     device_signature: None | str = None
 

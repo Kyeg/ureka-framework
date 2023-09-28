@@ -52,9 +52,14 @@ class RTicketGenerator:
             new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+            or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key
+            )
+        if new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            new_r_ticket = self._add_device_signature_on_r_ticket(
+                new_r_ticket, self.this_person.person_priv_key
             )
 
         return new_r_ticket

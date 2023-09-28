@@ -44,7 +44,7 @@ from ureka_framework.resource.crypto.serialization_util import (
 )
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
-from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.exceptions import InvalidTag
 import threading
 from ureka_framework.resource.logger.simple_logger import simple_log, DEPLOYMENT_ENV
 
@@ -216,6 +216,7 @@ class DeviceController:
             result_message = f"Success"
         elif type(result) == Failure:
             result_message = f"{result.failure().args[0]}"
+
         # CR-KE-PS
         if received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._device_send_cr_ke_1(received_u_ticket, result_message)
@@ -286,12 +287,12 @@ class DeviceController:
     #
     # APY (With CR-KE-PS):
     #       holder_apply_u_ticket() -> device_receive_u_ticket()
-    #                     holder_recv_cr_ke_1() <- device_send_cr_ke_1()
-    #                     holder_send_cr_ke_2() -> device_recv_cr_ke_2()
-    #           device_recv_1st_data_r_ticket() <- device_send_1st_data_r_ticket()
-    #                     holder_send_command() -> device_recv_command()
-    #                        holder_recv_data() <- device_send_data()
-    #                                           ...
+    #           holder_recv_cr_ke_1() <- device_send_cr_ke_1()
+    #           holder_send_cr_ke_2() -> device_recv_cr_ke_2()
+    #           holder_recv_cr_ke_3() <- device_send_cr_ke_3()
+    #           holder_send_command() -> device_recv_command()
+    #              holder_recv_data() <- device_send_data()
+    #                                 ...
     #       holder_receive_r_ticket() <- device_send_r_ticket()
     ######################################################
     def _device_send_cr_ke_1(
@@ -314,21 +315,47 @@ class DeviceController:
         self._send_xxx_message(generated_r_ticket_json)
         self.state = this_device.STATE_WAIT_FOR_CRKE2
 
-        # TO-DO: End Comm
-        self.complete_comm()
-
     def _holder_recv_cr_ke_1(self, recieved_r_ticket_json) -> None:
         self._holder_recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
-    def _holder_recv_cr_ke_r_tickets(self, recieved_r_ticket_json) -> None:
+    def _holder_send_cr_ke_2(
+        self, received_r_ticket: RTicket, result_message: str
+    ) -> None:
+        # Generate CR-KE RTicket
+        r_ticket_request: dict = {
+            "r_ticket_type": f"{r_ticket.TYPE_CRKE2_RTICKET}",
+            "device_id": f"{received_r_ticket.device_id}",
+            "audit_start": f"{received_r_ticket.audit_start}",
+            "result": f"{result_message}",
+            "challenge_1": f"{self.current_session.challenge_1}",
+            "challenge_2": f"{self.current_session.challenge_2}",
+            "key_exchange_salt_2": f"{self.current_session.key_exchange_salt_2}",
+            "iv_1": f"{self.current_session.iv_1}",
+            "associated_plaintext_1": f"{self.current_session.associated_plaintext_1}",
+            "ciphertext_1": f"{self.current_session.ciphertext_1}",
+            "gcm_authentication_tag_1": f"{self.current_session.gcm_authentication_tag_1}",
+        }
+        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+        # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
+
+        # Can optionally _stored_generated_xxx_r_ticket
+
+        self._send_xxx_message(generated_r_ticket_json)
+        self.state = this_device.STATE_WAIT_FOR_CRKE2
+
+    def _device_recv_cr_ke_2(self, recieved_r_ticket_json) -> None:
+        self._holder_recv_cr_ke_r_tickets(recieved_r_ticket_json)
+
+    def _holder_recv_cr_ke_r_tickets(self, received_r_ticket_json) -> None:
         # [FUNC-level: 'RT'VEGTS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
-        simple_log("debug", f"Received CRKE-RTicket: {recieved_r_ticket_json}")
+        received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
+        simple_log("debug", f"Received CRKE-RTicket: {received_r_ticket_json}")
         # Can optionally _store_recieved_xxx_r_ticket
 
         # [FUNC-level: RT'VE'GTS]
         result = self._verify_and_execute_xxx_r_ticket(
-            arbitrary_json=recieved_r_ticket_json,
+            arbitrary_json=received_r_ticket_json,
             audit_start_ticket="",
             audit_end_ticket="",
         )
@@ -338,6 +365,15 @@ class DeviceController:
         elif type(result) == Failure:  # pragma: no cover -> Weird R-Ticket
             result_message = f"{result.failure().args[0]}"
         simple_log("debug", f"result_message = {result_message}")
+
+        # CR-KE-PS
+        if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            self._holder_send_cr_ke_2(received_r_ticket, result_message)
+        if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            # self._holder_send_cr_ke_3()
+            pass
+        # if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+        #     self._holder_send_command()
 
         # TO-DO: End Comm
         self.complete_comm()
@@ -372,6 +408,8 @@ class DeviceController:
             if self.this_device.device_type == this_device.IOT_DEVICE:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._device_receive_u_ticket(recveived_message_json)
+                elif self.state == this_device.STATE_WAIT_FOR_CRKE2:
+                    self._device_recv_cr_ke_2(recveived_message_json)
             if self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._holder_receive_consent(recveived_message_json)
@@ -379,6 +417,8 @@ class DeviceController:
                     self._holder_receive_r_ticket(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE1:
                     self._holder_recv_cr_ke_1(recveived_message_json)
+                # elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
+                #     self._holder_recv_cr_ke_3(recveived_message_json)
 
     def _send_xxx_message(self, sent_message_json: str) -> None:
         simple_log(
@@ -485,6 +525,7 @@ class DeviceController:
         simple_log("info", f"+ {self.this_device.device_name} is verifying r_ticket...")
 
         r_ticket_verifier = RTicketVerifier(
+            this_device=self.this_device,
             audit_start_ticket=audit_start_ticket,
             audit_end_ticket=audit_end_ticket,
             current_session=self.current_session,
@@ -720,15 +761,15 @@ class DeviceController:
                 ecdh.generate_random_byte(32)
             )
 
-            # Session Key Gereration
+            # Session Key Gereration ("holder")
             salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
             salt_2 = base64str_backto_byte(self.current_session.key_exchange_salt_2)
             shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
             current_session_key: bytes = ecdh.generate_ecdh_key(
-                server_private_key=self.this_device.device_priv_key,
+                server_private_key=self.this_person.person_priv_key,
                 salt=shared_salt,
                 info=None,
-                peer_public_key=str_to_key(self.current_session.current_holder_id),
+                peer_public_key=str_to_key(self.current_session.current_device_id),
             )
             self.current_session.current_session_key_str = byte_to_base64str(
                 current_session_key
@@ -736,26 +777,98 @@ class DeviceController:
 
             # Message Encryption (bytes)
             plaintext: bytes = str_to_byte("message to be encrypted and authenticated")
+            simple_log(
+                "debug",
+                "plaintext: " + byte_backto_str(plaintext),
+            )
             associated_plaintext: bytes = str_to_byte(
                 "message not to be encrypted but to be authenticated"
-            )
-            (ciphertext_1, gcm_authentication_tag_1, iv_1) = ecdh.gcm_encrypt(
-                plaintext, associated_plaintext, current_session_key
             )
             self.current_session.plaintext_1 = byte_backto_str(plaintext)
             self.current_session.associated_plaintext_1 = byte_backto_str(
                 associated_plaintext
             )
+
+            (ciphertext_1, gcm_authentication_tag_1, iv_1) = ecdh.gcm_encrypt(
+                plaintext, associated_plaintext, current_session_key
+            )
+            self.current_session.iv_1 = byte_to_base64str(iv_1)
             self.current_session.ciphertext_1 = byte_to_base64str(ciphertext_1)
             self.current_session.gcm_authentication_tag_1 = byte_to_base64str(
                 gcm_authentication_tag_1
             )
-            self.current_session.iv_1 = byte_to_base64str(iv_1)
-
-            simple_log(
-                "debug",
-                f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
+        elif (
+            type(ticket_in) == RTicket
+            and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET
+        ):
+            # Session Key Gereration ("device")
+            salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
+            salt_2 = base64str_backto_byte(ticket_in.key_exchange_salt_2)
+            # # Bitweise AND operation (python operates bit through int, & bytes is int arrary)
+            # type(salt_1[0])  # = int
+            # salt_1_bit = "".join(format(byte, "08b") for byte in salt_1)
+            # simple_log("debug", f"salt_1_bit = {salt_1_bit}")
+            # salt_2_bit = "".join(format(byte, "08b") for byte in salt_2)
+            # simple_log("debug", f"salt_2_bit = {salt_2_bit}")
+            # shared_salt_bit = "".join(format(byte, "08b") for byte in shared_salt)
+            # simple_log("debug", f"share_salt = {shared_salt_bit}")
+            # simple_log("debug", f"share_salt length (byte) = {len(shared_salt_bit)}")
+            shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
+            # len(shared_salt)  # = 32 bytes
+            current_session_key: bytes = ecdh.generate_ecdh_key(
+                server_private_key=self.this_device.device_priv_key,
+                salt=shared_salt,
+                info=None,
+                peer_public_key=str_to_key(self.current_session.current_holder_id),
             )
+            # len(current_session_key)  # = 32 bytes
+
+            # Message Decryption (bytes)
+            try:
+                ciphertext: bytes = base64str_backto_byte(ticket_in.ciphertext_1)
+                associated_plaintext: bytes = str_to_byte(
+                    ticket_in.associated_plaintext_1
+                )
+                gcm_authentication_tag: bytes = base64str_backto_byte(
+                    ticket_in.gcm_authentication_tag_1
+                )
+                iv_1: bytes = base64str_backto_byte(ticket_in.iv_1)
+
+                plaintext = ecdh.gcm_decrypt(
+                    ciphertext,
+                    associated_plaintext,
+                    gcm_authentication_tag,
+                    current_session_key,
+                    iv_1,
+                )
+
+                self.current_session.challenge_2 = ticket_in.challenge_2
+                self.current_session.key_exchange_salt_2 = ticket_in.key_exchange_salt_2
+                self.current_session.current_session_key_str = byte_to_base64str(
+                    current_session_key
+                )
+                self.current_session.plaintext_1 = byte_backto_str(plaintext)
+                simple_log(
+                    "debug",
+                    "plaintext: " + self.current_session.plaintext_1,
+                )
+                self.current_session.associated_plaintext_1 = (
+                    ticket_in.associated_plaintext_1
+                )
+                self.current_session.iv_1 = ticket_in.iv_1
+                self.current_session.ciphertext_1 = ticket_in.ciphertext_1
+                self.current_session.gcm_authentication_tag_1 = (
+                    ticket_in.gcm_authentication_tag_1
+                )
+
+                simple_log("info", "Message passes GCM Authentication.")
+            except InvalidTag:
+                simple_log("info", "Message does not pass GCM Authentication.")
+
+        simple_log(
+            "debug",
+            f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
+        )
 
         ######################################################
         # Storage (Persistent vs. RAM-only)
@@ -769,6 +882,8 @@ class DeviceController:
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
         if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            self._execute_update_current_session(r_ticket_in, "device")
+        if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._execute_update_current_session(r_ticket_in, "device")
 
         result = Success(r_ticket_in)

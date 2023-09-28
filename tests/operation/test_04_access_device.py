@@ -1,3 +1,4 @@
+from ureka_framework.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Success, Failure
 import pytest
@@ -84,10 +85,22 @@ class TestAccessDevice:
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
         )
-        # THEN: EP's CS can open a session with DO's IoTD
+        # THEN: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.current_session.current_holder_id
             == self.cloud_server_ep.current_session.current_holder_id
+        )
+        assert (
+            self.iot_device.current_session.current_task_scope
+            == self.cloud_server_ep.current_session.current_task_scope
+        )
+        assert (
+            self.iot_device.current_session.current_session_key_str
+            == self.cloud_server_ep.current_session.current_session_key_str
+        )
+        assert (
+            self.iot_device.current_session.plaintext_1
+            == self.cloud_server_ep.current_session.plaintext_1
         )
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
