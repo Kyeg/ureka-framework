@@ -6,7 +6,13 @@ from tests.conftest import (
     current_test_given_log,
     current_test_when_and_then_log,
 )
-from ureka_framework.resource.crypto import ecc, serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    str_to_byte,
+    byte_backto_str,
+    byte_to_base64str,
+    byte_backto_str,
+)
+import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.exceptions import InvalidTag
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -35,7 +41,7 @@ class TestCrypto:
 
         # WHEN: Sign & Verify a message
         current_test_when_and_then_log()
-        message = serialization_util.str_to_byte("Hello World")
+        message = str_to_byte("Hello World")
         signature_byte = ecc.sign_signature(message, priv_key)
         result = ecc.verify_signature(signature_byte, message, pub_key)
 
@@ -51,7 +57,7 @@ class TestCrypto:
 
         # WHEN: Sign & Verify a message
         current_test_when_and_then_log()
-        message = serialization_util.str_to_byte("Hello World")
+        message = str_to_byte("Hello World")
         signature_byte = ecc.sign_signature(message, priv_key1)
         result = ecc.verify_signature(signature_byte, message, pub_key2)
 
@@ -76,33 +82,28 @@ class TestCrypto:
         )
         simple_log(
             "debug",
-            "session_key1: " + serialization_util.byte_to_base64str(session_key1),
+            "session_key1: " + byte_to_base64str(session_key1),
         )
         session_key2: bytes = ecdh.generate_ecdh_key(
             priv_key2, shared_salt, shared_info, pub_key1
         )
         simple_log(
             "debug",
-            "session_key2: " + serialization_util.byte_to_base64str(session_key2),
+            "session_key2: " + byte_to_base64str(session_key2),
         )
 
         # WHEN: Message Encryption
-        plaintext: bytes = serialization_util.str_to_byte("message to be encrypted")
-        simple_log(
-            "debug", "plaintext: " + serialization_util.byte_backto_str(plaintext)
-        )
+        plaintext: bytes = str_to_byte("message to be encrypted")
+        simple_log("debug", "plaintext: " + byte_backto_str(plaintext))
         (ciphertext, shared_iv) = ecdh.cbc_encrypt(plaintext, session_key1)
-        simple_log(
-            "debug", "ciphertext: " + serialization_util.byte_to_base64str(ciphertext)
-        )
+        simple_log("debug", "ciphertext: " + byte_to_base64str(ciphertext))
 
         # WHEN: Transfer the Ciphertext || HMAC (or signature in UTicket) || 16-byte Shared_IV
         # WHEN: Message Decryption
         decrypted_plaintext = ecdh.cbc_decrypt(ciphertext, session_key2, shared_iv)
         simple_log(
             "debug",
-            "decrypted_plaintext: "
-            + serialization_util.byte_backto_str(decrypted_plaintext),
+            "decrypted_plaintext: " + byte_backto_str(decrypted_plaintext),
         )
 
         # THEN: The session key & the encrypted message can be shared
@@ -127,45 +128,35 @@ class TestCrypto:
         )
         simple_log(
             "debug",
-            "session_key1: " + serialization_util.byte_to_base64str(session_key1),
+            "session_key1: " + byte_to_base64str(session_key1),
         )
         session_key2: bytes = ecdh.generate_ecdh_key(
             priv_key2, shared_salt, shared_info, pub_key1
         )
         simple_log(
             "debug",
-            "session_key2: " + serialization_util.byte_to_base64str(session_key2),
+            "session_key2: " + byte_to_base64str(session_key2),
         )
 
         # WHEN: Message Encryption
-        plaintext: bytes = serialization_util.str_to_byte(
-            "message to be encrypted and authenticated"
-        )
-        associated_plaintext: bytes = serialization_util.str_to_byte(
+        plaintext: bytes = str_to_byte("message to be encrypted and authenticated")
+        associated_plaintext: bytes = str_to_byte(
             "message not to be encrypted but to be authenticated"
         )
-        simple_log(
-            "debug", "plaintext: " + serialization_util.byte_backto_str(plaintext)
-        )
+        simple_log("debug", "plaintext: " + byte_backto_str(plaintext))
         simple_log(
             "debug",
-            "associated_plaintext: "
-            + serialization_util.byte_backto_str(associated_plaintext),
+            "associated_plaintext: " + byte_backto_str(associated_plaintext),
         )
         (ciphertext, gcm_authentication_tag, shared_iv) = ecdh.gcm_encrypt(
             plaintext, associated_plaintext, session_key1
         )
-        simple_log(
-            "debug", "ciphertext: " + serialization_util.byte_to_base64str(ciphertext)
-        )
+        simple_log("debug", "ciphertext: " + byte_to_base64str(ciphertext))
         simple_log(
             "debug",
-            "gcm_authentication_tag: "
-            + serialization_util.byte_to_base64str(gcm_authentication_tag),
+            "gcm_authentication_tag: " + byte_to_base64str(gcm_authentication_tag),
         )
-        simple_log(
-            "debug", "shared_iv: " + serialization_util.byte_to_base64str(shared_iv)
-        )
+        simple_log("debug", "shared_iv: " + byte_to_base64str(shared_iv))
 
         # WHEN: Transfer the Ciphertext || Associated_plaintext || HMAC (or authentication_tag in GCM) || 16-byte Shared_IV
         # WHEN: Message Decryption
@@ -178,9 +169,7 @@ class TestCrypto:
             simple_log(
                 "debug",
                 "authenticated_and_decrypted_plaintext: "
-                + serialization_util.byte_backto_str(
-                    authenticated_and_decrypted_plaintext
-                ),
+                + byte_backto_str(authenticated_and_decrypted_plaintext),
             )
         except InvalidTag:
             with_right_tag = "Message does not pass Authentication."
@@ -213,17 +202,12 @@ class TestCrypto:
         (ciphertext2, gcm_authentication_tag2, shared_iv2) = ecdh.gcm_encrypt(
             plaintext, associated_plaintext, session_key1
         )
-        simple_log(
-            "debug", "ciphertext2: " + serialization_util.byte_to_base64str(ciphertext2)
-        )
+        simple_log("debug", "ciphertext2: " + byte_to_base64str(ciphertext2))
         simple_log(
             "debug",
-            "gcm_authentication_tag2: "
-            + serialization_util.byte_to_base64str(gcm_authentication_tag2),
+            "gcm_authentication_tag2: " + byte_to_base64str(gcm_authentication_tag2),
         )
-        simple_log(
-            "debug", "shared_iv2: " + serialization_util.byte_to_base64str(shared_iv2)
-        )
+        simple_log("debug", "shared_iv2: " + byte_to_base64str(shared_iv2))
 
         # WHEN: Transfer the Ciphertext || Associated_plaintext || HMAC (or authentication_tag in GCM) || 16-byte Shared_IV
         # WHEN: Message Decryption
@@ -236,9 +220,7 @@ class TestCrypto:
             simple_log(
                 "debug",
                 "authenticated_and_decrypted_plaintext2: "
-                + serialization_util.byte_backto_str(
-                    authenticated_and_decrypted_plaintext2
-                ),
+                + byte_backto_str(authenticated_and_decrypted_plaintext2),
             )
         except InvalidTag:
             with_right_tag = "Message does not pass Authentication."

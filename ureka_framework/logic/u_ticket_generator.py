@@ -5,7 +5,10 @@ import uuid
 from pydantic import ValidationError
 from ureka_framework.data_model.u_ticket import UTicket, u_ticket_to_jsonstr
 import ureka_framework.data_model.u_ticket as u_ticket
-import ureka_framework.resource.crypto.serialization_util as serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    byte_to_base64str,
+    str_to_byte,
+)
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
@@ -57,15 +60,13 @@ class UTicketGenerator:
     ) -> UTicket:
         # Message
         unsigned_u_ticket_str = u_ticket_to_jsonstr(unsigned_u_ticket)
-        unsigned_u_ticket_byte = serialization_util.str_to_byte(unsigned_u_ticket_str)
+        unsigned_u_ticket_byte = str_to_byte(unsigned_u_ticket_str)
 
         # Sign Signature
         signature_byte = ecc.sign_signature(unsigned_u_ticket_byte, private_key)
 
         # Add Signature on New Signed UTicket, but Prevent side effect on Unsigned UTicket
         signed_u_ticket = copy.deepcopy(unsigned_u_ticket)
-        signed_u_ticket.issuer_signature = serialization_util.byte_to_base64str(
-            signature_byte
-        )
+        signed_u_ticket.issuer_signature = byte_to_base64str(signature_byte)
 
         return signed_u_ticket

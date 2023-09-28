@@ -10,7 +10,11 @@ from ureka_framework.data_model.r_ticket import (
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
-import ureka_framework.resource.crypto.serialization_util as serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    str_to_key,
+    base64str_backto_byte,
+    str_to_byte,
+)
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -181,7 +185,7 @@ class RTicketVerifier:
         ):
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,
-                serialization_util.str_to_key(r_ticket_in.device_id),
+                str_to_key(r_ticket_in.device_id),
             ):
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
@@ -200,16 +204,14 @@ class RTicketVerifier:
         self, signed_r_ticket: RTicket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
         # Get Signature on RTicket
-        signature_byte = serialization_util.base64str_backto_byte(
-            signed_r_ticket.device_signature
-        )
+        signature_byte = base64str_backto_byte(signed_r_ticket.device_signature)
 
         # Verify Signature on Signed RTicket, but Prevent side effect on Signed RTicket
         unsigned_r_ticket = copy.deepcopy(signed_r_ticket)
         unsigned_r_ticket.device_signature = None
 
         unsigned_r_ticket_str = r_ticket_to_jsonstr(unsigned_r_ticket)
-        unsigned_r_ticket_byte = serialization_util.str_to_byte(unsigned_r_ticket_str)
+        unsigned_r_ticket_byte = str_to_byte(unsigned_r_ticket_str)
 
         # Verify Signature
         return ecc.verify_signature(signature_byte, unsigned_r_ticket_byte, public_key)

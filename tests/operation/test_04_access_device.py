@@ -13,7 +13,9 @@ from tests.conftest import (
     attacker_server,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    dict_to_jsonstr,
+)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 
@@ -54,10 +56,10 @@ class TestAccessDevice:
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
-        resource_tree = serialization_util.dict_to_jsonstr(
+        resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        generated_task_scope = serialization_util.dict_to_jsonstr(
+        generated_task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
         )
         generated_request: dict = {
@@ -73,7 +75,7 @@ class TestAccessDevice:
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        self.cloud_server_ep.holder_access_device(owned_device_id)
+        self.cloud_server_ep.holder_apply_u_ticket(owned_device_id)
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
@@ -106,12 +108,12 @@ class TestAccessDevice:
         # WHEN: DO's UA allow EP's CS to apply_access_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
@@ -197,12 +199,12 @@ class TestAccessDevice:
         # WHEN: DO's UA do not allow ATK's CS to apply_access_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
@@ -244,12 +246,12 @@ class TestAccessDevice:
         # WHEN: But the ATK's CS attempt to replace the holder in this session
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {

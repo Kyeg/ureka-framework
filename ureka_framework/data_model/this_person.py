@@ -4,7 +4,6 @@ from typing import Optional, Dict
 
 # Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.crypto.serialization_util import (
     key_to_str,
     str_to_key,
@@ -24,17 +23,13 @@ class ThisPerson:
     def person_priv_key_str(self) -> None | str:
         if self.person_priv_key is None:
             return None
-        return serialization_util.key_to_str(
-            self.person_priv_key, key_type="ecc-private-key"
-        )
+        return key_to_str(self.person_priv_key, key_type="ecc-private-key")
 
     @property
     def person_pub_key_str(self) -> None | str:
         if self.person_pub_key is None:
             return None
-        return serialization_util.key_to_str(
-            self.person_pub_key, key_type="ecc-public-key"
-        )
+        return key_to_str(self.person_pub_key, key_type="ecc-public-key")
 
 
 ################################################################################

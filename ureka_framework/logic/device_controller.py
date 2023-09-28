@@ -34,7 +34,14 @@ import ureka_framework.data_model.r_ticket as r_ticket
 
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
-import ureka_framework.resource.crypto.serialization_util as serialization_util
+
+from ureka_framework.resource.crypto.serialization_util import (
+    base64str_backto_byte,
+    byte_to_base64str,
+    str_to_key,
+    str_to_byte,
+    byte_backto_str,
+)
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -136,7 +143,7 @@ class DeviceController:
             self._send_xxx_message(generated_u_ticket_json)
             self.state = this_device.STATE_WAIT_FOR_RT
 
-            # End Test
+            # End Comm
             self.complete_comm()
 
             return generated_u_ticket_json
@@ -156,7 +163,7 @@ class DeviceController:
         # Can optionally _verify_xxx_u_ticket
         # Can optionally _generate_xxx_r_ticket & _send_xxx_message
 
-        # End Test
+        # End Comm
         self.complete_comm()
 
         return received_u_ticket_json
@@ -165,21 +172,19 @@ class DeviceController:
     # [IO-level]
     #
     # APY (No CR):
-    #       holder_access_device() -> device_be_accessed()
+    #       holder_apply_u_ticket() -> device_receive_u_ticket()
     #       holder_receive_r_ticket() <- device_send_r_ticket()
     #
     # TO-DO: Automatic UT-RT & UT-CR-KE-PS-RT
     #           Concurrent device_controller,
     #           i.e., FakeComm (Sequential Sender/Receiver) -> (Concurrent Sender/Receiver)
     ######################################################
-    def holder_access_device(self, device_id: str) -> None:
-        # [FUNC-level: RTVEGT'S']
+    def holder_apply_u_ticket(self, device_id: str) -> None:
+        # [FUNC-level: RTV'E'GT'S']
         if device_id in self.device_table:
             stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
             stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
             # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
-            # Also can add command in u_ticket
-            self._send_xxx_message(stored_u_ticket_json)
 
             if (
                 stored_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -190,12 +195,15 @@ class DeviceController:
                 self.state = this_device.STATE_WAIT_FOR_CRKE1
                 # Update session
                 self._execute_update_current_session(stored_u_ticket, "holder")
+                # Also can add command in u_ticket
+
+            self._send_xxx_message(stored_u_ticket_json)
 
         else:  # pragma: no cover -> IO-level
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
             simple_log("error", failure_msg)
 
-    def _device_be_accessed(self, received_u_ticket_json: str) -> None:
+    def _device_receive_u_ticket(self, received_u_ticket_json: str) -> None:
         # [FUNC-level: 'RTVE'GTS]
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
@@ -232,7 +240,7 @@ class DeviceController:
         self._send_xxx_message(generated_r_ticket_json)
         self.state = this_device.STATE_WAIT_FOR_UT
 
-        # End Test
+        # End Comm
         self.complete_comm()
 
     def _holder_receive_r_ticket(self, recieved_r_ticket_json) -> None:
@@ -270,14 +278,14 @@ class DeviceController:
             )
             simple_log("error", failure_msg)
 
-        # End Test
+        # End Comm
         self.complete_comm()
 
     ######################################################
     # [IO-level]
     #
     # APY (With CR-KE-PS):
-    #       holder_access_device() -> device_be_accessed()
+    #       holder_apply_u_ticket() -> device_receive_u_ticket()
     #                     holder_recv_cr_ke_1() <- device_send_cr_ke_1()
     #                     holder_send_cr_ke_2() -> device_recv_cr_ke_2()
     #           device_recv_1st_data_r_ticket() <- device_send_1st_data_r_ticket()
@@ -306,7 +314,7 @@ class DeviceController:
         self._send_xxx_message(generated_r_ticket_json)
         self.state = this_device.STATE_WAIT_FOR_CRKE2
 
-        # TO-DO: End Test
+        # TO-DO: End Comm
         self.complete_comm()
 
     def _holder_recv_cr_ke_1(self, recieved_r_ticket_json) -> None:
@@ -331,7 +339,7 @@ class DeviceController:
             result_message = f"{result.failure().args[0]}"
         simple_log("debug", f"result_message = {result_message}")
 
-        # End Test
+        # TO-DO: End Comm
         self.complete_comm()
 
     ######################################################
@@ -363,7 +371,7 @@ class DeviceController:
             )
             if self.this_device.device_type == this_device.IOT_DEVICE:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
-                    self._device_be_accessed(recveived_message_json)
+                    self._device_receive_u_ticket(recveived_message_json)
             if self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._holder_receive_consent(recveived_message_json)
@@ -633,9 +641,7 @@ class DeviceController:
         # Initialize Device Owner
         ######################################################
         # RAM
-        self.this_device.owner_pub_key = serialization_util.str_to_key(
-            u_ticket_in.holder_id
-        )
+        self.this_device.owner_pub_key = str_to_key(u_ticket_in.holder_id)
 
         ######################################################
         # Storage
@@ -655,7 +661,7 @@ class DeviceController:
         # Update Device Owner
         ######################################################
         # RAM
-        self.this_device.owner_pub_key = serialization_util.str_to_key(
+        self.this_device.owner_pub_key = str_to_key(
             new_u_ticket.holder_id, key_type="ecc-public-key"
         )
 
@@ -667,7 +673,7 @@ class DeviceController:
         )
 
     def _execute_update_current_session(
-        self, ticket_in: UTicket, comm_end: str
+        self, ticket_in: UTicket | RTicket, comm_end: str
     ) -> None:
         simple_log(
             "info", f"+ {self.this_device.device_name} is updating current session..."
@@ -677,31 +683,79 @@ class DeviceController:
         # Update Session
         ######################################################
         # RAM
-        if ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+        if (
+            type(ticket_in) == UTicket
+            and ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
             if comm_end == "holder":
-                # Access Permission UT
+                # Access UT
                 self.current_session.current_u_ticket_id = ticket_in.u_ticket_id
                 self.current_session.current_device_id = ticket_in.device_id
                 self.current_session.current_holder_id = ticket_in.holder_id
                 self.current_session.current_task_scope = ticket_in.task_scope
             elif comm_end == "device":
-                # Access Permission UT
+                # Access UT
                 self.current_session.current_u_ticket_id = ticket_in.u_ticket_id
                 self.current_session.current_device_id = ticket_in.device_id
                 self.current_session.current_holder_id = ticket_in.holder_id
                 self.current_session.current_task_scope = ticket_in.task_scope
                 # CR-KE
-                self.current_session.challenge_1 = serialization_util.byte_to_base64str(
+                self.current_session.challenge_1 = byte_to_base64str(
                     ecdh.generate_random_byte(32)
                 )
-                self.current_session.key_exchange_salt_1 = (
-                    serialization_util.byte_to_base64str(ecdh.generate_random_byte(32))
+                self.current_session.key_exchange_salt_1 = byte_to_base64str(
+                    ecdh.generate_random_byte(32)
                 )
+        elif (
+            type(ticket_in) == RTicket
+            and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+        ):
+            # CR-KE
+            self.current_session.challenge_1 = ticket_in.challenge_1
+            self.current_session.key_exchange_salt_1 = ticket_in.key_exchange_salt_1
+            self.current_session.challenge_2 = byte_to_base64str(
+                ecdh.generate_random_byte(32)
+            )
+            self.current_session.key_exchange_salt_2 = byte_to_base64str(
+                ecdh.generate_random_byte(32)
+            )
 
-        simple_log(
-            "debug",
-            f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
-        )
+            # Session Key Gereration
+            salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
+            salt_2 = base64str_backto_byte(self.current_session.key_exchange_salt_2)
+            shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
+            current_session_key: bytes = ecdh.generate_ecdh_key(
+                server_private_key=self.this_device.device_priv_key,
+                salt=shared_salt,
+                info=None,
+                peer_public_key=str_to_key(self.current_session.current_holder_id),
+            )
+            self.current_session.current_session_key_str = byte_to_base64str(
+                current_session_key
+            )
+
+            # Message Encryption (bytes)
+            plaintext: bytes = str_to_byte("message to be encrypted and authenticated")
+            associated_plaintext: bytes = str_to_byte(
+                "message not to be encrypted but to be authenticated"
+            )
+            (ciphertext_1, gcm_authentication_tag_1, iv_1) = ecdh.gcm_encrypt(
+                plaintext, associated_plaintext, current_session_key
+            )
+            self.current_session.plaintext_1 = byte_backto_str(plaintext)
+            self.current_session.associated_plaintext_1 = byte_backto_str(
+                associated_plaintext
+            )
+            self.current_session.ciphertext_1 = byte_to_base64str(ciphertext_1)
+            self.current_session.gcm_authentication_tag_1 = byte_to_base64str(
+                gcm_authentication_tag_1
+            )
+            self.current_session.iv_1 = byte_to_base64str(iv_1)
+
+            simple_log(
+                "debug",
+                f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
+            )
 
         ######################################################
         # Storage (Persistent vs. RAM-only)
@@ -714,7 +768,8 @@ class DeviceController:
     def _execute_xxx_r_ticket(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
-        # if r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+        if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            self._execute_update_current_session(r_ticket_in, "device")
 
         result = Success(r_ticket_in)
         return result

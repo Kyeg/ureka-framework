@@ -7,7 +7,10 @@ from ureka_framework.data_model.u_ticket import (
     u_ticket_to_jsonstr,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
-import ureka_framework.resource.crypto.serialization_util as serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    base64str_backto_byte,
+    str_to_byte,
+)
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
@@ -125,16 +128,14 @@ class UTicketVerifier:
         self, signed_u_ticket: UTicket, public_key: ec.EllipticCurvePublicKey
     ) -> bool:
         # Get Signature on UTicket
-        signature_byte = serialization_util.base64str_backto_byte(
-            signed_u_ticket.issuer_signature
-        )
+        signature_byte = base64str_backto_byte(signed_u_ticket.issuer_signature)
 
         # Verify Signature on Signed UTicket, but Prevent side effect on Signed UTicket
         unsigned_u_ticket = copy.deepcopy(signed_u_ticket)
         unsigned_u_ticket.issuer_signature = None
 
         unsigned_u_ticket_str = u_ticket_to_jsonstr(unsigned_u_ticket)
-        unsigned_u_ticket_byte = serialization_util.str_to_byte(unsigned_u_ticket_str)
+        unsigned_u_ticket_byte = str_to_byte(unsigned_u_ticket_str)
 
         # Verify Signature
         return ecc.verify_signature(signature_byte, unsigned_u_ticket_byte, public_key)
