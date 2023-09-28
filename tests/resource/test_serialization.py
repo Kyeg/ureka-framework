@@ -31,6 +31,11 @@ from ureka_framework.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
+from ureka_framework.data_model.current_session import (
+    CurrentSession,
+    jsonstr_to_current_session,
+    current_session_to_jsonstr,
+)
 from ureka_framework.resource.crypto import ecdh
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
@@ -136,9 +141,7 @@ class TestSerialization:
 
         test_request: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request
@@ -166,7 +169,6 @@ class TestSerialization:
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
@@ -182,48 +184,6 @@ class TestSerialization:
 
         # THEN: The result of serialization/deserialization should be the same
         assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == r_ticket_obj.r_ticket_type
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_r_ticket_verification(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DM's CS and DM's IoTD
-        (
-            self.cloud_server_dm,
-            self.iot_device,
-        ) = device_manufacturer_server_and_her_device()
-
-        # GIVEN: DM's CS known the Device Public Key
-        device_public_key_str: str = self.iot_device.this_device.device_pub_key_str
-
-        # WHEN: DM's IoTD generate R-Ticket
-        current_test_when_and_then_log()
-        test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "device_id": f"{device_public_key_str}",
-            "audit_start": f"",
-            "audit_end": f"",
-            "result": f"Success/Failure",
-        }
-        r_ticket_json: str = self.iot_device._generate_xxx_r_ticket(test_request)
-        logging.warning(f"r_ticket_json = {r_ticket_json}")
-
-        # WHEN: DM's CS verify R-Ticket by Device Public Key
-        result = self.cloud_server_dm._verify_xxx_r_ticket(
-            arbitrary_json=r_ticket_json,
-            device_public_key_str=device_public_key_str,
-        )
-
-        # WHEN: DM's CS verify R-Ticket by Device Public Key
-        wrong_pub_key = self.cloud_server_dm.this_device.device_pub_key_str
-        result2 = self.cloud_server_dm._verify_xxx_r_ticket(
-            arbitrary_json=r_ticket_json,
-            device_public_key_str=wrong_pub_key,
-        )
-
-        # THEN: DM's CS succeed to verify R-Ticket
-        assert type(result) == Success
-        assert type(result2) == Failure
 
     def test_json_serialization_failed(self) -> None:
         current_test_given_log()
@@ -247,6 +207,8 @@ class TestSerialization:
             other_device: str = jsonstr_to_device_table(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_this_person_error_info:
             this_person: str = jsonstr_to_this_person(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_current_session_error_info:
+            current_session: str = jsonstr_to_current_session(wrong_json_schema)
 
         # THEN: Failed to serialize/deserialize an invalid json
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
@@ -261,6 +223,10 @@ class TestSerialization:
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
+        assert (
+            str(jsonstr_to_current_session_error_info.value)
+            == "NOT VALID JSON or VALID SCHEMA"
+        )
 
     def test_byte_serialization_failed(self) -> None:
         current_test_given_log()
@@ -350,9 +316,7 @@ class TestSerialization:
 
         test_request_1: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -368,9 +332,7 @@ class TestSerialization:
 
         test_request_2: dict = {
             "device_id": f"device_id",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
@@ -401,7 +363,6 @@ class TestSerialization:
         test_request_1: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
@@ -417,7 +378,6 @@ class TestSerialization:
         test_request_2: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
         }
         r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)

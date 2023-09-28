@@ -115,7 +115,6 @@ def device_manufacturer_server_and_her_device() -> (
         "device_id": f"{id_for_initialization_u_ticket}",
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-        "task_scope": f"",
     }
     cloud_server_dm.issuer_issue_consent_to_herself(
         device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
@@ -126,7 +125,7 @@ def device_manufacturer_server_and_her_device() -> (
     iot_device.device_be_accessed()
 
     # WHEN: Holder: DM's CS receive the intialization_r_ticket
-    cloud_server_dm.holder_receive_r_ticket()
+    cloud_server_dm._holder_receive_r_ticket()
 
     return (cloud_server_dm, iot_device)
 
@@ -148,7 +147,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         "device_id": f"{owned_device_id}",
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+        "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
     }
     cloud_server_dm.issuer_issue_consent_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
@@ -165,7 +164,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     iot_device.device_be_accessed()
 
     # WHEN: Holder: DO's UA receive the management_r_ticket
-    user_agent_do.holder_receive_r_ticket()
+    user_agent_do._holder_receive_r_ticket()
 
     return (user_agent_do, iot_device)
 

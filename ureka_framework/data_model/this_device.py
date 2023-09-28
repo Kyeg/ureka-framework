@@ -25,53 +25,53 @@ IOT_DEVICE: str = "IOT_DEVICE"
 @dataclass
 class ThisDevice:
     # Device Type (Device can be User Agent, Cloud Server, or IoT Device...)
-    device_type: str = ""
-    device_name: str = ""
-    has_device_type: bool = False
+    device_type: None | str = None
+    device_name: None | str = None
+    has_device_type: None | bool = False
 
     # Generate Device Key after Intialization
-    is_initialized: bool = False
-    device_priv_key: ec.EllipticCurvePrivateKey = None
-    device_pub_key: ec.EllipticCurvePublicKey = None
+    is_initialized: None | bool = False
+    device_priv_key: None | ec.EllipticCurvePrivateKey = None
+    device_pub_key: None | ec.EllipticCurvePublicKey = None
 
     # Generate Owner Key after Intialization
-    owner_pub_key: ec.EllipticCurvePublicKey = None
+    owner_pub_key: None | ec.EllipticCurvePublicKey = None
 
-    # Current Session (RAM-only)
-    current_holder_pub_key: ec.EllipticCurvePublicKey = None
-    current_session_key_byte: bytes = b""
+    # # Current Session (RAM-only)
+    # current_holder_pub_key: None | ec.EllipticCurvePublicKey = None
+    # current_session_key_byte: None | bytes = None
 
     @property
-    def device_priv_key_str(self) -> str:
+    def device_priv_key_str(self) -> None | str:
         if self.device_priv_key is None:
-            return ""
+            return None
         return serialization_util.key_to_str(
             self.device_priv_key, key_type="ecc-private-key"
         )
 
     @property
-    def device_pub_key_str(self) -> str:
+    def device_pub_key_str(self) -> None | str:
         if self.device_pub_key is None:
-            return ""
+            return None
         return serialization_util.key_to_str(
             self.device_pub_key, key_type="ecc-public-key"
         )
 
     @property
-    def owner_pub_key_str(self) -> str:
+    def owner_pub_key_str(self) -> None | str:
         if self.owner_pub_key is None:
-            return ""
+            return None
         return serialization_util.key_to_str(
             self.owner_pub_key, key_type="ecc-public-key"
         )
 
-    @property
-    def current_holder_pub_key_str(self) -> str:
-        if self.current_holder_pub_key is None:
-            return ""
-        return serialization_util.key_to_str(
-            self.current_holder_pub_key, key_type="ecc-public-key"
-        )
+    # @property
+    # def current_holder_pub_key_str(self) -> None | str:
+    #     if self.current_holder_pub_key is None:
+    #         return None
+    #     return serialization_util.key_to_str(
+    #         self.current_holder_pub_key, key_type="ecc-public-key"
+    #     )
 
 
 ################################################################################
@@ -114,18 +114,18 @@ def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
         this_device_dict["owner_pub_key"] = key_to_str(
             this_device_obj.owner_pub_key, "ecc-public-key"
         )
-    if this_device_obj.current_holder_pub_key == None:
-        this_device_dict["current_holder_pub_key"] = None
-    else:  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
-        this_device_dict["current_holder_pub_key"] = key_to_str(
-            this_device_obj.current_holder_pub_key, "ecc-public-key"
-        )
-    if this_device_obj.current_session_key_byte == b"":
-        this_device_dict["current_session_key_byte"] = None
-    else:  # pragma: no cover -> Never reach here: Because the current_session_key_byte is not persistently stored
-        this_device_dict["current_session_key_byte"] = byte_to_base64str(
-            this_device_obj.current_session_key_byte
-        )
+    # if this_device_obj.current_holder_pub_key == None:
+    #     this_device_dict["current_holder_pub_key"] = None
+    # else:  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
+    #     this_device_dict["current_holder_pub_key"] = key_to_str(
+    #         this_device_obj.current_holder_pub_key, "ecc-public-key"
+    #     )
+    # if this_device_obj.current_session_key_byte == None:
+    #     this_device_dict["current_session_key_byte"] = None
+    # else:  # pragma: no cover -> Never reach here: Because the current_session_key_byte is not persistently stored
+    #     this_device_dict["current_session_key_byte"] = byte_to_base64str(
+    #         this_device_obj.current_session_key_byte
+    #     )
 
     return this_device_dict
 
@@ -151,19 +151,19 @@ def _dict_to_this_device(
         this_device_obj.owner_pub_key = str_to_key(
             this_device_dict["owner_pub_key"], "ecc-public-key"
         )
-    if (
-        this_device_dict["current_holder_pub_key"] != None
-    ):  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
-        this_device_obj.current_holder_pub_key = str_to_key(
-            this_device_dict["current_holder_pub_key"], "ecc-public-key"
-        )
-    if this_device_dict["current_session_key_byte"] == None:
-        this_device_obj.current_session_key_byte = b""
-    else:  # pragma: no cover
-        # Never reach here: Because the current_session_key_byte is not persistently stored
-        this_device_obj.current_session_key_byte = base64str_backto_byte(
-            this_device_dict["current_session_key_byte"]
-        )
+    # if (
+    #     this_device_dict["current_holder_pub_key"] != None
+    # ):  # pragma: no cover -> Never reach here: Because the current_holder_pub_key is not persistently stored
+    #     this_device_obj.current_holder_pub_key = str_to_key(
+    #         this_device_dict["current_holder_pub_key"], "ecc-public-key"
+    #     )
+    # if this_device_dict["current_session_key_byte"] == None:
+    #     this_device_obj.current_session_key_byte = None
+    # else:  # pragma: no cover
+    #     # Never reach here: Because the current_session_key_byte is not persistently stored
+    #     this_device_obj.current_session_key_byte = base64str_backto_byte(
+    #         this_device_dict["current_session_key_byte"]
+    #     )
 
     return this_device_obj
 

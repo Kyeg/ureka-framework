@@ -13,26 +13,18 @@ PROTOCOL_VERSION: str = "UREKA-1.0"
 TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
 TYPE_MANAGEMENT_UTICKET: str = "MANAGEMENT"
 TYPE_ACCESS_PERMISSION_UTICKET: str = "ACCESS-PERMISSION"
-TYPE_CHALLENGE_UTICKET: str = "CHALLENGE"
-TYPE_RESPONSE_UTICKET: str = "RESPONSE"
-TYPE_KEY_EXCHANGE_UTICKET: str = "KEY-EXCHANGE"
-# TYPE_COMMAND_UTICKET: str = "COMMAND"
-# TYPE_RETURN_UTICKET: str = "RETURN"
 # TYPE_QUERY_UTICKET: str = "QUERY"
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
     TYPE_MANAGEMENT_UTICKET,
     TYPE_ACCESS_PERMISSION_UTICKET,
-    TYPE_CHALLENGE_UTICKET,
-    TYPE_RESPONSE_UTICKET,
-    TYPE_KEY_EXCHANGE_UTICKET,
 }
 
 ######################################################
-# Request Body Type
+# Task Scope
 ######################################################
-REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: str = "MANAGEMENT-TYPE"
-REQUEST_BODY_ACCESS_PERMISSION_RESOURCE_TREE: str = "RESOURCE-TREE"
+TASK_SCOPE_MANAGEMENT: str = "TASK-SCOPE-MANAGEMENT"
+TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
 
 ######################################################
 # Device Type
@@ -51,16 +43,16 @@ MANAGEMENT_OWNER: str = "NEW-OWNER"
 # Data Model
 ######################################################
 class UTicket(BaseModel):
-    protocol_verision: str = PROTOCOL_VERSION
-    u_ticket_id: str = ""
+    protocol_verision: None | str = PROTOCOL_VERSION
+    u_ticket_id: None | str = None
 
-    u_ticket_type: str = ""
+    u_ticket_type: None | str = None
 
-    device_id: str = ""
-    holder_id: str = ""
-    task_scope: str = ""
+    device_id: None | str = None
+    holder_id: None | str = None
+    task_scope: None | str = None
 
-    issuer_signature: str = ""
+    issuer_signature: None | str = None
 
     def __eq__(self, other):
         if isinstance(other, UTicket):
@@ -84,7 +76,7 @@ class UTicket(BaseModel):
 ################################################################################
 def u_ticket_to_jsonstr(u_ticket_obj: UTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    u_ticket_json = u_ticket_obj.model_dump_json(indent=4)
+    u_ticket_json = u_ticket_obj.model_dump_json(indent=4, exclude_none=True)
     return u_ticket_json
 
 

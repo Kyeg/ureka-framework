@@ -52,13 +52,12 @@ class TestStorage:
             "device_id": f"{id_for_initialization_u_ticket}",
             "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
         self.cloud_server_dm._send_xxx_message(test_u_ticket)
 
         self.iot_device._recv_xxx_message()
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: The messages sent and received are the same
         assert (

@@ -42,42 +42,25 @@ class TestIntializeAgentOrServer:
             device_name="cloud_server_dm",
         )
         assert self.cloud_server_dm.this_device.is_initialized == False
-        assert self.cloud_server_dm.this_device.device_priv_key_str == ""
-        assert self.cloud_server_dm.this_device.device_pub_key_str == ""
-        assert self.cloud_server_dm.this_device.owner_pub_key_str == ""
-        assert self.cloud_server_dm.this_person.person_priv_key_str == ""
-        assert self.cloud_server_dm.this_person.person_pub_key_str == ""
+        assert self.cloud_server_dm.this_device.device_priv_key_str == None
+        assert self.cloud_server_dm.this_device.device_pub_key_str == None
+        assert self.cloud_server_dm.this_device.owner_pub_key_str == None
+        assert self.cloud_server_dm.this_person.person_priv_key_str == None
+        assert self.cloud_server_dm.this_person.person_pub_key_str == None
 
         # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Uninitialized CS
         current_test_when_and_then_log()
         result = self.cloud_server_dm._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
+        # logging.debug(f"Successful result = {result.unwrap()}")
         assert type(result) == Success
         assert self.cloud_server_dm.this_device.is_initialized == True
-        assert self.cloud_server_dm.this_device.device_priv_key_str != ""
-        assert self.cloud_server_dm.this_device.device_pub_key_str != ""
-        assert self.cloud_server_dm.this_device.owner_pub_key_str != ""
-        assert self.cloud_server_dm.this_person.person_priv_key_str != ""
-        assert self.cloud_server_dm.this_person.person_pub_key_str != ""
-
-    def test_intialize_agent_or_server_with_reboot(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DM's CS
-        self.cloud_server_dm = device_manufacturer_server()
-
-        # WHEN: Reboot the DM's CS
-        current_test_when_and_then_log()
-        self.cloud_server_dm.reboot_device()
-
-        # THEN: Still is initialized  IoTD
-        assert self.cloud_server_dm.this_device.is_initialized == True
-        assert self.cloud_server_dm.this_device.device_priv_key_str != ""
-        assert self.cloud_server_dm.this_device.device_pub_key_str != ""
-        assert self.cloud_server_dm.this_device.owner_pub_key_str != ""
-        assert self.cloud_server_dm.this_person.person_priv_key_str != ""
-        assert self.cloud_server_dm.this_person.person_pub_key_str != ""
+        assert self.cloud_server_dm.this_device.device_priv_key_str != None
+        assert self.cloud_server_dm.this_device.device_pub_key_str != None
+        assert self.cloud_server_dm.this_device.owner_pub_key_str != None
+        assert self.cloud_server_dm.this_person.person_priv_key_str != None
+        assert self.cloud_server_dm.this_person.person_pub_key_str != None
 
     def test_intialize_agent_or_server_reintialized_failed(self) -> None:
         current_test_given_log()
@@ -111,3 +94,21 @@ class TestIntializeAgentOrServer:
 
         # THEN: Failed to initialize IoTD
         assert type(result) == Failure
+
+    def test_intialize_agent_or_server_with_reboot(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        self.cloud_server_dm = device_manufacturer_server()
+
+        # WHEN: Reboot the DM's CS
+        current_test_when_and_then_log()
+        self.cloud_server_dm.reboot_device()
+
+        # THEN: Still is initialized  IoTD
+        assert self.cloud_server_dm.this_device.is_initialized == True
+        assert self.cloud_server_dm.this_device.device_priv_key_str != None
+        assert self.cloud_server_dm.this_device.device_pub_key_str != None
+        assert self.cloud_server_dm.this_device.owner_pub_key_str != None
+        assert self.cloud_server_dm.this_person.person_priv_key_str != None
+        assert self.cloud_server_dm.this_person.person_pub_key_str != None

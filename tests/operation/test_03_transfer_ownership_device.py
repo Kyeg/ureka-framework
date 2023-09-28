@@ -58,7 +58,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         self.cloud_server_dm.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
@@ -77,7 +77,7 @@ class TestTransferOwnershipDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: DO's UA receive the management_r_ticket
-        self.user_agent_do.holder_receive_r_ticket()
+        self.user_agent_do._holder_receive_r_ticket()
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
@@ -111,7 +111,7 @@ class TestTransferOwnershipDevice:
             "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         self.cloud_server_atk.issuer_issue_consent_to_herself(
             device_id=target_device_id, arbitrary_dict=generated_request
@@ -127,67 +127,9 @@ class TestTransferOwnershipDevice:
         self.iot_device.device_be_accessed()
 
         # WHEN: Holder: ATK's CS receive the management_r_ticket
-        self.cloud_server_atk.holder_receive_r_ticket()
+        self.cloud_server_atk._holder_receive_r_ticket()
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
-        assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
-        )
-
-    def test_apply_management_u_ticket_with_storage_and_comm(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DM's CS and DM's IoTD
-        (
-            self.cloud_server_dm,
-            self.iot_device,
-        ) = device_manufacturer_server_and_her_device()
-        assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
-        )
-
-        # GIVEN: Initialized DO's UA
-        self.user_agent_do = device_owner_agent()
-
-        # WHEN:
-        current_test_when_and_then_log()
-        # WHEN: Issuer:
-        # WHEN: DM's CS generate & send the management_u_ticket for DO's UA
-        create_comm_connection(self.cloud_server_dm, self.user_agent_do)
-        generated_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
-        }
-        generated_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            generated_request
-        )
-        self.cloud_server_dm._send_xxx_message(generated_u_ticket)
-
-        # WHEN: Holder:
-        # WHEN: DO's UA receive & store the management_u_ticket
-        str = self.user_agent_do._recv_xxx_message()
-        device_id = self.user_agent_do._store_recieved_xxx_u_ticket()
-
-        # WHEN: Holder:
-        # WHEN: DO's UA forward the management_u_ticket
-        create_comm_connection(self.user_agent_do, self.iot_device)
-        stored_u_ticket: str = self.user_agent_do.device_table[
-            device_id
-        ].device_u_ticket
-        self.user_agent_do._send_xxx_message(stored_u_ticket)
-
-        # WHEN: Device:
-        # WHEN: DO's IoTD receive the management_u_ticket
-        recveived_u_ticket: str = self.iot_device._recv_xxx_message()
-        self.user_agent_do._store_recieved_xxx_u_ticket()
-        result = self.iot_device._verify_xxx_u_ticket(recveived_u_ticket)
-
-        # THEN: Succeed to transfer ownership (become DO's IoTD)
-        assert type(result) == Success
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
@@ -211,32 +153,13 @@ class TestTransferOwnershipDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
-        assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
-        )
-
-    def test_apply_management_u_ticket_with_reboot(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DO's UA and DO's IoTD
-        (
-            self.user_agent_do,
-            self.iot_device,
-        ) = device_owner_agent_and_her_device()
-
-        # WHEN: Reboot the DO's IoTD
-        current_test_when_and_then_log()
-        self.iot_device.reboot_device()
-
-        # THEN: Still is successful to transfer ownership (become DO's IoTD)
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
@@ -260,10 +183,10 @@ class TestTransferOwnershipDevice:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure
@@ -271,6 +194,25 @@ class TestTransferOwnershipDevice:
             result.failure().args[0]
             == "-> FAILURE: VERIFY_ISSUER_SIGNATURE on MANAGEMENT UTICKET"
         )
+        assert (
+            self.iot_device.this_device.owner_pub_key_str
+            == self.user_agent_do.this_person.person_pub_key_str
+        )
+
+    def test_apply_management_u_ticket_with_reboot(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # WHEN: Reboot the DO's IoTD
+        current_test_when_and_then_log()
+        self.iot_device.reboot_device()
+
+        # THEN: Still is successful to transfer ownership (become DO's IoTD)
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str

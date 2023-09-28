@@ -6,7 +6,6 @@ from tests.conftest import (
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
-    device_manufacturer_server_and_her_device,
     device_owner_agent_and_her_device_and_attacker,
     enterprise_provider_server,
 )
@@ -42,24 +41,11 @@ class TestArbitraryInput:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Broken Test")
     def test_apply_wrong_json_schema_in_u_ticket(self) -> None:
         # WHEN: Not fit with json format '{"key": "value"}'
         current_test_when_and_then_log()
         test_u_ticket: str = "WRONG-JSON-SCHEMA"
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
-
-        # THEN: Raise the RuntimeError (Invalid JSON)
-        assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_json_schema_in_r_ticket(self) -> None:
-        # WHEN: Not fit with json format '{"key": "value"}'
-        current_test_when_and_then_log()
-        test_r_ticket: str = "WRONG-JSON-SCHEMA"
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Raise the RuntimeError (Invalid JSON)
         assert type(result) == Failure
@@ -74,7 +60,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": 123,
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
             test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
@@ -115,7 +101,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
             "undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
@@ -134,7 +120,6 @@ class TestArbitraryInput:
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
             "audit_start": f"u_ticket_id",
-            "audit_end": f"",
             "result": f"Success/Failure",
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
         }
@@ -158,7 +143,7 @@ class TestArbitraryInput:
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.REQUEST_BODY_MANAGEMENT_MANAGEMENT_TYPE: u_ticket.MANAGEMENT_OWNER})}",
+            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
         logging.debug(f"test_u_ticket = {test_u_ticket}")
@@ -173,7 +158,9 @@ class TestArbitraryInput:
         logging.debug(f"modified_test_u_ticket = {modified_test_u_ticket}")
 
         # WHEN: Verify the modified u_ticket
-        result = self.iot_device._verify_xxx_u_ticket(modified_test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(
+            modified_test_u_ticket
+        )
 
         # THEN: Raise the RuntimeError (Extra inputs are not permitted)
         assert type(result) == Failure
@@ -186,54 +173,21 @@ class TestArbitraryInput:
         # WHEN: Wrong u_ticket protocol version
         current_test_when_and_then_log()
         test_u_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
-        assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_protocol_version_in_r_ticket(self) -> None:
-        # WHEN: Wrong r_ticket protocol version
-        current_test_when_and_then_log()
-        test_r_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
-
-        # THEN: Fail to audit R-Ticket
         assert type(result) == Failure
 
     def test_apply_wrong_u_ticket_type(self) -> None:
         # WHEN: Wrong u_ticket type
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"",
-            "holder_id": f"",
             "u_ticket_type": f"WRONG-UTICKET-TYPE",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
-        assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Broken Test")
-    def test_apply_wrong_r_ticket_type(self) -> None:
-        # WHEN: Wrong r_ticket type
-        current_test_when_and_then_log()
-        test_request: dict = {
-            "r_ticket_type": f"WRONG-RTICKET-TYPE",
-            "audit_start": f"u_ticket_id",
-            "audit_end": f"",
-            "result": f"Success/Failure",
-        }
-        test_r_ticket: str = self.cloud_server_atk._generate_xxx_r_ticket(test_request)
-        result = self.iot_device._verify_xxx_r_ticket(
-            test_r_ticket, self.device_pub_key_str
-        )
-
-        # THEN: Fail to audit R-Ticket
         assert type(result) == Failure
 
     def test_apply_wrong_device_id(self) -> None:
@@ -241,17 +195,10 @@ class TestArbitraryInput:
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"WRONG-DEVICE-ID",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
-
-    @pytest.mark.skip(reason="Not implemented yet")
-    def test_apply_no_signature(self) -> None:
-        # WHEN: ...
-        current_test_when_and_then_log()

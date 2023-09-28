@@ -8,14 +8,6 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.data_model import u_ticket
-from ureka_framework.data_model.u_ticket import (
-    UTicket,
-    jsonstr_to_u_ticket,
-    u_ticket_to_jsonstr,
-)
-from ureka_framework.data_model.this_device import (
-    this_device_to_jsonstr,
-)
 from ureka_framework.data_model.other_device import (
     OtherDevice,
     device_table_to_jsonstr,
@@ -63,6 +55,7 @@ class TestStorage:
             self.cloud_server_dm.this_device,
             self.cloud_server_dm.device_table,
             self.cloud_server_dm.this_person,
+            self.cloud_server_dm.current_session,
         )
 
         # WHEN: Variables are loaded from the Storage
@@ -70,6 +63,7 @@ class TestStorage:
             updated_this_device,
             updated_device_table,
             updated_this_person,
+            updated_current_session,
         ) = self.simple_storage.load_storage()
 
         # logging.debug(
@@ -101,9 +95,7 @@ class TestStorage:
 
         test_request_1: dict = {
             "device_id": f"device_id_1",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -111,9 +103,7 @@ class TestStorage:
 
         test_request_2: dict = {
             "device_id": f"device_id_1",
-            "holder_id": f"",
             "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
@@ -138,6 +128,7 @@ class TestStorage:
             self.cloud_server_dm.this_device,
             self.cloud_server_dm.device_table,
             self.cloud_server_dm.this_person,
+            self.cloud_server_dm.current_session,
         )
 
         # WHEN: Variables are loaded from the Storage
@@ -145,6 +136,7 @@ class TestStorage:
             updated_this_device,
             updated_device_table,
             updated_this_person,
+            updated_current_session,
         ) = self.simple_storage.load_storage()
 
         logging.debug(

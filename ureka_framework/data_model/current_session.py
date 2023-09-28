@@ -1,51 +1,39 @@
 import logging
 from pydantic import BaseModel, ConfigDict, ValidationError
-import ureka_framework.data_model.u_ticket as u_ticket
 
-######################################################
-# RTicket Type
-######################################################
-TYPE_CRKE1_RTICKET: str = "CR-KE-1"
-TYPE_CRKE2_RTICKET: str = "CR-KE-2"
-TYPE_CRKE3_RTICKET: str = "CR-KE-3"
-LEGAL_CRKE_TYPES: {str} = {
-    TYPE_CRKE1_RTICKET,
-    TYPE_CRKE2_RTICKET,
-    TYPE_CRKE3_RTICKET,
-}
+# Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
+from cryptography.hazmat.primitives.asymmetric import ec
+from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    byte_to_base64str,
+    key_to_str,
+    base64str_backto_byte,
+    str_to_key,
+)
 
 
 ######################################################
 # Data Model
 ######################################################
-class RTicket(BaseModel):
-    protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
-    r_ticket_id: None | str = None
+class CurrentSession(BaseModel):
+    # Access Permission UT
+    current_u_ticket_id: None | str = None
+    current_device_id: None | str = None
+    current_holder_id: None | str = None
+    current_task_scope: None | str = None
 
-    r_ticket_type: None | str = None
-
-    device_id: None | str = None
-    audit_start: None | str = None
-    audit_end: None | str = None
-
-    result: None | str = None
-
-    # CR-KE-PS
+    # CR-KE
     challenge_1: None | str = None
     challenge_2: None | str = None
     key_exchange_salt_1: None | str = None
     key_exchange_salt_2: None | str = None
+
+    # PS
     iv_1: None | str = None
     cipher_text_1: None | str = None
     iv_2: None | str = None
     cipher_text_2: None | str = None
-
-    device_signature: None | str = None
-
-    def __eq__(self, other):
-        if isinstance(other, RTicket):
-            return self.r_ticket_id == other.r_ticket_id
-        return False
+    # current_session_key_byte: None | bytes = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema
@@ -53,7 +41,7 @@ class RTicket(BaseModel):
 
 
 ################################################################################
-#                                < RTicket_obj >                               #
+#                             < CurrentSession_obj >                           #
 #                                       | self-defined serilaization           #
 #                                       | (all str, which is native type)      #
 #                                       v                                      #
@@ -62,15 +50,17 @@ class RTicket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
-def r_ticket_to_jsonstr(r_ticket_obj: RTicket) -> str:
+def current_session_to_jsonstr(current_session_obj: CurrentSession) -> str:
     # "indent" do not affect json validation, but may affect json size!?
-    r_ticket_json = r_ticket_obj.model_dump_json(indent=4, exclude_none=True)
-    return r_ticket_json
+    current_session_json = current_session_obj.model_dump_json(
+        indent=4, exclude_none=True
+    )
+    return current_session_json
 
 
-def jsonstr_to_r_ticket(json_str: str) -> RTicket:
+def jsonstr_to_current_session(json_str: str) -> CurrentSession:
     try:
-        return RTicket.model_validate_json(json_str)
+        return CurrentSession.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
         logging.error(f"{failure_msg}: {error}")

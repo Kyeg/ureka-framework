@@ -66,7 +66,7 @@ class TestCrypto:
         (priv_key2, pub_key2) = ecc.generate_key_pair()
 
         # GIVEN: Shared info and salt for Key Exchange
-        shared_info = b""
+        shared_info = None
         shared_salt = ecdh.generate_random_byte(32)
 
         # WHEN: Key Exchange
@@ -110,7 +110,7 @@ class TestCrypto:
         (priv_key2, pub_key2) = ecc.generate_key_pair()
 
         # GIVEN: Shared info and salt for Key Exchange
-        shared_info = b""
+        shared_info = None
         shared_salt = ecdh.generate_random_byte(32)
 
         # WHEN: Key Exchange

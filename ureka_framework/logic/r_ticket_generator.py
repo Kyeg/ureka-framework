@@ -4,6 +4,7 @@ import uuid
 
 from pydantic import ValidationError
 from ureka_framework.data_model.r_ticket import RTicket, r_ticket_to_jsonstr
+import ureka_framework.data_model.r_ticket as r_ticket
 import ureka_framework.data_model.u_ticket as u_ticket
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
@@ -42,15 +43,11 @@ class RTicketGenerator:
         # Signed RTicket
         ######################################################
         # Generate Signature
-        if new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            new_r_ticket = self._add_device_signature_on_r_ticket(
-                new_r_ticket, self.this_device.device_priv_key
-            )
-        elif new_r_ticket.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
-            new_r_ticket = self._add_device_signature_on_r_ticket(
-                new_r_ticket, self.this_device.device_priv_key
-            )
-        elif new_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        if (
+            new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+        ):
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key
             )
