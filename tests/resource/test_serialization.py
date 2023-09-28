@@ -1,5 +1,5 @@
 import copy
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -32,9 +32,7 @@ from ureka_framework.data_model.this_person import (
     this_person_to_jsonstr,
 )
 from ureka_framework.data_model.current_session import (
-    CurrentSession,
     jsonstr_to_current_session,
-    current_session_to_jsonstr,
 )
 from ureka_framework.resource.crypto import ecdh
 from ureka_framework.resource.crypto.serialization_util import (
@@ -47,7 +45,6 @@ from ureka_framework.resource.crypto.serialization_util import (
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
-from returns.result import Success, Failure
 
 
 class TestSerialization:
@@ -72,19 +69,19 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # logging.warning(f"device-befo = {self.cloud_server_dm.this_device}")
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
         json_str = this_device_to_jsonstr(self.cloud_server_dm.this_device)
-        # logging.warning(f"json_str = {json_str}")
+        # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_device(json_str)
-        # logging.warning(f"device-befo = {self.cloud_server_dm.this_device}")
-        # logging.warning(f"device-aftr = {obj}")
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
+        # simple_log("debug",f"device-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
-        # logging.warning(
+        # simple_log("debug",
         #     f"key-befo.str = {self.cloud_server_dm.this_device.device_pub_key_str}"
         # )
-        # logging.warning(f"key-aftr.str = {obj.device_pub_key_str}")
+        # simple_log("debug",f"key-aftr.str = {obj.device_pub_key_str}")
         assert (
             self.cloud_server_dm.this_device.device_pub_key == obj.device_pub_key
         )  # but device_priv_key maybe not the same!?
@@ -105,19 +102,19 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # logging.warning(f"person-befo = {self.cloud_server_dm.this_person}")
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
         json_str = this_person_to_jsonstr(self.cloud_server_dm.this_person)
-        # logging.warning(f"json_str = {json_str}")
+        # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_person(json_str)
-        # logging.warning(f"person-befo = {self.cloud_server_dm.this_person}")
-        # logging.warning(f"person-aftr = {obj}")
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
+        # simple_log("debug",f"person-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
-        # logging.warning(
+        # simple_log("debug",
         #     f"key-befo.str = {self.cloud_server_dm.this_person.person_pub_key_str}"
         # )
-        # logging.warning(f"key-aftr.str = {obj.person_pub_key_str}")
+        # simple_log("debug",f"key-aftr.str = {obj.person_pub_key_str}")
         assert (
             self.cloud_server_dm.this_person.person_pub_key == obj.person_pub_key
         )  # but device_priv_key maybe not the same!?
@@ -141,22 +138,22 @@ class TestSerialization:
 
         test_request: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request
         )
-        # logging.warning(f"u_ticket_json_befo = {u_ticket_json_befo}")
+        # simple_log("debug",f"u_ticket_json_befo = {u_ticket_json_befo}")
 
         u_ticket_obj: UTicket = jsonstr_to_u_ticket(u_ticket_json_befo)
-        # logging.warning(f"u_ticket_obj = {u_ticket_obj}")
+        # simple_log("debug",f"u_ticket_obj = {u_ticket_obj}")
 
         u_ticket_json_aftr: str = u_ticket_to_jsonstr(u_ticket_obj)
-        # logging.warning(f"u_ticket_json_aftr = {u_ticket_json_aftr}")
+        # simple_log("debug",f"u_ticket_json_aftr = {u_ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
         assert f"device_id" == u_ticket_obj.device_id
-        assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == u_ticket_obj.u_ticket_type
+        assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == u_ticket_obj.u_ticket_type
 
     def test_r_ticket_serialization(self) -> None:
         current_test_given_log()
@@ -167,23 +164,23 @@ class TestSerialization:
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
         test_request: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
             test_request
         )
-        logging.warning(f"r_ticket_json_befo = {r_ticket_json_befo}")
+        simple_log("debug", f"r_ticket_json_befo = {r_ticket_json_befo}")
 
         r_ticket_obj: RTicket = jsonstr_to_r_ticket(r_ticket_json_befo)
-        logging.warning(f"r_ticket_obj = {r_ticket_obj}")
+        simple_log("debug", f"r_ticket_obj = {r_ticket_obj}")
 
         r_ticket_json_aftr: str = r_ticket_to_jsonstr(r_ticket_obj)
-        logging.warning(f"r_ticket_json_aftr = {r_ticket_json_aftr}")
+        simple_log("debug", f"r_ticket_json_aftr = {r_ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert f"{u_ticket.TYPE_MANAGEMENT_UTICKET}" == r_ticket_obj.r_ticket_type
+        assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == r_ticket_obj.r_ticket_type
 
     def test_json_serialization_failed(self) -> None:
         current_test_given_log()
@@ -266,11 +263,11 @@ class TestSerialization:
         pub_key_str: str = key_to_str(
             self.cloud_server_dm.this_device.device_pub_key, "ecc-public-key"
         )
-        # logging.warning(f"pub_key_str = {pub_key_str}")
+        # simple_log("debug",f"pub_key_str = {pub_key_str}")
         pub_key_obj: ec.EllipticCurvePublicKey = str_to_key(
             pub_key_str, "ecc-public-key"
         )
-        # logging.warning(f"pub_key_obj = {pub_key_obj}")
+        # simple_log("debug",f"pub_key_obj = {pub_key_obj}")
 
         # THEN: The result of serialization/deserialization should be the same
         assert self.cloud_server_dm.this_device.device_pub_key_str == pub_key_str
@@ -316,30 +313,30 @@ class TestSerialization:
 
         test_request_1: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
         )
-        logging.warning(f"u_ticket_json_1 = {u_ticket_json_1}")
+        simple_log("debug", f"u_ticket_json_1 = {u_ticket_json_1}")
         u_ticket_obj_1: UTicket = jsonstr_to_u_ticket(u_ticket_json_1)
-        logging.warning(f"u_ticket_obj_1 = {u_ticket_obj_1}")
+        simple_log("debug", f"u_ticket_obj_1 = {u_ticket_obj_1}")
 
         u_ticket_json_copy_1 = copy.deepcopy(u_ticket_json_1)
-        logging.warning(f"u_ticket_json_copy_1 = {u_ticket_json_copy_1}")
+        simple_log("debug", f"u_ticket_json_copy_1 = {u_ticket_json_copy_1}")
         u_ticket_obj_copy_1 = copy.deepcopy(u_ticket_obj_1)
-        logging.warning(f"u_ticket_obj_copy_1 = {u_ticket_obj_copy_1}")
+        simple_log("debug", f"u_ticket_obj_copy_1 = {u_ticket_obj_copy_1}")
 
         test_request_2: dict = {
             "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
         )
-        logging.warning(f"u_ticket_json_2 = {u_ticket_json_2}")
+        simple_log("debug", f"u_ticket_json_2 = {u_ticket_json_2}")
         u_ticket_obj_2: UTicket = jsonstr_to_u_ticket(u_ticket_json_2)
-        logging.warning(f"u_ticket_obj_2 = {u_ticket_obj_2}")
+        simple_log("debug", f"u_ticket_obj_2 = {u_ticket_obj_2}")
 
         # THEN: Every u_ticket will have different unique u_ticket_id
         assert u_ticket_obj_1 != "!@#"
@@ -361,29 +358,29 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         test_request_1: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
-        logging.warning(f"r_ticket_json_1 = {r_ticket_json_1}")
+        simple_log("debug", f"r_ticket_json_1 = {r_ticket_json_1}")
         r_ticket_obj_1: RTicket = jsonstr_to_r_ticket(r_ticket_json_1)
-        logging.warning(f"r_ticket_obj_1 = {r_ticket_obj_1}")
+        simple_log("debug", f"r_ticket_obj_1 = {r_ticket_obj_1}")
 
         r_ticket_json_copy_1 = copy.deepcopy(r_ticket_json_1)
-        logging.warning(f"r_ticket_json_copy_1 = {r_ticket_json_copy_1}")
+        simple_log("debug", f"r_ticket_json_copy_1 = {r_ticket_json_copy_1}")
         r_ticket_obj_copy_1 = copy.deepcopy(r_ticket_obj_1)
-        logging.warning(f"r_ticket_obj_copy_1 = {r_ticket_obj_copy_1}")
+        simple_log("debug", f"r_ticket_obj_copy_1 = {r_ticket_obj_copy_1}")
 
         test_request_2: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)
-        logging.warning(f"r_ticket_json_2 = {r_ticket_json_2}")
+        simple_log("debug", f"r_ticket_json_2 = {r_ticket_json_2}")
         r_ticket_obj_2: RTicket = jsonstr_to_r_ticket(r_ticket_json_2)
-        logging.warning(f"r_ticket_obj_2 = {r_ticket_obj_2}")
+        simple_log("debug", f"r_ticket_obj_2 = {r_ticket_obj_2}")
 
         # THEN: Every u_ticket will have different unique u_ticket_id
         assert r_ticket_obj_1 != "!@#"

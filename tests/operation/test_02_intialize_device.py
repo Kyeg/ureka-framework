@@ -1,12 +1,12 @@
-import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
-    create_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+    create_comm_connection,
+    wait_comm_completed,
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
@@ -14,6 +14,7 @@ from ureka_framework.logic.device_controller import (
     DeviceController,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -40,7 +41,7 @@ class TestIntializeDevice:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=u_ticket.IOT_DEVICE,
+            device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
         assert self.iot_device.this_device.is_initialized == False
@@ -64,12 +65,7 @@ class TestIntializeDevice:
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
-
-        # WHEN: Device: DO's IoTD receive the intialization_u_ticket
-        self.iot_device.device_be_accessed()
-
-        # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm._holder_receive_r_ticket()
+        wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
         assert self.iot_device.this_device.is_initialized == True
@@ -107,12 +103,7 @@ class TestIntializeDevice:
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_access_device(id_for_initialization_u_ticket)
-
-        # WHEN: Device: DO's IoTD receive the intialization_u_ticket
-        self.iot_device.device_be_accessed()
-
-        # WHEN: Holder: DM's CS receive the intialization_r_ticket
-        self.cloud_server_dm._holder_receive_r_ticket()
+        wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Failed to re-initialize DM's IoTD
 
@@ -124,7 +115,7 @@ class TestIntializeDevice:
 
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
-            device_type=u_ticket.IOT_DEVICE,
+            device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
         assert self.iot_device.this_device.is_initialized == False
@@ -190,7 +181,7 @@ class TestIntializeDevice:
 
         # GIVEN: Uninitialized UA
         self.user_agent = DeviceController(
-            device_type=u_ticket.USER_AGENT_OR_CLOUD_SERVER,
+            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
             device_name="user_agent",
         )
 

@@ -1,12 +1,10 @@
 import copy
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 import uuid
 
-from returns.result import Result, Success, Failure
 from pydantic import ValidationError
 from ureka_framework.data_model.u_ticket import UTicket, u_ticket_to_jsonstr
 import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto import ecdh
 import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -32,9 +30,9 @@ class UTicketGenerator:
         # Generate Task Scope (device_id, holder_id, u_ticket_type, task_scope, etc.)
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
-            logging.info(success_msg)
+            simple_log("info", success_msg)
         except ValidationError as error:
-            logging.error(f"{failure_msg}: {error}")
+            simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 
         # Generate UTicket Id (UUID-4: Random, Unique, and Unpredictable)

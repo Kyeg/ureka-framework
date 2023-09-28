@@ -18,6 +18,20 @@ from ureka_framework.resource.crypto.serialization_util import (
 USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
 IOT_DEVICE: str = "IOT_DEVICE"
 
+######################################################
+# Device State
+######################################################
+# USER_AGENT_OR_CLOUD_SERVER
+STATE_WAIT_FOR_UT: str = "STATE_WAIT_FOR_UT"
+STATE_WAIT_FOR_RT: str = "STATE_WAIT_FOR_RT"
+STATE_WAIT_FOR_CRKE1: str = "STATE_WAIT_FOR_CRKE1"
+STATE_WAIT_FOR_CRKE3: str = "STATE_WAIT_FOR_CRKE3"
+STATE_WAIT_FOR_DATA: str = "STATE_WAIT_FOR_DATA"
+# IOT_DEVICE
+# STATE_WAIT_FOR_UT: str = "STATE_WAIT_FOR_UT"
+STATE_WAIT_FOR_CRKE2: str = "STATE_WAIT_FOR_CRKE2"
+STATE_WAIT_FOR_CMD: str = "STATE_WAIT_FOR_CMD"
+
 
 ######################################################
 # Data Model
@@ -180,5 +194,5 @@ def jsonstr_to_this_device(json_str: str) -> ThisDevice:
         return json.loads(json_str, object_hook=_dict_to_this_device)
     except json.JSONDecodeError:
         failure_msg = "NOT VALID JSON"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)

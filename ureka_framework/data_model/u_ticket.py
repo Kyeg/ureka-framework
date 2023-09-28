@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 
@@ -11,32 +11,19 @@ PROTOCOL_VERSION: str = "UREKA-1.0"
 # UTicket Type
 ######################################################
 TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
-TYPE_MANAGEMENT_UTICKET: str = "MANAGEMENT"
-TYPE_ACCESS_PERMISSION_UTICKET: str = "ACCESS-PERMISSION"
+TYPE_OWNERSHIP_UTICKET: str = "OWNERSHIP"
+TYPE_ACCESS_UTICKET: str = "ACCESS"
 # TYPE_QUERY_UTICKET: str = "QUERY"
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
-    TYPE_MANAGEMENT_UTICKET,
-    TYPE_ACCESS_PERMISSION_UTICKET,
+    TYPE_OWNERSHIP_UTICKET,
+    TYPE_ACCESS_UTICKET,
 }
 
 ######################################################
 # Task Scope
 ######################################################
-TASK_SCOPE_MANAGEMENT: str = "TASK-SCOPE-MANAGEMENT"
 TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
-
-######################################################
-# Device Type
-######################################################
-USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
-IOT_DEVICE: str = "IOT_DEVICE"
-
-######################################################
-# Management Type
-######################################################
-MANAGEMENT_OWNER: str = "NEW-OWNER"
-# MANAGEMENT_MANAGER: str = "NEW-MANAGER"
 
 
 ######################################################
@@ -85,5 +72,5 @@ def jsonstr_to_u_ticket(json_str: str) -> UTicket:
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
-        logging.error(f"{failure_msg}: {error}")
+        simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

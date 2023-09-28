@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -38,7 +38,7 @@ class TestStorage:
 
         # GIVEN: An initialized DM's CS as test data
         self.cloud_server_dm = device_manufacturer_server()
-        # logging.debug(
+        # simple_log("debug",
         #     f"Original Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
 
@@ -46,7 +46,7 @@ class TestStorage:
         current_test_when_and_then_log()
 
         self.cloud_server_dm.this_device.device_name = "another_new_device_name"
-        # logging.debug(
+        # simple_log("debug",
         #     f"Modified Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
         # )
 
@@ -66,7 +66,7 @@ class TestStorage:
             updated_current_session,
         ) = self.simple_storage.load_storage()
 
-        # logging.debug(
+        # simple_log("debug",
         #     f"Loaded Device from Storage = {this_device_to_jsonstr(updated_this_device)}"
         # )
 
@@ -85,8 +85,9 @@ class TestStorage:
 
         # GIVEN: An initialized DM's CS as test data
         self.cloud_server_dm = device_manufacturer_server()
-        logging.debug(
-            f"Original Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}"
+        simple_log(
+            "debug",
+            f"Original Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}",
         )
 
         # WHEN: Variables are modified in the RAM
@@ -95,7 +96,7 @@ class TestStorage:
 
         test_request_1: dict = {
             "device_id": f"device_id_1",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_1
@@ -103,7 +104,7 @@ class TestStorage:
 
         test_request_2: dict = {
             "device_id": f"device_id_1",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
             test_request_2
@@ -119,8 +120,9 @@ class TestStorage:
             device_name="device_id_2's name",
             device_u_ticket=u_ticket_json_2,
         )
-        logging.debug(
-            f"Modified Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}"
+        simple_log(
+            "debug",
+            f"Modified Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}",
         )
 
         # WHEN: Variables are stored in the Storage
@@ -139,8 +141,9 @@ class TestStorage:
             updated_current_session,
         ) = self.simple_storage.load_storage()
 
-        logging.debug(
-            f"Loaded Other Devices from Storage = {device_table_to_jsonstr(updated_device_table)}"
+        simple_log(
+            "debug",
+            f"Loaded Other Devices from Storage = {device_table_to_jsonstr(updated_device_table)}",
         )
 
         # THEN: Check SimpleStorage/test_storage/device_table.json to ensure the variables are stored correctly
@@ -169,4 +172,4 @@ class TestStorage:
         self.another_storage = SimpleStorage("test_storage")
 
         # THEN: It's ok to create a repeated SimpleStorage
-        # logging.debug(f"Exist: {self.path_device_controller}")
+        # simple_log("debug",f"Exist: {self.path_device_controller}")

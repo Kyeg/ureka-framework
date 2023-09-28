@@ -1,4 +1,3 @@
-import logging
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
@@ -7,6 +6,7 @@ from tests.conftest import (
     current_test_given_log,
     current_test_when_and_then_log,
     create_comm_connection,
+    wait_comm_completed,
     device_owner_agent,
     device_manufacturer_server_and_her_device,
     device_owner_agent_and_her_device,
@@ -33,7 +33,7 @@ class TestTransferOwnershipDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_management_u_ticket_in_io_level(self) -> None:
+    def test_apply_ownership_u_ticket_in_io_level(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS and DM's IoTD
@@ -41,6 +41,7 @@ class TestTransferOwnershipDevice:
             self.cloud_server_dm,
             self.iot_device,
         ) = device_manufacturer_server_and_her_device()
+
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.cloud_server_dm.this_person.person_pub_key_str
@@ -51,33 +52,23 @@ class TestTransferOwnershipDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer: DM's CS generate & send the management_u_ticket to DO's UA
+        # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         create_comm_connection(self.cloud_server_dm, self.user_agent_do)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_dm.issuer_issue_consent_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
+        wait_comm_completed(self.user_agent_do, self.cloud_server_dm)
 
-        # WHEN: Holder: DO's UA receive & store the management_u_ticket
-        self.user_agent_do.holder_receive_consent()
-
-        # WHEN: Holder: DO's UA forward the management_u_ticket
+        # WHEN: Holder: DO's UA forward the ownership_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
-        self.user_agent_do.holder_access_device(
-            self.iot_device.this_device.device_pub_key_str
-        )
-
-        # WHEN: Device: DO's IoTD receive the management_u_ticket
-        self.iot_device.device_be_accessed()
-
-        # WHEN: Holder: DO's UA receive the management_r_ticket
-        self.user_agent_do._holder_receive_r_ticket()
+        self.user_agent_do.holder_access_device(owned_device_id)
+        wait_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
@@ -85,7 +76,7 @@ class TestTransferOwnershipDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
 
-    def test_apply_management_u_ticket_wrong_owner_failed_in_io_level(self) -> None:
+    def test_apply_ownership_u_ticket_wrong_owner_failed_in_io_level(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -97,7 +88,7 @@ class TestTransferOwnershipDevice:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: DO's UA do not allow ATK's CS to apply_management_u_ticket() on DO's IoTD
+        # WHEN: DO's UA do not allow ATK's CS to apply_ownership_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # WHEN: Issuer: ATK's CS pretend she own the device (in her device_table)
         target_device_id = self.iot_device.this_device.device_pub_key_str
@@ -106,28 +97,20 @@ class TestTransferOwnershipDevice:
             device_name="device_id's name",
             device_u_ticket="not important",
         )
-        # WHEN: Issuer: ATK's CS generate & send the management_u_ticket by her person_pub_key
+        # WHEN: Issuer: ATK's CS generate & send the ownership_u_ticket by her person_pub_key
         generated_request: dict = {
             "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_atk.issuer_issue_consent_to_herself(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: ATK's CS forward the management_u_ticket
+        # WHEN: Holder: ATK's CS forward the ownership_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        self.cloud_server_atk.holder_access_device(
-            self.iot_device.this_device.device_pub_key_str
-        )
-
-        # WHEN: Device: DO's IoTD receive the management_u_ticket
-        self.iot_device.device_be_accessed()
-
-        # WHEN: Holder: ATK's CS receive the management_r_ticket
-        self.cloud_server_atk._holder_receive_r_ticket()
+        self.cloud_server_atk.holder_access_device(target_device_id)
+        wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert (
@@ -135,7 +118,7 @@ class TestTransferOwnershipDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
 
-    def test_apply_management_u_ticket(self) -> None:
+    def test_apply_ownership_u_ticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS and DM's IoTD
@@ -147,13 +130,12 @@ class TestTransferOwnershipDevice:
         # GIVEN: Initialized DO's UA
         self.user_agent_do = device_owner_agent()
 
-        # WHEN: DM's CS allow DO's UA to apply_management_u_ticket() on DM's IoTD
+        # WHEN: DM's CS allow DO's UA to apply_ownership_u_ticket() on DM's IoTD
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
@@ -165,7 +147,7 @@ class TestTransferOwnershipDevice:
             == self.user_agent_do.this_person.person_pub_key_str
         )
 
-    def test_apply_management_u_ticket_wrong_owner_failed(self) -> None:
+    def test_apply_ownership_u_ticket_wrong_owner_failed(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -177,13 +159,12 @@ class TestTransferOwnershipDevice:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: DO's UA do not allow ATK's CS to apply_management_u_ticket() on DO's IoTD
+        # WHEN: DO's UA do not allow ATK's CS to apply_ownership_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         test_request: dict = {
             "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
             "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_MANAGEMENT_UTICKET}",
-            "task_scope": f"{serialization_util.dict_to_jsonstr({u_ticket.TASK_SCOPE_MANAGEMENT: u_ticket.MANAGEMENT_OWNER})}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
         result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
@@ -192,14 +173,14 @@ class TestTransferOwnershipDevice:
         assert type(result) == Failure
         assert (
             result.failure().args[0]
-            == "-> FAILURE: VERIFY_ISSUER_SIGNATURE on MANAGEMENT UTICKET"
+            == "-> FAILURE: VERIFY_ISSUER_SIGNATURE on OWNERSHIP UTICKET"
         )
         assert (
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
         )
 
-    def test_apply_management_u_ticket_with_reboot(self) -> None:
+    def test_apply_ownership_u_ticket_with_reboot(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD

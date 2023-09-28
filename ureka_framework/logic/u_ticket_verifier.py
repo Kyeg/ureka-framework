@@ -1,5 +1,5 @@
 import copy
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Result, Success, Failure
 from ureka_framework.data_model.u_ticket import (
     UTicket,
@@ -11,7 +11,6 @@ import ureka_framework.resource.crypto.serialization_util as serialization_util
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
-from ureka_framework.data_model.this_person import ThisPerson
 
 
 class UTicketVerifier:
@@ -27,10 +26,10 @@ class UTicketVerifier:
 
         try:
             u_ticket_in: UTicket = jsonstr_to_u_ticket(arbitrary_json)
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(u_ticket_in)
         except RuntimeError as error:
-            logging.error(f"{failure_msg}: {error}")
+            simple_log("error", f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
     def verify_protocol_version(
@@ -44,10 +43,10 @@ class UTicketVerifier:
         )
 
         if u_ticket_in.protocol_verision == u_ticket.PROTOCOL_VERSION:
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(u_ticket_in)
         else:
-            logging.error(failure_msg)
+            simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
     def verify_u_ticket_type(
@@ -57,10 +56,10 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
 
         if u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(u_ticket_in)
         else:
-            logging.error(failure_msg)
+            simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
     def verify_device_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
@@ -69,18 +68,18 @@ class UTicketVerifier:
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             if u_ticket_in.device_id == "no_id":
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        # TYPE_MANAGEMENT_UTICKET, TYPE_ACCESS_PERMISSION_UTICKET
+        # TYPE_OWNERSHIP_UTICKET, TYPE_ACCESS_UTICKET
         else:
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
     def verify_issuer_signature(
@@ -93,30 +92,30 @@ class UTicketVerifier:
         # Verify ISSUER_SIGNATURE
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             # No need to verify ISSUER_SIGNATURE
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:
-                logging.error(failure_msg)
-                logging.error("-> FAILURE: WRONG AUTHORIZATION")
+                simple_log("error", failure_msg)
+                simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_PERMISSION_UTICKET:
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:
-                logging.error(failure_msg)
-                logging.error("-> FAILURE: WRONG AUTHORIZATION")
+                simple_log("error", failure_msg)
+                simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
-            logging.error(failure_msg)
+            simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
     ######################################################

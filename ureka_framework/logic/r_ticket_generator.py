@@ -1,5 +1,5 @@
 import copy
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 import uuid
 
 from pydantic import ValidationError
@@ -31,9 +31,9 @@ class RTicketGenerator:
         # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, etc.)
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
-            logging.info(success_msg)
+            simple_log("info", success_msg)
         except ValidationError as error:
-            logging.error(f"{failure_msg}: {error}")
+            simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 
         # Generate RTicket Id (UUID-4: Random, Unique, and Unpredictable)
@@ -45,7 +45,7 @@ class RTicketGenerator:
         # Generate Signature
         if (
             new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or new_r_ticket.r_ticket_type == u_ticket.TYPE_MANAGEMENT_UTICKET
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(

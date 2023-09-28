@@ -1,5 +1,4 @@
 # ECC
-import logging
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -7,7 +6,6 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
 
-import ureka_framework.resource.crypto.serialization_util as serialization_util
 from typing import Tuple
 
 
@@ -38,5 +36,5 @@ def verify_signature(
         return True
     except InvalidSignature:
         # failure_msg = "FAILURE: INVALID SIGNATURE"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         return False

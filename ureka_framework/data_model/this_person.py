@@ -97,5 +97,5 @@ def jsonstr_to_this_person(json_str: str) -> ThisPerson:
         return json.loads(json_str, object_hook=_dict_to_this_person)
     except json.JSONDecodeError:
         failure_msg = "NOT VALID JSON"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
