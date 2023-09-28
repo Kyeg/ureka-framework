@@ -1,5 +1,5 @@
 import copy
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Result, Success, Failure
 from ureka_framework.data_model.current_session import CurrentSession
 import ureka_framework.data_model.u_ticket as u_ticket
@@ -35,10 +35,10 @@ class RTicketVerifier:
 
         try:
             r_ticket_in: RTicket = jsonstr_to_r_ticket(arbitrary_json)
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(r_ticket_in)
         except RuntimeError as error:  # pragma: no cover -> Weird R-Ticket
-            logging.error(f"{failure_msg}: {error}")
+            simple_log("error", f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
     # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
@@ -53,10 +53,10 @@ class RTicketVerifier:
         )
 
         if r_ticket_in.protocol_verision == u_ticket.PROTOCOL_VERSION:
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(r_ticket_in)
         else:  # pragma: no cover -> Weird R-Ticket
-            logging.error(failure_msg)
+            simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
     # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
@@ -67,14 +67,14 @@ class RTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
 
         if r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
-            logging.info(success_msg)
+            simple_log("info", success_msg)
             return Success(r_ticket_in)
         else:
             if r_ticket_in.r_ticket_type == self.audit_start_ticket.u_ticket_type:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
     # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
@@ -89,17 +89,17 @@ class RTicketVerifier:
             return Success(r_ticket_in)
         elif r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             if r_ticket_in.device_id == self.audit_start_ticket.device_id:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
         elif r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
             if r_ticket_in.device_id == self.current_session.current_device_id:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
     def verify_audit_start(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
@@ -111,17 +111,17 @@ class RTicketVerifier:
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
         ):
             if r_ticket_in.audit_start == self.audit_start_ticket.u_ticket_id:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
         elif r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
             if r_ticket_in.audit_start == self.current_session.current_u_ticket_id:
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
     def verify_audit_end(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
@@ -129,14 +129,14 @@ class RTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_AUDIT_END"
 
         # TODO: Auditted by TXend UToken or Revocation UTicket
-        logging.info(success_msg)
+        simple_log("info", success_msg)
         return Success(r_ticket_in)
 
     def verify_result(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_RESULT"
         failure_msg = f"-> FAILURE: VERIFY_RESULT"
 
-        logging.info(success_msg)
+        simple_log("info", success_msg)
         return Success(r_ticket_in)
 
     def verify_cr_ke(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
@@ -153,17 +153,17 @@ class RTicketVerifier:
                 r_ticket_in.challenge_1 != None
                 and r_ticket_in.key_exchange_salt_1 != None
             ):
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
+                simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
     def verify_ps(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_PS"
         failure_msg = f"-> FAILURE: VERIFY_PS"
 
-        logging.info(success_msg)
+        simple_log("info", success_msg)
         return Success(r_ticket_in)
 
     def verify_device_signature(
@@ -183,14 +183,14 @@ class RTicketVerifier:
                 r_ticket_in,
                 serialization_util.str_to_key(r_ticket_in.device_id),
             ):
-                logging.info(success_msg)
+                simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                logging.error(failure_msg)
-                logging.error("-> FAILURE: WRONG AUDIT")
+                simple_log("error", failure_msg)
+                simple_log("error", "-> FAILURE: WRONG AUDIT")
                 return Failure(RuntimeError(failure_msg))
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
-            logging.error(failure_msg)
+            simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
     ######################################################

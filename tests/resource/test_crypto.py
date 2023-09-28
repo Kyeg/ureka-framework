@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -74,28 +74,35 @@ class TestCrypto:
         session_key1: bytes = ecdh.generate_ecdh_key(
             priv_key1, shared_salt, shared_info, pub_key2
         )
-        logging.debug(
-            "session_key1: " + serialization_util.byte_to_base64str(session_key1)
+        simple_log(
+            "debug",
+            "session_key1: " + serialization_util.byte_to_base64str(session_key1),
         )
         session_key2: bytes = ecdh.generate_ecdh_key(
             priv_key2, shared_salt, shared_info, pub_key1
         )
-        logging.debug(
-            "session_key2: " + serialization_util.byte_to_base64str(session_key2)
+        simple_log(
+            "debug",
+            "session_key2: " + serialization_util.byte_to_base64str(session_key2),
         )
 
         # WHEN: Message Encryption
         plaintext: bytes = serialization_util.str_to_byte("message to be encrypted")
-        logging.debug("plaintext: " + serialization_util.byte_backto_str(plaintext))
+        simple_log(
+            "debug", "plaintext: " + serialization_util.byte_backto_str(plaintext)
+        )
         (ciphertext, shared_iv) = ecdh.cbc_encrypt(plaintext, session_key1)
-        logging.debug("ciphertext: " + serialization_util.byte_to_base64str(ciphertext))
+        simple_log(
+            "debug", "ciphertext: " + serialization_util.byte_to_base64str(ciphertext)
+        )
 
         # WHEN: Transfer the Ciphertext || HMAC (or signature in UTicket) || 16-byte Shared_IV
         # WHEN: Message Decryption
         decrypted_plaintext = ecdh.cbc_decrypt(ciphertext, session_key2, shared_iv)
-        logging.debug(
+        simple_log(
+            "debug",
             "decrypted_plaintext: "
-            + serialization_util.byte_backto_str(decrypted_plaintext)
+            + serialization_util.byte_backto_str(decrypted_plaintext),
         )
 
         # THEN: The session key & the encrypted message can be shared
@@ -118,14 +125,16 @@ class TestCrypto:
         session_key1: bytes = ecdh.generate_ecdh_key(
             priv_key1, shared_salt, shared_info, pub_key2
         )
-        logging.debug(
-            "session_key1: " + serialization_util.byte_to_base64str(session_key1)
+        simple_log(
+            "debug",
+            "session_key1: " + serialization_util.byte_to_base64str(session_key1),
         )
         session_key2: bytes = ecdh.generate_ecdh_key(
             priv_key2, shared_salt, shared_info, pub_key1
         )
-        logging.debug(
-            "session_key2: " + serialization_util.byte_to_base64str(session_key2)
+        simple_log(
+            "debug",
+            "session_key2: " + serialization_util.byte_to_base64str(session_key2),
         )
 
         # WHEN: Message Encryption
@@ -135,20 +144,28 @@ class TestCrypto:
         associated_plaintext: bytes = serialization_util.str_to_byte(
             "message not to be encrypted but to be authenticated"
         )
-        logging.debug("plaintext: " + serialization_util.byte_backto_str(plaintext))
-        logging.debug(
+        simple_log(
+            "debug", "plaintext: " + serialization_util.byte_backto_str(plaintext)
+        )
+        simple_log(
+            "debug",
             "associated_plaintext: "
-            + serialization_util.byte_backto_str(associated_plaintext)
+            + serialization_util.byte_backto_str(associated_plaintext),
         )
         (ciphertext, gcm_authentication_tag, shared_iv) = ecdh.gcm_encrypt(
             plaintext, associated_plaintext, session_key1
         )
-        logging.debug("ciphertext: " + serialization_util.byte_to_base64str(ciphertext))
-        logging.debug(
-            "gcm_authentication_tag: "
-            + serialization_util.byte_to_base64str(gcm_authentication_tag)
+        simple_log(
+            "debug", "ciphertext: " + serialization_util.byte_to_base64str(ciphertext)
         )
-        logging.debug("shared_iv: " + serialization_util.byte_to_base64str(shared_iv))
+        simple_log(
+            "debug",
+            "gcm_authentication_tag: "
+            + serialization_util.byte_to_base64str(gcm_authentication_tag),
+        )
+        simple_log(
+            "debug", "shared_iv: " + serialization_util.byte_to_base64str(shared_iv)
+        )
 
         # WHEN: Transfer the Ciphertext || Associated_plaintext || HMAC (or authentication_tag in GCM) || 16-byte Shared_IV
         # WHEN: Message Decryption
@@ -158,11 +175,12 @@ class TestCrypto:
                 ciphertext, associated_plaintext, right_tag, session_key2, shared_iv
             )
             with_right_tag = "Message passes Authentication."
-            logging.debug(
+            simple_log(
+                "debug",
                 "authenticated_and_decrypted_plaintext: "
                 + serialization_util.byte_backto_str(
                     authenticated_and_decrypted_plaintext
-                )
+                ),
             )
         except InvalidTag:
             with_right_tag = "Message does not pass Authentication."
@@ -178,29 +196,34 @@ class TestCrypto:
             with_wrong_tag = "Message does not pass Authentication."
 
         # THEN: The session key & the encrypted message can be shared
-        logging.debug("")
-        logging.debug("Check: The session key & the encrypted message can be shared")
+        simple_log("debug", "")
+        simple_log(
+            "debug", "Check: The session key & the encrypted message can be shared"
+        )
         assert session_key1 == session_key2
-        logging.debug("session_key1 == session_key2")
+        simple_log("debug", "session_key1 == session_key2")
         assert plaintext == authenticated_and_decrypted_plaintext
-        logging.debug("plaintext == authenticated_and_decrypted_plaintext")
+        simple_log("debug", "plaintext == authenticated_and_decrypted_plaintext")
         assert with_right_tag == "Message passes Authentication."
-        logging.debug(with_right_tag)
+        simple_log("debug", with_right_tag)
         assert with_wrong_tag == "Message does not pass Authentication."
-        logging.debug(with_wrong_tag)
+        simple_log("debug", with_wrong_tag)
 
         # WHEN: Message Encryption (with the same plaintext)
         (ciphertext2, gcm_authentication_tag2, shared_iv2) = ecdh.gcm_encrypt(
             plaintext, associated_plaintext, session_key1
         )
-        logging.debug(
-            "ciphertext2: " + serialization_util.byte_to_base64str(ciphertext2)
+        simple_log(
+            "debug", "ciphertext2: " + serialization_util.byte_to_base64str(ciphertext2)
         )
-        logging.debug(
+        simple_log(
+            "debug",
             "gcm_authentication_tag2: "
-            + serialization_util.byte_to_base64str(gcm_authentication_tag2)
+            + serialization_util.byte_to_base64str(gcm_authentication_tag2),
         )
-        logging.debug("shared_iv2: " + serialization_util.byte_to_base64str(shared_iv2))
+        simple_log(
+            "debug", "shared_iv2: " + serialization_util.byte_to_base64str(shared_iv2)
+        )
 
         # WHEN: Transfer the Ciphertext || Associated_plaintext || HMAC (or authentication_tag in GCM) || 16-byte Shared_IV
         # WHEN: Message Decryption
@@ -210,26 +233,28 @@ class TestCrypto:
                 ciphertext2, associated_plaintext, right_tag, session_key2, shared_iv2
             )
             with_right_tag = "Message passes Authentication."
-            logging.debug(
+            simple_log(
+                "debug",
                 "authenticated_and_decrypted_plaintext2: "
                 + serialization_util.byte_backto_str(
                     authenticated_and_decrypted_plaintext2
-                )
+                ),
             )
         except InvalidTag:
             with_right_tag = "Message does not pass Authentication."
 
         # THEN: Because "the IV is randomly generated",
         #       even the plaintext is the same, the ciphertext, authentication_tag, and shared_iv are different
-        logging.debug("")
-        logging.debug(
-            "Check: Even the plaintext is the same, the ciphertext, authentication_tag, and shared_iv are different"
+        simple_log("debug", "")
+        simple_log(
+            "debug",
+            "Check: Even the plaintext is the same, the ciphertext, authentication_tag, and shared_iv are different",
         )
         assert plaintext == authenticated_and_decrypted_plaintext2
-        logging.debug("plaintext == authenticated_and_decrypted_plaintext2")
+        simple_log("debug", "plaintext == authenticated_and_decrypted_plaintext2")
         assert ciphertext != ciphertext2
-        logging.debug("ciphertext != ciphertext2")
+        simple_log("debug", "ciphertext != ciphertext2")
         assert gcm_authentication_tag != gcm_authentication_tag2
-        logging.debug("gcm_authentication_tag != gcm_authentication_tag2")
+        simple_log("debug", "gcm_authentication_tag != gcm_authentication_tag2")
         assert shared_iv != shared_iv2
-        logging.debug("shared_iv != shared_iv2")
+        simple_log("debug", "shared_iv != shared_iv2")

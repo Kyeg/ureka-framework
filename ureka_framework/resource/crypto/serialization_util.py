@@ -32,7 +32,7 @@ def byte_backto_str(byte: bytes) -> str:
         return byte.decode("UTF-8")
     except UnicodeDecodeError:
         failure_msg = "NOT Any Byte can be decoded to UTF-8"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -53,7 +53,7 @@ def base64str_backto_byte(string: str) -> bytes:
         return base64.urlsafe_b64decode(base64_byte)
     except binascii.Error:
         failure_msg = "NOT Any String is Base64 string which can be decoded to Byte"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -72,7 +72,7 @@ def jsonstr_to_dict(json_str: str) -> Dict[str, str]:
         return json.loads(json_str)
     except json.JSONDecodeError:
         failure_msg = "NOT VALID JSON"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -95,7 +95,7 @@ def _key_to_byte(
         return key_obj.private_bytes(Encoding.DER, PrivateFormat.PKCS8, NoEncryption())
     else:
         failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
 
 
@@ -108,7 +108,7 @@ def _byte_to_key(
         return load_der_private_key(key_byte, password=None, backend=default_backend())
     else:
         failure_msg = "Only support key_type = [ecc-public-key] or [ecc-private-key]"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)
 
 

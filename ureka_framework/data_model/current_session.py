@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 # Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
@@ -63,5 +63,5 @@ def jsonstr_to_current_session(json_str: str) -> CurrentSession:
         return CurrentSession.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
-        logging.error(f"{failure_msg}: {error}")
+        simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

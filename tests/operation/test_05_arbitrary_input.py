@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
@@ -104,7 +104,7 @@ class TestArbitraryInput:
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
             test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
-            logging.debug(f"test_u_ticket = {test_u_ticket}")
+            simple_log("debug", f"test_u_ticket = {test_u_ticket}")
 
         # THEN: Raise the RuntimeError
         assert (
@@ -123,7 +123,7 @@ class TestArbitraryInput:
         }
         with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
             test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
-            logging.debug(f"test_r_ticket = {test_r_ticket}")
+            simple_log("debug", f"test_r_ticket = {test_r_ticket}")
 
         # THEN: Raise the RuntimeError
         assert (
@@ -143,7 +143,7 @@ class TestArbitraryInput:
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
-        logging.debug(f"test_u_ticket = {test_u_ticket}")
+        simple_log("debug", f"test_u_ticket = {test_u_ticket}")
 
         # WHEN: Issuer bypasses the legal u_ticket generator & adds undefined u_ticket field in UTicket (& add signature)
         modified_test_u_ticket: str = (
@@ -152,7 +152,7 @@ class TestArbitraryInput:
             + '\t"undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD"'
             + test_u_ticket[-2:]
         )
-        logging.debug(f"modified_test_u_ticket = {modified_test_u_ticket}")
+        simple_log("debug", f"modified_test_u_ticket = {modified_test_u_ticket}")
 
         # WHEN: Verify the modified u_ticket
         result = self.iot_device._verify_and_execute_xxx_u_ticket(

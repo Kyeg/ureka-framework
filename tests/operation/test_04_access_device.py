@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
@@ -122,7 +122,7 @@ class TestAccessDevice:
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
         self.user_agent_do._stored_generated_xxx_u_ticket(test_u_ticket)
-        logging.debug(f"ACCESS_UTICKET: {test_u_ticket}")
+        simple_log("debug", f"ACCESS_UTICKET: {test_u_ticket}")
         self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
@@ -135,7 +135,7 @@ class TestAccessDevice:
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
-        logging.debug(f"CHALLENGE_UTICKET: {test_u_ticket}")
+        simple_log("debug", f"CHALLENGE_UTICKET: {test_u_ticket}")
         self.cloud_server_ep._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
@@ -148,7 +148,7 @@ class TestAccessDevice:
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
         self.cloud_server_ep._stored_generated_xxx_u_ticket(test_u_ticket)
-        logging.debug(f"RESPONSE_UTICKET: {test_u_ticket}")
+        simple_log("debug", f"RESPONSE_UTICKET: {test_u_ticket}")
         self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # -----------------------------------------------------
@@ -161,7 +161,7 @@ class TestAccessDevice:
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
         self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
-        logging.debug(f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
+        simple_log("debug", f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
         result = self.cloud_server_ep._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD

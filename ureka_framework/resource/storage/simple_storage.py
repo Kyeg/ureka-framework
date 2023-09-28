@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 
 from typing import Tuple
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.data_model.this_device import (
     ThisDevice,
     jsonstr_to_this_device,
@@ -51,9 +51,9 @@ class SimpleStorage:
         # Create a new directory if it doesn't exist
         if not Path(self.path_device_controller).exists():
             self.path_device_controller.mkdir(parents=True)
-            logging.debug(f"Create: {self.path_device_controller}")
+            simple_log("debug", f"Create: {self.path_device_controller}")
         else:
-            logging.debug(f"Exist: {self.path_device_controller}")
+            simple_log("debug", f"Exist: {self.path_device_controller}")
 
     # The data access can be further optimized by more fine-grained interface
     # so that we can access each variable rather than access the whole object (faster, but more code)
@@ -112,7 +112,7 @@ class SimpleStorage:
         # removing directory (If use Path.rmdir(), the directory must be empty...)
         try:
             shutil.rmtree(cls.path_storage)
-            logging.debug(f"Delete: {cls.path_storage}")
+            simple_log("debug", f"Delete: {cls.path_storage}")
         except OSError as e:
-            # logging.error(f"FAILURE: {e.filename} - {e.strerror}.")
+            # simple_log("error",f"FAILURE: {e.filename} - {e.strerror}.")
             pass

@@ -36,5 +36,5 @@ def verify_signature(
         return True
     except InvalidSignature:
         # failure_msg = "FAILURE: INVALID SIGNATURE"
-        # logging.error(failure_msg)
+        # simple_log("error",failure_msg)
         return False

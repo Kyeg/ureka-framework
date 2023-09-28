@@ -1,4 +1,4 @@
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 
@@ -72,5 +72,5 @@ def jsonstr_to_u_ticket(json_str: str) -> UTicket:
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
-        logging.error(f"{failure_msg}: {error}")
+        simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

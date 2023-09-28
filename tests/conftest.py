@@ -1,5 +1,5 @@
 import inspect
-import logging
+from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
 import ureka_framework.data_model.this_device as this_device
@@ -27,11 +27,11 @@ def get_current_function_name() -> str:
 
 def current_setup_log() -> None:
     # Log
-    logging.info("")
+    simple_log("info", "")
     if get_current_class_name() != None:
-        logging.info("*" * 100)
-        logging.info(f"Setup: {get_current_class_name()}")
-        logging.info("*" * 100)
+        simple_log("info", "*" * 100)
+        simple_log("info", f"Setup: {get_current_class_name()}")
+        simple_log("info", "*" * 100)
 
 
 def current_test_given_log() -> None:
@@ -40,9 +40,9 @@ def current_test_given_log() -> None:
         get_current_function_name() != "_hookexec"
         and get_current_function_name() != None
     ):
-        logging.info("*" * 50)
-        logging.info(f"Given: {get_current_function_name()}")
-        logging.info("*" * 50)
+        simple_log("info", "*" * 50)
+        simple_log("info", f"Given: {get_current_function_name()}")
+        simple_log("info", "*" * 50)
 
 
 def current_test_when_and_then_log() -> None:
@@ -51,17 +51,17 @@ def current_test_when_and_then_log() -> None:
         get_current_function_name() != "_hookexec"
         and get_current_function_name() != None
     ):
-        logging.info("*" * 50)
-        logging.info(f"When & Then: {get_current_function_name()}")
-        logging.info("*" * 50)
+        simple_log("info", "*" * 50)
+        simple_log("info", f"When & Then: {get_current_function_name()}")
+        simple_log("info", "*" * 50)
 
 
 def current_teardown_log() -> None:
     # Log
     if get_current_class_name() != None:
-        logging.info("*" * 100)
-        logging.info(f"Teardown: {get_current_class_name()}")
-        logging.info("*" * 100)
+        simple_log("info", "*" * 100)
+        simple_log("info", f"Teardown: {get_current_class_name()}")
+        simple_log("info", "*" * 100)
 
 
 ######################################################
@@ -71,8 +71,9 @@ def create_comm_connection(end1: DeviceController, end2: DeviceController):
     end1._connect(end2)
     end2._connect(end1)
 
-    logging.info(
-        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is started..."
+    simple_log(
+        "info",
+        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is started...",
     )
 
 
@@ -84,12 +85,13 @@ def wait_comm_completed(end1: DeviceController, end2: DeviceController):
     end1.comm_done_flag = False
     end2.comm_done_flag = False
 
-    logging.info(
-        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is completed..."
+    simple_log(
+        "info",
+        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is completed...",
     )
-    logging.info("")
-    logging.info("")
-    logging.info("")
+    simple_log("info", "")
+    simple_log("info", "")
+    simple_log("info", "")
 
 
 def device_manufacturer_server() -> DeviceController:
