@@ -147,9 +147,8 @@ class UTicketVerifier:
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:  # TODO: Attack
-                simple_log("error", failure_msg)
-                simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
-                return Failure(RuntimeError(failure_msg))
+                simple_log("error", f"{failure_msg}")
+                return Failure(RuntimeError(f"{failure_msg}"))
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
@@ -157,9 +156,8 @@ class UTicketVerifier:
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:  # TODO: Attack
-                simple_log("error", failure_msg)
-                simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
-                return Failure(RuntimeError(failure_msg))
+                simple_log("error", f"{failure_msg}")
+                return Failure(RuntimeError(f"{failure_msg}"))
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))

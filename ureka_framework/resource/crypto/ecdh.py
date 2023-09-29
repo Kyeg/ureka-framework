@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives import padding
 import os
 from typing import Tuple
 
+from ureka_framework.resource.crypto.serialization_util import byte_to_base64str
+
 
 ######################################################
 # Random Number Generation
@@ -19,6 +21,10 @@ from typing import Tuple
 ######################################################
 def generate_random_byte(bytes_num: int) -> bytes:
     return os.urandom(bytes_num)
+
+
+def generate_random_str(bytes_num: int) -> str:
+    return byte_to_base64str(os.urandom(bytes_num))
 
 
 ######################################################

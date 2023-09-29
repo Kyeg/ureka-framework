@@ -1,5 +1,6 @@
 import time
 from queue import Queue
+from typing import Tuple
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
@@ -44,6 +45,7 @@ from ureka_framework.resource.crypto.serialization_util import (
 )
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.exceptions import InvalidTag
 import threading
 from ureka_framework.resource.logger.simple_logger import simple_log, DEPLOYMENT_ENV
@@ -586,9 +588,7 @@ class DeviceController:
 
         return Success(None)
 
-    def _execute_one_time_intialize_agent_or_server(
-        self,
-    ) -> Result[None, RuntimeError]:
+    def _execute_one_time_intialize_agent_or_server(self) -> Result[None, RuntimeError]:
         simple_log("info", f"+ {self.this_device.device_name} is initializing...")
 
         if self.this_device.device_type != this_device.USER_AGENT_OR_CLOUD_SERVER:
@@ -689,7 +689,9 @@ class DeviceController:
         # Initialize Device Owner
         ######################################################
         # RAM
-        self.this_device.owner_pub_key = str_to_key(u_ticket_in.holder_id)
+        self.this_device.owner_pub_key = str_to_key(
+            u_ticket_in.holder_id, "ecc-public-key"
+        )
 
         ######################################################
         # Storage
@@ -748,12 +750,8 @@ class DeviceController:
                 self.current_session.current_holder_id = ticket_in.holder_id
                 self.current_session.current_task_scope = ticket_in.task_scope
                 # CR-KE
-                self.current_session.challenge_1 = byte_to_base64str(
-                    ecdh.generate_random_byte(32)
-                )
-                self.current_session.key_exchange_salt_1 = byte_to_base64str(
-                    ecdh.generate_random_byte(32)
-                )
+                self.current_session.challenge_1 = ecdh.generate_random_str(32)
+                self.current_session.key_exchange_salt_1 = ecdh.generate_random_str(32)
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
@@ -761,116 +759,84 @@ class DeviceController:
             # CR-KE
             self.current_session.challenge_1 = ticket_in.challenge_1
             self.current_session.key_exchange_salt_1 = ticket_in.key_exchange_salt_1
-            self.current_session.challenge_2 = byte_to_base64str(
-                ecdh.generate_random_byte(32)
-            )
-            self.current_session.key_exchange_salt_2 = byte_to_base64str(
-                ecdh.generate_random_byte(32)
-            )
+            self.current_session.challenge_2 = ecdh.generate_random_str(32)
+            self.current_session.key_exchange_salt_2 = ecdh.generate_random_str(32)
 
             # Session Key Gereration ("holder")
-            salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
-            salt_2 = base64str_backto_byte(self.current_session.key_exchange_salt_2)
-            shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
-            current_session_key: bytes = ecdh.generate_ecdh_key(
-                server_private_key=self.this_person.person_priv_key,
-                salt=shared_salt,
-                info=None,
-                peer_public_key=str_to_key(self.current_session.current_device_id),
-            )
-            self.current_session.current_session_key_str = byte_to_base64str(
-                current_session_key
+            current_session_key_byte = self._execute_generate_session_key(
+                salt_1=self.current_session.key_exchange_salt_1,
+                salt_2=self.current_session.key_exchange_salt_2,
+                server_priv_key=self.this_person.person_priv_key,
+                peer_pub_key=str_to_key(
+                    self.current_session.current_device_id, "ecc-public-key"
+                ),
             )
 
-            # Message Encryption (bytes)
-            plaintext: bytes = str_to_byte("message to be encrypted and authenticated")
+            # Message Encryption (str + key byte)
+            plaintext = "message to be encrypted and authenticated"
+            associated_plaintext = "message not to be encrypted but to be authenticated"
+            (ciphertext, gcm_authentication_tag, iv) = self._execute_encrypt_plaintext(
+                plaintext=plaintext,
+                associated_plaintext=associated_plaintext,
+                session_key=current_session_key_byte,
+            )
+
+            # Update Session
+            self.current_session.current_session_key_str = byte_to_base64str(
+                current_session_key_byte
+            )
+            self.current_session.plaintext_1 = plaintext
+            self.current_session.associated_plaintext_1 = associated_plaintext
+            self.current_session.iv_1 = iv
+            self.current_session.ciphertext_1 = ciphertext
+            self.current_session.gcm_authentication_tag_1 = gcm_authentication_tag
             simple_log(
                 "debug",
-                "plaintext: " + byte_backto_str(plaintext),
-            )
-            associated_plaintext: bytes = str_to_byte(
-                "message not to be encrypted but to be authenticated"
-            )
-            self.current_session.plaintext_1 = byte_backto_str(plaintext)
-            self.current_session.associated_plaintext_1 = byte_backto_str(
-                associated_plaintext
-            )
-
-            (ciphertext_1, gcm_authentication_tag_1, iv_1) = ecdh.gcm_encrypt(
-                plaintext, associated_plaintext, current_session_key
-            )
-            self.current_session.iv_1 = byte_to_base64str(iv_1)
-            self.current_session.ciphertext_1 = byte_to_base64str(ciphertext_1)
-            self.current_session.gcm_authentication_tag_1 = byte_to_base64str(
-                gcm_authentication_tag_1
+                "plaintext: " + self.current_session.plaintext_1,
             )
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET
         ):
             # Session Key Gereration ("device")
-            salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
-            salt_2 = base64str_backto_byte(ticket_in.key_exchange_salt_2)
-            # # Bitweise AND operation (python operates bit through int, & bytes is int arrary)
-            # type(salt_1[0])  # = int
-            # salt_1_bit = "".join(format(byte, "08b") for byte in salt_1)
-            # simple_log("debug", f"salt_1_bit = {salt_1_bit}")
-            # salt_2_bit = "".join(format(byte, "08b") for byte in salt_2)
-            # simple_log("debug", f"salt_2_bit = {salt_2_bit}")
-            # shared_salt_bit = "".join(format(byte, "08b") for byte in shared_salt)
-            # simple_log("debug", f"share_salt = {shared_salt_bit}")
-            # simple_log("debug", f"share_salt length (byte) = {len(shared_salt_bit)}")
-            shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
-            # len(shared_salt)  # = 32 bytes
-            current_session_key: bytes = ecdh.generate_ecdh_key(
-                server_private_key=self.this_device.device_priv_key,
-                salt=shared_salt,
-                info=None,
-                peer_public_key=str_to_key(self.current_session.current_holder_id),
+            current_session_key_byte = self._execute_generate_session_key(
+                salt_1=self.current_session.key_exchange_salt_1,
+                salt_2=ticket_in.key_exchange_salt_2,
+                server_priv_key=self.this_device.device_priv_key,
+                peer_pub_key=str_to_key(
+                    self.current_session.current_holder_id, "ecc-public-key"
+                ),
             )
-            # len(current_session_key)  # = 32 bytes
 
-            # Message Decryption (bytes)
-            try:
-                ciphertext: bytes = base64str_backto_byte(ticket_in.ciphertext_1)
-                associated_plaintext: bytes = str_to_byte(
-                    ticket_in.associated_plaintext_1
-                )
-                gcm_authentication_tag: bytes = base64str_backto_byte(
-                    ticket_in.gcm_authentication_tag_1
-                )
-                iv_1: bytes = base64str_backto_byte(ticket_in.iv_1)
+            # Message Decryption (str + key byte)
+            plaintext = self._execute_decrypt_ciphertext(
+                associated_plaintext=ticket_in.associated_plaintext_1,
+                iv=ticket_in.iv_1,
+                ciphertext=ticket_in.ciphertext_1,
+                gcm_authentication_tag=ticket_in.gcm_authentication_tag_1,
+                session_key=current_session_key_byte,
+            )
 
-                plaintext = ecdh.gcm_decrypt(
-                    ciphertext,
-                    associated_plaintext,
-                    gcm_authentication_tag,
-                    current_session_key,
-                    iv_1,
-                )
+            # Update Session
+            self.current_session.challenge_2 = ticket_in.challenge_2
+            self.current_session.key_exchange_salt_2 = ticket_in.key_exchange_salt_2
+            self.current_session.current_session_key_str = byte_to_base64str(
+                current_session_key_byte
+            )
+            self.current_session.plaintext_1 = plaintext
+            self.current_session.associated_plaintext_1 = (
+                ticket_in.associated_plaintext_1
+            )
+            self.current_session.iv_1 = ticket_in.iv_1
+            self.current_session.ciphertext_1 = ticket_in.ciphertext_1
+            self.current_session.gcm_authentication_tag_1 = (
+                ticket_in.gcm_authentication_tag_1
+            )
+            simple_log(
+                "debug",
+                "plaintext: " + self.current_session.plaintext_1,
+            )
 
-                self.current_session.challenge_2 = ticket_in.challenge_2
-                self.current_session.key_exchange_salt_2 = ticket_in.key_exchange_salt_2
-                self.current_session.current_session_key_str = byte_to_base64str(
-                    current_session_key
-                )
-                self.current_session.plaintext_1 = byte_backto_str(plaintext)
-                simple_log(
-                    "debug",
-                    "plaintext: " + self.current_session.plaintext_1,
-                )
-                self.current_session.associated_plaintext_1 = (
-                    ticket_in.associated_plaintext_1
-                )
-                self.current_session.iv_1 = ticket_in.iv_1
-                self.current_session.ciphertext_1 = ticket_in.ciphertext_1
-                self.current_session.gcm_authentication_tag_1 = (
-                    ticket_in.gcm_authentication_tag_1
-                )
-
-                simple_log("info", "Message passes GCM Authentication.")
-            except InvalidTag:
-                simple_log("info", "Message does not pass GCM Authentication.")
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -885,6 +851,83 @@ class DeviceController:
         self.simple_storage.store_storage(
             self.this_device, self.device_table, self.this_person, self.current_session
         )
+
+    def _execute_generate_session_key(
+        self,
+        salt_1: str,
+        salt_2: str,
+        server_priv_key: ec.EllipticCurvePrivateKey,
+        peer_pub_key: ec.EllipticCurvePublicKey,
+    ) -> bytes:
+        salt_1_byte = base64str_backto_byte(salt_1)
+        salt_2_byte = base64str_backto_byte(salt_2)
+        # # Bitweise AND operation (python operates bit through int, & bytes is int arrary)
+        # type(salt_1[0])  # = int
+        # salt_1_bit = "".join(format(byte, "08b") for byte in salt_1)
+        # simple_log("debug", f"salt_1_bit = {salt_1_bit}")
+        # salt_2_bit = "".join(format(byte, "08b") for byte in salt_2)
+        # simple_log("debug", f"salt_2_bit = {salt_2_bit}")
+        # shared_salt_bit = "".join(format(byte, "08b") for byte in shared_salt)
+        # simple_log("debug", f"share_salt = {shared_salt_bit}")
+        # simple_log("debug", f"share_salt length (byte) = {len(shared_salt_bit)}")
+        shared_salt_byte = bytes(
+            [salt_1_byte[i] & salt_2_byte[i] for i in range(len(salt_1_byte))]
+        )
+        # len(shared_salt)  # = 32 bytes
+        current_session_key: bytes = ecdh.generate_ecdh_key(
+            server_private_key=server_priv_key,
+            salt=shared_salt_byte,
+            info=None,
+            peer_public_key=peer_pub_key,
+        )
+        # len(current_session_key)  # = 32 bytes
+        return current_session_key
+
+    def _execute_encrypt_plaintext(
+        self, plaintext: str, associated_plaintext: str, session_key: bytes
+    ) -> Tuple[str, str, str]:
+        plaintext_byte: bytes = str_to_byte(plaintext)
+        associated_plaintext_byte: bytes = str_to_byte(associated_plaintext)
+        (ciphertext_byte, gcm_authentication_tag_byte, iv_byte) = ecdh.gcm_encrypt(
+            plaintext_byte, associated_plaintext_byte, session_key
+        )
+        ciphertext = byte_to_base64str(ciphertext_byte)
+        gcm_authentication_tag = byte_to_base64str(gcm_authentication_tag_byte)
+        iv = byte_to_base64str(iv_byte)
+
+        return (ciphertext, gcm_authentication_tag, iv)
+
+    def _execute_decrypt_ciphertext(
+        self,
+        associated_plaintext: str,
+        iv: str,
+        ciphertext: str,
+        gcm_authentication_tag: str,
+        session_key: bytes,
+    ) -> str:
+        try:
+            ciphertext_byte: bytes = base64str_backto_byte(ciphertext)
+            associated_plaintext_byte: bytes = str_to_byte(associated_plaintext)
+            gcm_authentication_tag_byte: bytes = base64str_backto_byte(
+                gcm_authentication_tag
+            )
+            iv_byte: bytes = base64str_backto_byte(iv)
+
+            plaintext_byte: bytes = ecdh.gcm_decrypt(
+                ciphertext_byte,
+                associated_plaintext_byte,
+                gcm_authentication_tag_byte,
+                session_key,
+                iv_byte,
+            )
+
+            plaintext: str = byte_backto_str(plaintext_byte)
+
+            simple_log("info", "Message passes GCM Authentication.")
+        except InvalidTag:
+            simple_log("info", "Message does not pass GCM Authentication.")
+
+        return plaintext
 
     # Execute RTicket
     def _execute_xxx_r_ticket(

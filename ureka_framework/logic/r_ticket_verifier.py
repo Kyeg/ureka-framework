@@ -224,25 +224,23 @@ class RTicketVerifier:
         ):
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,
-                str_to_key(r_ticket_in.device_id),
+                str_to_key(r_ticket_in.device_id, "ecc-public-key"),
             ):
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                simple_log("error", failure_msg)
-                simple_log("error", "-> FAILURE: WRONG AUDIT")
-                return Failure(RuntimeError(failure_msg))
+                simple_log("error", f"{failure_msg}")
+                return Failure(RuntimeError(f"{failure_msg}"))
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,
-                str_to_key(self.current_session.current_holder_id),
+                str_to_key(self.current_session.current_holder_id, "ecc-public-key"),
             ):
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
-                simple_log("error", failure_msg)
-                simple_log("error", "-> FAILURE: WRONG AUDIT")
-                return Failure(RuntimeError(failure_msg))
+                simple_log("error", f"{failure_msg}")
+                return Failure(RuntimeError(f"{failure_msg}"))
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
