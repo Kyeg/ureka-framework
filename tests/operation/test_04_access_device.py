@@ -99,9 +99,16 @@ class TestAccessDevice:
             == self.cloud_server_ep.current_session.current_session_key_str
         )
         assert (
-            self.iot_device.current_session.plaintext_1
-            == self.cloud_server_ep.current_session.plaintext_1
+            self.iot_device.current_session.plaintext_cmd
+            == self.cloud_server_ep.current_session.plaintext_cmd
         )
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:

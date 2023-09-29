@@ -192,16 +192,28 @@ class RTicketVerifier:
                 r_ticket_in.challenge_1 != None
                 and r_ticket_in.challenge_2 != None
                 and r_ticket_in.key_exchange_salt_2 != None
-                and r_ticket_in.iv_1 != None
-                and r_ticket_in.associated_plaintext_1 != None
-                and r_ticket_in.ciphertext_1 != None
-                and r_ticket_in.gcm_authentication_tag_1 != None
+                and r_ticket_in.iv_cmd != None
+                and r_ticket_in.associated_plaintext_cmd != None
+                and r_ticket_in.ciphertext_cmd != None
+                and r_ticket_in.gcm_authentication_tag_cmd != None
             ):
                 # TODO: Verify ciphertext here!?
-
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
-
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            if (
+                r_ticket_in.challenge_2 != None
+                and r_ticket_in.iv_data != None
+                and r_ticket_in.associated_plaintext_data != None
+                and r_ticket_in.ciphertext_data != None
+                and r_ticket_in.gcm_authentication_tag_data != None
+            ):
+                # TODO: Verify ciphertext here!?
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
@@ -221,6 +233,7 @@ class RTicketVerifier:
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,

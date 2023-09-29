@@ -21,17 +21,17 @@ class CurrentSession(BaseModel):
     # PS
     current_session_key_str: None | str = None
 
-    plaintext_1: None | str = None
-    associated_plaintext_1: None | str = None
-    iv_1: None | str = None
-    ciphertext_1: None | str = None
-    gcm_authentication_tag_1: None | str = None
+    plaintext_cmd: None | str = None
+    associated_plaintext_cmd: None | str = None
+    iv_cmd: None | str = None
+    ciphertext_cmd: None | str = None
+    gcm_authentication_tag_cmd: None | str = None
 
-    plaintext_2: None | str = None
-    associated_plaintext_2: None | str = None
-    iv_2: None | str = None
-    ciphertext_2: None | str = None
-    gcm_authentication_tag_2: None | str = None
+    plaintext_data: None | str = None
+    associated_plaintext_data: None | str = None
+    iv_data: None | str = None
+    ciphertext_data: None | str = None
+    gcm_authentication_tag_data: None | str = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema

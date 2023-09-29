@@ -194,8 +194,6 @@ class DeviceController:
             ):
                 self.state = this_device.STATE_WAIT_FOR_RT
             elif stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-                self.state = this_device.STATE_WAIT_FOR_CRKE1
-                # Update session
                 self._execute_update_current_session(stored_u_ticket, "holder")
                 # Also can add command in u_ticket
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -317,10 +315,9 @@ class DeviceController:
         # Can optionally _stored_generated_xxx_r_ticket
 
         self._send_xxx_message(generated_r_ticket_json)
-        self.state = this_device.STATE_WAIT_FOR_CRKE2
 
     def _holder_recv_cr_ke_1(self, recieved_r_ticket_json) -> None:
-        self._holder_recv_cr_ke_r_tickets(recieved_r_ticket_json)
+        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
     def _holder_send_cr_ke_2(
         self, received_r_ticket: RTicket, result_message: str
@@ -334,10 +331,10 @@ class DeviceController:
             "challenge_1": f"{self.current_session.challenge_1}",
             "challenge_2": f"{self.current_session.challenge_2}",
             "key_exchange_salt_2": f"{self.current_session.key_exchange_salt_2}",
-            "iv_1": f"{self.current_session.iv_1}",
-            "associated_plaintext_1": f"{self.current_session.associated_plaintext_1}",
-            "ciphertext_1": f"{self.current_session.ciphertext_1}",
-            "gcm_authentication_tag_1": f"{self.current_session.gcm_authentication_tag_1}",
+            "iv_cmd": f"{self.current_session.iv_cmd}",
+            "associated_plaintext_cmd": f"{self.current_session.associated_plaintext_cmd}",
+            "ciphertext_cmd": f"{self.current_session.ciphertext_cmd}",
+            "gcm_authentication_tag_cmd": f"{self.current_session.gcm_authentication_tag_cmd}",
         }
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
@@ -345,12 +342,36 @@ class DeviceController:
         # Can optionally _stored_generated_xxx_r_ticket
 
         self._send_xxx_message(generated_r_ticket_json)
-        self.state = this_device.STATE_WAIT_FOR_CRKE2
 
     def _device_recv_cr_ke_2(self, recieved_r_ticket_json) -> None:
-        self._holder_recv_cr_ke_r_tickets(recieved_r_ticket_json)
+        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
-    def _holder_recv_cr_ke_r_tickets(self, received_r_ticket_json) -> None:
+    def _device_send_cr_ke_3(
+        self, received_r_ticket: RTicket, result_message: str
+    ) -> None:
+        # Generate CR-KE RTicket
+        r_ticket_request: dict = {
+            "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
+            "device_id": f"{received_r_ticket.device_id}",
+            "audit_start": f"{received_r_ticket.audit_start}",
+            "result": f"{result_message}",
+            "challenge_2": f"{self.current_session.challenge_2}",
+            "iv_data": f"{self.current_session.iv_data}",
+            "associated_plaintext_data": f"{self.current_session.associated_plaintext_data}",
+            "ciphertext_data": f"{self.current_session.ciphertext_data}",
+            "gcm_authentication_tag_data": f"{self.current_session.gcm_authentication_tag_data}",
+        }
+        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+        simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
+
+        # Can optionally _stored_generated_xxx_r_ticket
+
+        self._send_xxx_message(generated_r_ticket_json)
+
+    def _holder_recv_cr_ke_3(self, recieved_r_ticket_json) -> None:
+        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
+
+    def _recv_cr_ke_r_tickets(self, received_r_ticket_json) -> None:
         # [FUNC-level: 'RT'VEGTS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
@@ -374,13 +395,17 @@ class DeviceController:
         if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             self._holder_send_cr_ke_2(received_r_ticket, result_message)
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
-            # self._holder_send_cr_ke_3()
-            pass
-        # if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-        #     self._holder_send_command()
-
-        # TO-DO: End Comm
-        self.complete_comm()
+            self._device_send_cr_ke_3(received_r_ticket, result_message)
+            simple_log("debug", f"Finish CR-KE~~ (device)")
+            # TO-DO: End Comm
+            self.complete_comm()
+        elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            # self._holder_send_command()
+            simple_log("debug", f"Finish CR-KE~~ (holder)")
+            # TO-DO: End Comm
+            self.complete_comm()
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", "weird ticket type")
 
     ######################################################
     # [FUNC-level: 'R'TVEGT"S"] Message Communication
@@ -421,8 +446,8 @@ class DeviceController:
                     self._holder_receive_r_ticket(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE1:
                     self._holder_recv_cr_ke_1(recveived_message_json)
-                # elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
-                #     self._holder_recv_cr_ke_3(recveived_message_json)
+                elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
+                    self._holder_recv_cr_ke_3(recveived_message_json)
             else:  # pragma: no cover -> Weird Device Type
                 simple_log("error", "weird device type")
 
@@ -743,6 +768,8 @@ class DeviceController:
                 self.current_session.current_device_id = ticket_in.device_id
                 self.current_session.current_holder_id = ticket_in.holder_id
                 self.current_session.current_task_scope = ticket_in.task_scope
+                # Update State
+                self.state = this_device.STATE_WAIT_FOR_CRKE1
             elif comm_end == "device":
                 # Access UT
                 self.current_session.current_u_ticket_id = ticket_in.u_ticket_id
@@ -752,6 +779,8 @@ class DeviceController:
                 # CR-KE
                 self.current_session.challenge_1 = ecdh.generate_random_str(32)
                 self.current_session.key_exchange_salt_1 = ecdh.generate_random_str(32)
+                # Update State
+                self.state = this_device.STATE_WAIT_FOR_CRKE2
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
@@ -761,7 +790,6 @@ class DeviceController:
             self.current_session.key_exchange_salt_1 = ticket_in.key_exchange_salt_1
             self.current_session.challenge_2 = ecdh.generate_random_str(32)
             self.current_session.key_exchange_salt_2 = ecdh.generate_random_str(32)
-
             # Session Key Gereration ("holder")
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.current_session.key_exchange_salt_1,
@@ -771,29 +799,29 @@ class DeviceController:
                     self.current_session.current_device_id, "ecc-public-key"
                 ),
             )
-
             # Message Encryption (str + key byte)
-            plaintext = "message to be encrypted and authenticated"
-            associated_plaintext = "message not to be encrypted but to be authenticated"
+            plaintext = "encrypted command"
+            associated_plaintext = "additional unencrypted command"
             (ciphertext, gcm_authentication_tag, iv) = self._execute_encrypt_plaintext(
                 plaintext=plaintext,
                 associated_plaintext=associated_plaintext,
                 session_key=current_session_key_byte,
             )
-
             # Update Session
             self.current_session.current_session_key_str = byte_to_base64str(
                 current_session_key_byte
             )
-            self.current_session.plaintext_1 = plaintext
-            self.current_session.associated_plaintext_1 = associated_plaintext
-            self.current_session.iv_1 = iv
-            self.current_session.ciphertext_1 = ciphertext
-            self.current_session.gcm_authentication_tag_1 = gcm_authentication_tag
+            self.current_session.plaintext_cmd = plaintext
+            self.current_session.associated_plaintext_cmd = associated_plaintext
+            self.current_session.iv_cmd = iv
+            self.current_session.ciphertext_cmd = ciphertext
+            self.current_session.gcm_authentication_tag_cmd = gcm_authentication_tag
             simple_log(
                 "debug",
-                "plaintext: " + self.current_session.plaintext_1,
+                "plaintext: " + self.current_session.plaintext_cmd,
             )
+            # Update State
+            self.state = this_device.STATE_WAIT_FOR_CRKE3
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET
@@ -807,13 +835,12 @@ class DeviceController:
                     self.current_session.current_holder_id, "ecc-public-key"
                 ),
             )
-
             # Message Decryption (str + key byte)
             plaintext = self._execute_decrypt_ciphertext(
-                associated_plaintext=ticket_in.associated_plaintext_1,
-                iv=ticket_in.iv_1,
-                ciphertext=ticket_in.ciphertext_1,
-                gcm_authentication_tag=ticket_in.gcm_authentication_tag_1,
+                associated_plaintext=ticket_in.associated_plaintext_cmd,
+                iv=ticket_in.iv_cmd,
+                ciphertext=ticket_in.ciphertext_cmd,
+                gcm_authentication_tag=ticket_in.gcm_authentication_tag_cmd,
                 session_key=current_session_key_byte,
             )
 
@@ -823,20 +850,70 @@ class DeviceController:
             self.current_session.current_session_key_str = byte_to_base64str(
                 current_session_key_byte
             )
-            self.current_session.plaintext_1 = plaintext
-            self.current_session.associated_plaintext_1 = (
-                ticket_in.associated_plaintext_1
+            self.current_session.plaintext_cmd = plaintext
+            self.current_session.associated_plaintext_cmd = (
+                ticket_in.associated_plaintext_cmd
             )
-            self.current_session.iv_1 = ticket_in.iv_1
-            self.current_session.ciphertext_1 = ticket_in.ciphertext_1
-            self.current_session.gcm_authentication_tag_1 = (
-                ticket_in.gcm_authentication_tag_1
+            self.current_session.iv_cmd = ticket_in.iv_cmd
+            self.current_session.ciphertext_cmd = ticket_in.ciphertext_cmd
+            self.current_session.gcm_authentication_tag_cmd = (
+                ticket_in.gcm_authentication_tag_cmd
             )
             simple_log(
                 "debug",
-                "plaintext: " + self.current_session.plaintext_1,
+                "plaintext: " + self.current_session.plaintext_cmd,
+            )
+            # Message Encryption (str + key byte)
+            plaintext = "encrypted data"
+            associated_plaintext = "additional unencrypted data"
+            (ciphertext, gcm_authentication_tag, iv) = self._execute_encrypt_plaintext(
+                plaintext=plaintext,
+                associated_plaintext=associated_plaintext,
+                session_key=current_session_key_byte,
+            )
+            # Update Session
+            self.current_session.plaintext_data = plaintext
+            self.current_session.associated_plaintext_data = associated_plaintext
+            self.current_session.iv_data = iv
+            self.current_session.ciphertext_data = ciphertext
+            self.current_session.gcm_authentication_tag_data = gcm_authentication_tag
+            # Update State
+            self.state = this_device.STATE_WAIT_FOR_CMD
+        elif (
+            type(ticket_in) == RTicket
+            and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
+        ):
+            # Session Key DONE ("holder")
+            current_session_key = base64str_backto_byte(
+                self.current_session.current_session_key_str
             )
 
+            # Message Decryption (str + key byte)
+            plaintext = self._execute_decrypt_ciphertext(
+                associated_plaintext=ticket_in.associated_plaintext_data,
+                iv=ticket_in.iv_data,
+                ciphertext=ticket_in.ciphertext_data,
+                gcm_authentication_tag=ticket_in.gcm_authentication_tag_data,
+                session_key=current_session_key,
+            )
+
+            # Update Session
+            self.current_session.plaintext_data = plaintext
+            self.current_session.associated_plaintext_data = (
+                ticket_in.associated_plaintext_data
+            )
+            self.current_session.iv_data = ticket_in.iv_data
+            self.current_session.ciphertext_data = ticket_in.ciphertext_data
+            self.current_session.gcm_authentication_tag_data = (
+                ticket_in.gcm_authentication_tag_data
+            )
+            simple_log(
+                "debug",
+                "plaintext: " + self.current_session.plaintext_data,
+            )
+
+            # Update State
+            self.state = this_device.STATE_WAIT_FOR_DATA
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -934,9 +1011,11 @@ class DeviceController:
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
         if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
-            self._execute_update_current_session(r_ticket_in, "device")
+            self._execute_update_current_session(r_ticket_in, "holder")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._execute_update_current_session(r_ticket_in, "device")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            self._execute_update_current_session(r_ticket_in, "holder")
 
         result = Success(r_ticket_in)
         return result
