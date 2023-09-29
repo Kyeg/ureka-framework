@@ -196,6 +196,8 @@ class DeviceController:
                 # Update session
                 self._execute_update_current_session(stored_u_ticket, "holder")
                 # Also can add command in u_ticket
+            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                simple_log("error", "weird ticket type")
 
             self._send_xxx_message(stored_u_ticket_json)
 
@@ -369,7 +371,7 @@ class DeviceController:
         # CR-KE-PS
         if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             self._holder_send_cr_ke_2(received_r_ticket, result_message)
-        if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+        elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             # self._holder_send_cr_ke_3()
             pass
         # if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
@@ -410,7 +412,7 @@ class DeviceController:
                     self._device_receive_u_ticket(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE2:
                     self._device_recv_cr_ke_2(recveived_message_json)
-            if self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
+            elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._holder_receive_consent(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_RT:
@@ -419,6 +421,8 @@ class DeviceController:
                     self._holder_recv_cr_ke_1(recveived_message_json)
                 # elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
                 #     self._holder_recv_cr_ke_3(recveived_message_json)
+            else:  # pragma: no cover -> Weird Device Type
+                simple_log("error", "weird device type")
 
     def _send_xxx_message(self, sent_message_json: str) -> None:
         simple_log(
@@ -509,8 +513,11 @@ class DeviceController:
             arbitrary_json,
             u_ticket_verifier.verify_json_schema,
             bind(u_ticket_verifier.verify_protocol_version),
+            bind(u_ticket_verifier.verify_u_ticket_id),
             bind(u_ticket_verifier.verify_u_ticket_type),
             bind(u_ticket_verifier.verify_device_id),
+            bind(u_ticket_verifier.verify_holder_id),
+            bind(u_ticket_verifier.verify_task_scope),
             bind(u_ticket_verifier.verify_issuer_signature),
             bind(self._execute_xxx_u_ticket),
         )
@@ -534,13 +541,13 @@ class DeviceController:
             arbitrary_json,
             r_ticket_verifier.verify_json_schema,
             bind(r_ticket_verifier.verify_protocol_version),
+            bind(r_ticket_verifier.verify_r_ticket_id),
             bind(r_ticket_verifier.verify_r_ticket_type),
             bind(r_ticket_verifier.verify_device_id),
             bind(r_ticket_verifier.verify_audit_start),
             bind(r_ticket_verifier.verify_audit_end),
             bind(r_ticket_verifier.verify_result),
             bind(r_ticket_verifier.verify_cr_ke),
-            bind(r_ticket_verifier.verify_ps),
             bind(r_ticket_verifier.verify_device_signature),
             bind(self._execute_xxx_r_ticket),
         )
@@ -864,6 +871,8 @@ class DeviceController:
                 simple_log("info", "Message passes GCM Authentication.")
             except InvalidTag:
                 simple_log("info", "Message does not pass GCM Authentication.")
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", "weird ticket type")
 
         simple_log(
             "debug",
@@ -883,7 +892,7 @@ class DeviceController:
     ) -> Result[RTicket, RuntimeError]:
         if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             self._execute_update_current_session(r_ticket_in, "device")
-        if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._execute_update_current_session(r_ticket_in, "device")
 
         result = Success(r_ticket_in)

@@ -52,7 +52,6 @@ class RTicketVerifier:
             simple_log("error", f"{failure_msg}: {error}")
             return Failure(RuntimeError(f"{failure_msg}: {error}"))
 
-    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
     def verify_protocol_version(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -70,7 +69,17 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
+    def verify_r_ticket_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
+        failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
+
+        if r_ticket_in.r_ticket_id != None:
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        else:  # pragma: no cover -> Weird R-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
     def verify_r_ticket_type(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -88,7 +97,6 @@ class RTicketVerifier:
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
 
-    # Although the U-Ticket Id (in audit_start) will be auditted, we still hope these field won't be maliciously replaced
     def verify_device_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
@@ -112,6 +120,9 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_audit_start(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_AUDIT_START"
@@ -134,6 +145,9 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_audit_end(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_AUDIT_END"
@@ -147,8 +161,12 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RESULT"
         failure_msg = f"-> FAILURE: VERIFY_RESULT"
 
-        simple_log("info", success_msg)
-        return Success(r_ticket_in)
+        if r_ticket_in.result != None:
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        else:  # pragma: no cover -> Weird R-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_cr_ke(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_CR_KE"
@@ -179,65 +197,7 @@ class RTicketVerifier:
                 and r_ticket_in.ciphertext_1 != None
                 and r_ticket_in.gcm_authentication_tag_1 != None
             ):
-                ######################################################
-                # Update Session
-                ######################################################
-                # # Session Key Gereration ("device")
-                # salt_1 = base64str_backto_byte(self.current_session.key_exchange_salt_1)
-                # salt_2 = base64str_backto_byte(r_ticket_in.key_exchange_salt_2)
-                # shared_salt = bytes([salt_1[i] & salt_2[i] for i in range(len(salt_1))])
-                # current_session_key: bytes = ecdh.generate_ecdh_key(
-                #     server_private_key=self.this_device.device_priv_key,
-                #     salt=shared_salt,
-                #     info=None,
-                #     peer_public_key=str_to_key(self.current_session.current_holder_id),
-                # )
-
-                # # Message Decryption (bytes)
-                # try:
-                #     ciphertext: bytes = base64str_backto_byte(r_ticket_in.ciphertext_1)
-                #     associated_plaintext: bytes = str_to_byte(
-                #         r_ticket_in.associated_plaintext_1
-                #     )
-                #     gcm_authentication_tag: bytes = base64str_backto_byte(
-                #         r_ticket_in.gcm_authentication_tag_1
-                #     )
-                #     iv_1: bytes = base64str_backto_byte(r_ticket_in.iv_1)
-
-                #     plaintext = ecdh.gcm_decrypt(
-                #         ciphertext,
-                #         associated_plaintext,
-                #         gcm_authentication_tag,
-                #         current_session_key,
-                #         iv_1,
-                #     )
-
-                #     self.current_session.challenge_2 = r_ticket_in.challenge_2
-                #     self.current_session.key_exchange_salt_2 = (
-                #         r_ticket_in.key_exchange_salt_2
-                #     )
-                #     self.current_session.current_session_key_str = byte_to_base64str(
-                #         current_session_key
-                #     )
-                #     self.current_session.plaintext_1 = byte_backto_str(plaintext)
-                #     simple_log(
-                #         "debug",
-                #         "plaintext: " + self.current_session.plaintext_1,
-                #     )
-                #     self.current_session.associated_plaintext_1 = (
-                #         r_ticket_in.associated_plaintext_1
-                #     )
-                #     self.current_session.iv_1 = r_ticket_in.iv_1
-                #     self.current_session.ciphertext_1 = r_ticket_in.ciphertext_1
-                #     self.current_session.gcm_authentication_tag_1 = (
-                #         r_ticket_in.gcm_authentication_tag_1
-                #     )
-
-                #     simple_log("info", f"{success_msg}: {gcm_tag_result}")
-                #     return Success(r_ticket_in)
-                # except InvalidTag:
-                #     gcm_tag_result = "Message does not pass GCM Authentication."
-                #     return Failure(RuntimeError(f"{failure_msg}: {gcm_tag_result}"))
+                # TODO: Verify ciphertext here!?
 
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
@@ -245,13 +205,9 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-
-    def verify_ps(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
-        success_msg = f"-> SUCCESS: VERIFY_PS"
-        failure_msg = f"-> FAILURE: VERIFY_PS"
-
-        simple_log("info", success_msg)
-        return Success(r_ticket_in)
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_device_signature(
         self,
@@ -276,7 +232,7 @@ class RTicketVerifier:
                 simple_log("error", failure_msg)
                 simple_log("error", "-> FAILURE: WRONG AUDIT")
                 return Failure(RuntimeError(failure_msg))
-        if r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,
                 str_to_key(self.current_session.current_holder_id),

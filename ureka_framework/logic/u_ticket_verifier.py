@@ -48,7 +48,18 @@ class UTicketVerifier:
         if u_ticket_in.protocol_verision == u_ticket.PROTOCOL_VERSION:
             simple_log("info", success_msg)
             return Success(u_ticket_in)
-        else:
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_u_ticket_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
+        failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
+
+        if u_ticket_in.u_ticket_id != None:
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
@@ -61,7 +72,7 @@ class UTicketVerifier:
         if u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
             simple_log("info", success_msg)
             return Success(u_ticket_in)
-        else:
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
@@ -73,7 +84,7 @@ class UTicketVerifier:
             if u_ticket_in.device_id == "no_id":
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:
+            else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
         # TYPE_OWNERSHIP_UTICKET, TYPE_ACCESS_UTICKET
@@ -81,9 +92,41 @@ class UTicketVerifier:
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:
+            else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
+
+    def verify_holder_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_HOLDER_ID"
+        failure_msg = f"-> FAILURE: VERIFY_HOLDER_ID"
+
+        if u_ticket_in.u_ticket_id != None:
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_task_scope(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_TASK_SCOPE"
+        failure_msg = f"-> FAILURE: VERIFY_TASK_SCOPE"
+
+        if (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+        ):
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+            if u_ticket_in.u_ticket_id != None:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_issuer_signature(
         self,
@@ -103,7 +146,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:
+            else:  # TODO: Attack
                 simple_log("error", failure_msg)
                 simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
@@ -113,7 +156,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:
+            else:  # TODO: Attack
                 simple_log("error", failure_msg)
                 simple_log("error", "-> FAILURE: WRONG AUTHORIZATION")
                 return Failure(RuntimeError(failure_msg))
