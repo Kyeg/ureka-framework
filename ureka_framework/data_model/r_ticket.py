@@ -20,6 +20,7 @@ LEGAL_CRKE_TYPES: {str} = {
 # Data Model
 ######################################################
 class RTicket(BaseModel):
+    # RT
     protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
     r_ticket_id: None | str = None
 

@@ -552,6 +552,7 @@ class DeviceController:
             bind(u_ticket_verifier.verify_device_id),
             bind(u_ticket_verifier.verify_holder_id),
             bind(u_ticket_verifier.verify_task_scope),
+            bind(u_ticket_verifier.verify_ps),
             bind(u_ticket_verifier.verify_issuer_signature),
             bind(self._execute_xxx_u_ticket),
         )
