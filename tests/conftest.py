@@ -4,6 +4,9 @@ from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
 import ureka_framework.data_model.this_device as this_device
 from typing import Tuple
+from ureka_framework.resource.crypto.serialization_util import (
+    dict_to_jsonstr,
+)
 
 
 ######################################################
@@ -185,6 +188,52 @@ def enterprise_provider_server() -> DeviceController:
     cloud_server_ep._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_ep
+
+
+def enterprise_provider_server_and_her_session() -> (
+    Tuple[DeviceController, DeviceController]
+):
+    # GIVEN: Initialized DO's UA and DO's IoTD
+    (
+        user_agent_do,
+        iot_device,
+    ) = device_owner_agent_and_her_device()
+
+    assert (
+        iot_device.this_device.owner_pub_key_str
+        == user_agent_do.this_person.person_pub_key_str
+    )
+
+    # GIVEN: Initialized EP's CS
+    cloud_server_ep = enterprise_provider_server()
+
+    # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
+    create_comm_connection(user_agent_do, cloud_server_ep)
+    owned_device_id = iot_device.this_device.device_pub_key_str
+    resource_tree = dict_to_jsonstr(
+        {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+    )
+    generated_task_scope = dict_to_jsonstr(
+        {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
+    )
+    generated_request: dict = {
+        "device_id": f"{owned_device_id}",
+        "holder_id": f"{cloud_server_ep.this_person.person_pub_key_str}",
+        "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
+        "task_scope": f"{generated_task_scope}",
+    }
+    user_agent_do.issuer_issue_consent_to_holder(
+        device_id=owned_device_id, arbitrary_dict=generated_request
+    )
+    wait_comm_completed(cloud_server_ep, user_agent_do)
+
+    # WHEN: Holder: EP's CS forward the access_u_ticket
+    create_comm_connection(cloud_server_ep, iot_device)
+    generated_command = "HELLO"
+    cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
+    wait_comm_completed(cloud_server_ep, iot_device)
+
+    return (cloud_server_ep, iot_device)
 
 
 def attacker_server() -> DeviceController:
