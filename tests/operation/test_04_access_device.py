@@ -128,8 +128,10 @@ class TestAccessDevice:
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
         generated_command = "HELLO-2"
-        # self.cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
-        # wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
