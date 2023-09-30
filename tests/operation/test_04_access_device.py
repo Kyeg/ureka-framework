@@ -76,7 +76,8 @@ class TestAccessDevice:
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        self.cloud_server_ep.holder_apply_u_ticket(owned_device_id)
+        generated_command = "HELLO"
+        self.cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
