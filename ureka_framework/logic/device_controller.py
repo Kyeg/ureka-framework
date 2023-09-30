@@ -146,6 +146,7 @@ class DeviceController:
             self.state = this_device.STATE_WAIT_FOR_RT
 
             # End Comm
+            simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
             self.complete_comm()
 
             return generated_u_ticket_json
@@ -164,9 +165,6 @@ class DeviceController:
         # [FUNC-level: RT'VEGTS']
         # Can optionally _verify_xxx_u_ticket
         # Can optionally _generate_xxx_r_ticket & _send_xxx_message
-
-        # End Comm
-        self.complete_comm()
 
         return received_u_ticket_json
 
@@ -243,9 +241,6 @@ class DeviceController:
         self._send_xxx_message(generated_r_ticket_json)
         self.state = this_device.STATE_WAIT_FOR_UT
 
-        # End Comm
-        self.complete_comm()
-
     def _holder_receive_r_ticket(self, recieved_r_ticket_json) -> None:
         # [FUNC-level: 'RT'VEGTS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
@@ -280,9 +275,6 @@ class DeviceController:
                 f"FAILURE: YOU DO NOT HAVE CORRESPONDING UTICKET FOR THIS DEVICE"
             )
             simple_log("error", failure_msg)
-
-        # End Comm
-        self.complete_comm()
 
     ######################################################
     # [IO-level]
@@ -396,14 +388,9 @@ class DeviceController:
             self._holder_send_cr_ke_2(received_r_ticket, result_message)
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._device_send_cr_ke_3(received_r_ticket, result_message)
-            simple_log("debug", f"Finish CR-KE~~ (device)")
-            # TO-DO: End Comm
-            self.complete_comm()
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # self._holder_send_command()
-            simple_log("debug", f"Finish CR-KE~~ (holder)")
-            # TO-DO: End Comm
-            self.complete_comm()
+            # self._holder_send_cmd()
+            pass
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -437,17 +424,32 @@ class DeviceController:
             if self.this_device.device_type == this_device.IOT_DEVICE:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._device_receive_u_ticket(recveived_message_json)
+                    # End Comm
+                    simple_log("debug", f"+ Finish UT-RT~~ (device)")
+                    self.complete_comm()
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE2:
                     self._device_recv_cr_ke_2(recveived_message_json)
+                    # TO-DO: End Comm
+                    simple_log("debug", f"+ Finish CR-KE~~ (device)")
+                    self.complete_comm()
             elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
                     self._holder_receive_consent(recveived_message_json)
+                    # End Comm
+                    simple_log("debug", f"+ Finish UT-UT~~ (holder)")
+                    self.complete_comm()
                 elif self.state == this_device.STATE_WAIT_FOR_RT:
                     self._holder_receive_r_ticket(recveived_message_json)
+                    # End Comm
+                    simple_log("debug", f"+ Finish UT-RT~~ (holder)")
+                    self.complete_comm()
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE1:
                     self._holder_recv_cr_ke_1(recveived_message_json)
                 elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
                     self._holder_recv_cr_ke_3(recveived_message_json)
+                    # TO-DO: End Comm
+                    simple_log("debug", f"+ Finish CR-KE~~ (holder)")
+                    self.complete_comm()
             else:  # pragma: no cover -> Weird Device Type
                 simple_log("error", "weird device type")
 
