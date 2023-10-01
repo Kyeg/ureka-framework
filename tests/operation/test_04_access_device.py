@@ -138,13 +138,35 @@ class TestAccessDevice:
             self.iot_device.current_session.plaintext_cmd
             == self.cloud_server_ep.current_session.plaintext_cmd
         )
-        # assert (
-        #     self.iot_device.current_session.plaintext_data
-        #     == self.cloud_server_ep.current_session.plaintext_data
-        # )
-        # assert current_session_to_jsonstr(
-        #     self.iot_device.current_session
-        # ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+
+        # WHEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        generated_command = "HELLO-3"
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            self.iot_device.current_session.plaintext_cmd
+            == self.cloud_server_ep.current_session.plaintext_cmd
+        )
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:

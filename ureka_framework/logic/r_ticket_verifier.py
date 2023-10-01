@@ -86,7 +86,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
 
-        if r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
+        if (
+            r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
+        ):
             simple_log("info", success_msg)
             return Success(r_ticket_in)
         else:

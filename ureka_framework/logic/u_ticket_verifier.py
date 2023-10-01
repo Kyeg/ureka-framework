@@ -69,7 +69,10 @@ class UTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
 
-        if u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
+        if (
+            u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+        ):
             simple_log("info", success_msg)
             return Success(u_ticket_in)
         else:  # pragma: no cover -> Weird U-Ticket
@@ -197,7 +200,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:  # TODO: Attack
+            else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
                 return Failure(RuntimeError(f"{failure_msg}"))
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
@@ -206,7 +209,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:  # TODO: Attack
+            else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
                 return Failure(RuntimeError(f"{failure_msg}"))
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()

@@ -21,6 +21,7 @@ class OtherDevice:
     # URequest, UTicket, UReject, RTicket, etc.
     device_u_ticket: None | str = None
     device_r_ticket: None | str = None
+    device_u_token: None | str = None
 
 
 ################################################################################
