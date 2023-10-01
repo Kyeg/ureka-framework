@@ -48,7 +48,8 @@ import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.exceptions import InvalidTag
 import threading
-from ureka_framework.resource.logger.simple_logger import simple_log, DEPLOYMENT_ENV
+from ureka_framework.resource.logger.simple_logger import simple_log
+from ureka_framework.environment import Environment
 
 
 class DeviceController:
@@ -162,9 +163,12 @@ class DeviceController:
     def _holder_recv_consent(self, received_u_ticket_json: str) -> str:
         # [FUNC-level: 'R'TVEGTCS]
         # received_u_ticket_json: str = self._recv_xxx_message()
-        # simple_log(
-        #     "debug", f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}"
-        # )
+        simple_log(
+            "debug", f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}"
+        )
+        simple_log(
+            "demo", f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}"
+        )
 
         # [FUNC-level: R'T'VEGTCS]
         self._store_recieved_xxx_u_ticket(received_u_ticket_json)
@@ -216,6 +220,7 @@ class DeviceController:
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         simple_log("debug", f"Received UTicket: {received_u_ticket_json}")
+        simple_log("demo", f"Received UTicket: {received_u_ticket_json}")
 
         # [FUNC-level: R'VE'GTCS]
         result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
@@ -256,6 +261,7 @@ class DeviceController:
         # [FUNC-level: 'R'TVEGTCS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         simple_log("debug", f"Received RTicket: {recieved_r_ticket_json}")
+        simple_log("demo", f"Received UTicket: {recieved_r_ticket_json}")
 
         # [FUNC-level: R'T'VEGTCS]
         device_id = self._store_recieved_xxx_r_ticket(recieved_r_ticket_json)
@@ -383,6 +389,7 @@ class DeviceController:
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
         simple_log("debug", f"Received CRKE-RTicket: {received_r_ticket_json}")
+        simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
 
         # [FUNC-level: R'VE'GTCS]
         result = self._verify_and_execute_xxx_r_ticket(
@@ -462,6 +469,7 @@ class DeviceController:
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_token = jsonstr_to_u_ticket(received_u_token_json)
         simple_log("debug", f"Received UToken: {received_u_token_json}")
+        simple_log("demo", f"Received UToken: {received_u_token_json}")
 
         # [FUNC-level: R'VE'GTCS]
         result = self._verify_and_execute_xxx_u_ticket(received_u_token_json)
@@ -503,6 +511,7 @@ class DeviceController:
         # [FUNC-level: 'R'TVEGTCS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         simple_log("debug", f"Received RToken: {recieved_r_token_json}")
+        simple_log("demo", f"Received RToken: {recieved_r_token_json}")
 
         # [FUNC-level: R'T'VEGTCS]
         device_id = self._store_recieved_xxx_r_token(recieved_r_token_json)
@@ -578,6 +587,10 @@ class DeviceController:
                     #     "debug",
                     #     f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
                     # )
+                    simple_log(
+                        "demo",
+                        f"\nplaintext_cmd in {self.this_device.device_name} = {self.current_session.plaintext_cmd}",
+                    )
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
                     self.complete_comm()
                 elif self.state == this_device.STATE_WAIT_FOR_CMD:
@@ -588,8 +601,8 @@ class DeviceController:
                     #     f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
                     # )
                     simple_log(
-                        "warning",
-                        f"plaintext_cmd in {self.this_device.device_name} = {self.current_session.plaintext_cmd}",
+                        "demo",
+                        f"\nplaintext_cmd in {self.this_device.device_name} = {self.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (device)")
                     self.complete_comm()
@@ -613,6 +626,14 @@ class DeviceController:
                     #     "debug",
                     #     f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
                     # )
+                    simple_log(
+                        "demo",
+                        f"\nplaintext_data in {self.this_device.device_name} = {self.current_session.plaintext_data}",
+                    )
+                    simple_log(
+                        "demo",
+                        f"\n+++Session is Constucted+++",
+                    )
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.complete_comm()
                 elif self.state == this_device.STATE_WAIT_FOR_DATA:
@@ -623,8 +644,8 @@ class DeviceController:
                     #     f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
                     # )
                     simple_log(
-                        "warning",
-                        f"plaintext_data in {self.this_device.device_name} = {self.current_session.plaintext_data}",
+                        "demo",
+                        f"\nplaintext_data in {self.this_device.device_name} = {self.current_session.plaintext_data}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.complete_comm()
@@ -1363,7 +1384,9 @@ class DeviceController:
         for i in range(3):
             for i in range(3):
                 simple_log("info", f"+ network delay")
-            if DEPLOYMENT_ENV == "PRODUCTION":  # pragma: no cover
+            if Environment.DEPLOYMENT_ENV == "PRODUCTION":  # pragma: no cover
+                time.sleep(0.5)
+            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover
                 time.sleep(0.5)
 
         self.comm_channel.sender_queue.put(sent_message_json)

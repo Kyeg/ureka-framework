@@ -1,15 +1,12 @@
 import logging
-
-# "TEST": Test Mode (e.g., logging, etc.)
-# "PRODUCTION": Production Mode (e.g., print, etc.)
-DEPLOYMENT_ENV = "TEST"
+from ureka_framework.environment import Environment
 
 
 def simple_log(log_level: str, log_info: str):  # pragma: no cover
-    global DEPLOYMENT_ENV
-
-    if DEPLOYMENT_ENV == "TEST":
-        if log_level == "debug":
+    if Environment.DEPLOYMENT_ENV == "TEST":
+        if log_level == "demo":
+            pass
+        elif log_level == "debug":
             logging.debug(log_info)
         elif log_level == "info":
             logging.info(log_info)
@@ -21,9 +18,11 @@ def simple_log(log_level: str, log_info: str):  # pragma: no cover
             logging.critical(log_info)
         else:
             raise RuntimeError(f"Log Level: {log_level} is not supported.")
-    elif DEPLOYMENT_ENV == "PRODUCTION":
+    elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
         # Can omit debug logs, or even omit all logs
-        if log_level == "debug":
+        if log_level == "demo":
+            pass
+        elif log_level == "debug":
             print(f"[   DEBUG] : {log_info}")
         elif log_level == "info":
             print(f"[    INFO] : {log_info}")
@@ -35,7 +34,11 @@ def simple_log(log_level: str, log_info: str):  # pragma: no cover
             print(f"[CRITICAL] : {log_info}")
         else:
             raise RuntimeError(f"Log Level: {log_level} is not supported.")
+    elif Environment.DEPLOYMENT_ENV == "DEMO":
+        # Keep only demo logs, omit all other logs
+        if log_level == "demo":
+            print(f"{log_info}")
     else:
         raise RuntimeError(
-            f"Deployment Environment: {DEPLOYMENT_ENV} is not supported."
+            f"Deployment Environment: {Environment.DEPLOYMENT_ENV} is not supported."
         )

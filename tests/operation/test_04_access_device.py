@@ -1,6 +1,3 @@
-from ureka_framework.data_model.current_session import current_session_to_jsonstr
-from ureka_framework.resource.logger.simple_logger import simple_log
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -14,6 +11,9 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
+from ureka_framework.data_model.current_session import current_session_to_jsonstr
+from ureka_framework.resource.logger.simple_logger import simple_log
+from returns.result import Success, Failure
 import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
@@ -59,7 +59,11 @@ class TestAccessDevice:
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
         resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         generated_task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
@@ -189,7 +193,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
@@ -280,7 +288,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
@@ -327,7 +339,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}

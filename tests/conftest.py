@@ -211,7 +211,11 @@ def enterprise_provider_server_and_her_session() -> (
     create_comm_connection(user_agent_do, cloud_server_ep)
     owned_device_id = iot_device.this_device.device_pub_key_str
     resource_tree = dict_to_jsonstr(
-        {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+        {
+            "SAY-HELLO": "allow",
+            "SAY-GOOD-MORNING": "allow",
+            "SAY-GOOD-NIGHT": "forbid",
+        }
     )
     generated_task_scope = dict_to_jsonstr(
         {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
