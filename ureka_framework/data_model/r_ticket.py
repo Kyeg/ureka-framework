@@ -5,14 +5,20 @@ import ureka_framework.data_model.u_ticket as u_ticket
 ######################################################
 # RTicket Type (same as UTicket Type)
 # RTicket Type (CRKE: as following)
+# RTicket Type (PS: as following)
 ######################################################
+# CRKE
 TYPE_CRKE1_RTICKET: str = "CR-KE-1"
 TYPE_CRKE2_RTICKET: str = "CR-KE-2"
 TYPE_CRKE3_RTICKET: str = "CR-KE-3"
+# RToken
+TYPE_DATA_RTOKEN: str = "RToken"
+# ALL
 LEGAL_CRKE_TYPES: {str} = {
     TYPE_CRKE1_RTICKET,
     TYPE_CRKE2_RTICKET,
     TYPE_CRKE3_RTICKET,
+    TYPE_DATA_RTOKEN,
 }
 
 

@@ -91,7 +91,6 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_DATA_UTOKEN
         ):
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 simple_log("info", success_msg)
@@ -118,10 +117,7 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        elif (
-            u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_DATA_UTOKEN
-        ):
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
             # No HOLDER_ID
             simple_log("info", success_msg)
             return Success(u_ticket_in)
@@ -137,7 +133,6 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_DATA_UTOKEN
         ):
             # No TASK_SCOPE
             simple_log("info", success_msg)
@@ -165,10 +160,7 @@ class UTicketVerifier:
             # No PS
             simple_log("info", success_msg)
             return Success(u_ticket_in)
-        elif (
-            u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_DATA_UTOKEN
-        ):
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
             if (
                 u_ticket_in.associated_plaintext != None
                 and u_ticket_in.iv != None
@@ -195,7 +187,6 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_DATA_UTOKEN
         ):
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)

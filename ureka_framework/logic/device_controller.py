@@ -115,8 +115,8 @@ class DeviceController:
     # [IO-level]
     #
     # CST: issuer_issue_consent_to_herself()
-    # TODO: REQ: issuer_receive_request() <- holder_issue_request_to_issuer()
-    # CST: issuer_issue_consent_to_holder() -> holder_receive_consent()
+    # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
+    # CST: issuer_issue_consent_to_holder() -> _holder_recv_consent()
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
@@ -159,7 +159,7 @@ class DeviceController:
             simple_log("error", failure_msg)
             return failure_msg
 
-    def _holder_receive_consent(self, received_u_ticket_json) -> str:
+    def _holder_recv_consent(self, received_u_ticket_json: str) -> str:
         # [FUNC-level: 'R'TVEGTCS]
         # received_u_ticket_json: str = self._recv_xxx_message()
         # simple_log(
@@ -180,8 +180,8 @@ class DeviceController:
     # [IO-level]
     #
     # APY (No CR):
-    #       holder_apply_u_ticket() -> device_receive_u_ticket()
-    #       holder_receive_r_ticket() <- device_send_r_ticket()
+    #       holder_apply_u_ticket() -> _device_recv_u_ticket()
+    #       _holder_recv_r_ticket() <- _device_send_r_ticket()
     #
     # Automatic UT-RT & UT-CR-KE-PS-RT
     #           Concurrent device_controller,
@@ -252,7 +252,7 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_UT)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_r_ticket(self, recieved_r_ticket_json) -> None:
+    def _holder_recv_r_ticket(self, recieved_r_ticket_json: str) -> None:
         # [FUNC-level: 'R'TVEGTCS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         simple_log("debug", f"Received RTicket: {recieved_r_ticket_json}")
@@ -296,15 +296,11 @@ class DeviceController:
     ######################################################
     # [IO-level]
     #
-    # APY (With CR-KE-PS):
-    #       holder_apply_u_ticket() -> device_receive_u_ticket()
-    #           holder_recv_cr_ke_1() <- device_send_cr_ke_1()
-    #           holder_send_cr_ke_2() -> device_recv_cr_ke_2()
-    #           holder_recv_cr_ke_3() <- device_send_cr_ke_3()
-    #           holder_send_command() -> device_recv_command()
-    #              holder_recv_data() <- device_send_data()
-    #                                 ...
-    #       holder_receive_r_ticket() <- device_send_r_ticket()
+    # APY (CR-KE):
+    #       holder_apply_u_ticket() -> _device_recv_u_ticket()
+    #       _holder_recv_cr_ke_1() <- _device_send_cr_ke_1()
+    #       _holder_send_cr_ke_2() -> _device_recv_cr_ke_2()
+    #       _holder_recv_cr_ke_3() <- _device_send_cr_ke_3()
     ######################################################
     def _device_send_cr_ke_1(
         self, received_u_ticket: UTicket, result_message: str
@@ -326,7 +322,7 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CRKE2)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_cr_ke_1(self, recieved_r_ticket_json) -> None:
+    def _holder_recv_cr_ke_1(self, recieved_r_ticket_json: str) -> None:
         self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
     def _holder_send_cr_ke_2(
@@ -354,7 +350,7 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CRKE3)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _device_recv_cr_ke_2(self, recieved_r_ticket_json) -> None:
+    def _device_recv_cr_ke_2(self, recieved_r_ticket_json: str) -> None:
         self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
     def _device_send_cr_ke_3(
@@ -380,10 +376,10 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_cr_ke_3(self, recieved_r_ticket_json) -> None:
+    def _holder_recv_cr_ke_3(self, recieved_r_ticket_json: str) -> None:
         self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
 
-    def _recv_cr_ke_r_tickets(self, received_r_ticket_json) -> None:
+    def _recv_cr_ke_r_tickets(self, received_r_ticket_json: str) -> None:
         # [FUNC-level: 'R'VEGTCS]
         # recieved_r_ticket_json: str = self._recv_xxx_message()
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
@@ -407,33 +403,25 @@ class DeviceController:
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._device_send_cr_ke_3(received_r_ticket, result_message)
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # Do nothing
+            # Back to initial state: Wait for holder_recv_consent ()
+            self._change_state(this_device.STATE_WAIT_FOR_UT)
+            # Wait for holder_send_cmd()
             pass
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
-    def _device_send_cr_ke_3(
-        self, received_r_ticket: RTicket, result_message: str
-    ) -> None:
-        # [FUNC-level: RTVE'G'TCS]
-        # Generate CR-KE RTicket
-        r_ticket_request: dict = {
-            "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
-            "device_id": f"{received_r_ticket.device_id}",
-            "audit_start": f"{received_r_ticket.audit_start}",
-            "result": f"{result_message}",
-            "challenge_2": f"{self.current_session.challenge_2}",
-            "iv_data": f"{self.current_session.iv_data}",
-            "associated_plaintext_data": f"{self.current_session.associated_plaintext_data}",
-            "ciphertext_data": f"{self.current_session.ciphertext_data}",
-            "gcm_authentication_tag_data": f"{self.current_session.gcm_authentication_tag_data}",
-        }
-        generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
-        simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
-
-        # [FUNC-level: RTVEGT'CS']
-        self._change_state(this_device.STATE_WAIT_FOR_CMD)
-        self._send_xxx_message(generated_r_ticket_json)
+    ######################################################
+    # [IO-level]
+    #
+    # APY (PS):
+    #       holder_send_cmd()   -> _device_recv_cmd()
+    #       _holder_recv_data() <- _device_send_data()
+    #                           ...
+    #                       ..repeated..
+    #                           ...
+    #       holder_send_tx_end() -> _device_recv_cmd()
+    #       _holder_recv_r_ticket() <- _device_send_r_ticket()
+    ######################################################
 
     def holder_send_cmd(self, device_id: str, cmd: str) -> None:
         if device_id in self.device_table:
@@ -448,7 +436,7 @@ class DeviceController:
 
             # [FUNC-level: RTVE'G'TCS]
             generated_request: dict = {
-                "device_id": f"{device_id}",
+                "device_id": f"{self.current_session.current_device_id}",
                 "u_ticket_type": f"{u_ticket.TYPE_CMD_UTOKEN}",
                 "associated_plaintext": f"{self.current_session.associated_plaintext_cmd}",
                 "iv": f"{self.current_session.iv_cmd}",
@@ -463,14 +451,6 @@ class DeviceController:
             # [FUNC-level: RTVEGT'CS']
             self._change_state(this_device.STATE_WAIT_FOR_DATA)
             self._send_xxx_message(generated_u_ticket_json)
-
-            # TO-DO: End Comm
-            simple_log(
-                "debug",
-                f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
-            )
-            simple_log("debug", f"+ Finish PS~~ (holder)")
-            self.complete_comm()
 
         else:  # pragma: no cover -> IO-level
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
@@ -492,10 +472,34 @@ class DeviceController:
         # [FUNC-level: RTVE'GTCS']
         # PS
         if received_u_ticket.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
-            # self._device_send_data(received_u_ticket, result_message)
+            self._device_send_data(received_u_ticket, result_message)
             pass
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
+
+    def _device_send_data(
+        self, received_u_ticket: UTicket, result_message: str
+    ) -> None:
+        # [FUNC-level: RTVE'G'TCS]
+        generated_request: dict = {
+            "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
+            "device_id": f"{received_u_ticket.device_id}",
+            "audit_start": f"{received_u_ticket.u_ticket_id}",
+            "result": f"{result_message}",
+            "associated_plaintext_data": f"{self.current_session.associated_plaintext_data}",
+            "iv_data": f"{self.current_session.iv_data}",
+            "ciphertext_data": f"{self.current_session.ciphertext_data}",
+            "gcm_authentication_tag_data": f"{self.current_session.gcm_authentication_tag_data}",
+        }
+        generated_r_ticket_json: str = self._generate_xxx_r_ticket(generated_request)
+        simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
+
+        # [FUNC-level: RTVEGT'CS']
+        self._change_state(this_device.STATE_WAIT_FOR_CMD)
+        self._send_xxx_message(generated_r_ticket_json)
+
+    def _holder_recv_data(self, recieved_r_ticket_json: str) -> None:
+        pass
 
     ######################################################
     # [FUNC-level: 'R'TVEGTCS] Message Receiving
@@ -550,7 +554,7 @@ class DeviceController:
                     self.complete_comm()
             elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
                 if self.state == this_device.STATE_WAIT_FOR_UT:
-                    self._holder_receive_consent(received_message_json)
+                    self._holder_recv_consent(received_message_json)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-UT~~ (holder)")
                     self.complete_comm()
@@ -570,6 +574,16 @@ class DeviceController:
                     # )
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.complete_comm()
+                elif self.state == this_device.STATE_WAIT_FOR_DATA:
+                    # self._holder_recv_data(received_message_json)
+                    # TO-DO: End Comm
+                    simple_log(
+                        "debug",
+                        f"current_session_json in {self.this_device.device_name} = {current_session_to_jsonstr(self.current_session)}",
+                    )
+                    simple_log("debug", f"+ Finish PS~~ (holder)")
+                    self.complete_comm()
+                    pass
             else:  # pragma: no cover -> Weird Device Type
                 simple_log("error", "weird device type")
 
@@ -683,6 +697,7 @@ class DeviceController:
             bind(r_ticket_verifier.verify_audit_end),
             bind(r_ticket_verifier.verify_result),
             bind(r_ticket_verifier.verify_cr_ke),
+            bind(r_ticket_verifier.verify_ps),
             bind(r_ticket_verifier.verify_device_signature),
             bind(self._execute_xxx_r_ticket),
         )
