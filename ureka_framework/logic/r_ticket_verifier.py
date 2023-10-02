@@ -86,7 +86,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
 
-        if r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
+        if (
+            r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
+        ):
             simple_log("info", success_msg)
             return Success(r_ticket_in)
         else:
@@ -105,8 +108,14 @@ class RTicketVerifier:
             # # Note that for TYPE_INITIALIZATION:
             # u_ticket_device_id = "no_id"
             # r_ticket_device_id = "newly-created device public key string"
+
+            # NO Device ID
+            simple_log("info", success_msg)
             return Success(r_ticket_in)
-        elif r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+        elif (
+            r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
+        ):
             if r_ticket_in.device_id == self.audit_start_ticket.device_id:
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
@@ -131,6 +140,7 @@ class RTicketVerifier:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
         ):
             if r_ticket_in.audit_start == self.audit_start_ticket.u_ticket_id:
                 simple_log("info", success_msg)
@@ -175,7 +185,10 @@ class RTicketVerifier:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
         ):
+            # NO CR-KE
+            simple_log("info", success_msg)
             return Success(r_ticket_in)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             if (
@@ -192,10 +205,6 @@ class RTicketVerifier:
                 r_ticket_in.challenge_1 != None
                 and r_ticket_in.challenge_2 != None
                 and r_ticket_in.key_exchange_salt_2 != None
-                and r_ticket_in.iv_cmd != None
-                and r_ticket_in.associated_plaintext_cmd != None
-                and r_ticket_in.ciphertext_cmd != None
-                and r_ticket_in.gcm_authentication_tag_cmd != None
             ):
                 # TODO: Verify ciphertext here!?
                 simple_log("info", success_msg)
@@ -204,14 +213,59 @@ class RTicketVerifier:
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            if r_ticket_in.challenge_2 != None:
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_ps(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_PS"
+        failure_msg = f"-> FAILURE: VERIFY_PS"
+
+        if (
+            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+        ):
+            # NO PS
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             if (
-                r_ticket_in.challenge_2 != None
-                and r_ticket_in.iv_data != None
+                r_ticket_in.iv_cmd != None
+                and r_ticket_in.associated_plaintext_cmd != None
+                and r_ticket_in.ciphertext_cmd != None
+                and r_ticket_in.gcm_authentication_tag_cmd != None
+            ):
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            if (
+                r_ticket_in.iv_data != None
                 and r_ticket_in.associated_plaintext_data != None
                 and r_ticket_in.ciphertext_data != None
                 and r_ticket_in.gcm_authentication_tag_data != None
             ):
-                # TODO: Verify ciphertext here!?
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            if (
+                r_ticket_in.iv_data != None
+                and r_ticket_in.associated_plaintext_data != None
+                and r_ticket_in.ciphertext_data != None
+                and r_ticket_in.gcm_authentication_tag_data != None
+            ):
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
@@ -254,6 +308,10 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", f"{failure_msg}")
                 return Failure(RuntimeError(f"{failure_msg}"))
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            # No ISSUER_SIGNATURE
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))

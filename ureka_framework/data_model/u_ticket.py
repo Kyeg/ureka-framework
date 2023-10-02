@@ -10,15 +10,19 @@ PROTOCOL_VERSION: str = "UREKA-1.0"
 ######################################################
 # UTicket Type
 ######################################################
+# UTicket
 TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
 TYPE_OWNERSHIP_UTICKET: str = "OWNERSHIP"
 TYPE_ACCESS_UTICKET: str = "ACCESS"
 # TYPE_QUERY_UTICKET: str = "QUERY"
+# UTicket
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
     TYPE_OWNERSHIP_UTICKET,
     TYPE_ACCESS_UTICKET,
 }
+# UToken
+TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
 
 ######################################################
 # Task Scope
@@ -30,6 +34,7 @@ TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
 # Data Model
 ######################################################
 class UTicket(BaseModel):
+    # UT
     protocol_verision: None | str = PROTOCOL_VERSION
     u_ticket_id: None | str = None
 
@@ -40,6 +45,12 @@ class UTicket(BaseModel):
     task_scope: None | str = None
 
     issuer_signature: None | str = None
+
+    # PS
+    associated_plaintext: None | str = None
+    iv: None | str = None
+    ciphertext: None | str = None
+    gcm_authentication_tag: None | str = None
 
     def __eq__(self, other):
         if isinstance(other, UTicket):

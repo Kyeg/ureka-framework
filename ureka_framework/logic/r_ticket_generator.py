@@ -57,10 +57,14 @@ class RTicketGenerator:
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key
             )
-        if new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+        elif new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_person.person_priv_key
             )
+        elif new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            pass
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
 
         return new_r_ticket
 

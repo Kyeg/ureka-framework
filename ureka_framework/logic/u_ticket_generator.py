@@ -45,7 +45,10 @@ class UTicketGenerator:
         # Signed UTicket
         ######################################################
         # Generate Signature
-        if new_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET:
+        if (
+            new_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET
+            or new_u_ticket.u_ticket_type != u_ticket.TYPE_CMD_UTOKEN
+        ):
             new_u_ticket = self._add_issuer_signature_on_u_ticket(
                 new_u_ticket, self.this_person.person_priv_key
             )

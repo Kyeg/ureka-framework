@@ -1,6 +1,3 @@
-from ureka_framework.data_model.current_session import current_session_to_jsonstr
-from ureka_framework.resource.logger.simple_logger import simple_log
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -8,11 +5,15 @@ from tests.conftest import (
     current_test_given_log,
     current_test_when_and_then_log,
     create_comm_connection,
+    enterprise_provider_server_and_her_session,
     wait_comm_completed,
     device_owner_agent_and_her_device,
     enterprise_provider_server,
     attacker_server,
 )
+from ureka_framework.data_model.current_session import current_session_to_jsonstr
+from ureka_framework.resource.logger.simple_logger import simple_log
+from returns.result import Success, Failure
 import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
@@ -58,7 +59,11 @@ class TestAccessDevice:
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
         resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         generated_task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
@@ -111,6 +116,62 @@ class TestAccessDevice:
             self.iot_device.current_session
         ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
+    def test_private_session_in_io_level(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: Initialized EP's CS has Limitedly Access DO's IoTD
+        (
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_session()
+
+        # WHEN:
+        current_test_when_and_then_log()
+
+        # WHEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        generated_command = "HELLO-2"
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            self.iot_device.current_session.plaintext_cmd
+            == self.cloud_server_ep.current_session.plaintext_cmd
+        )
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+
+        # WHEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        generated_command = "HELLO-3"
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            self.iot_device.current_session.plaintext_cmd
+            == self.cloud_server_ep.current_session.plaintext_cmd
+        )
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
         current_test_given_log()
@@ -132,7 +193,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
@@ -223,7 +288,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
@@ -270,7 +339,11 @@ class TestAccessDevice:
         #     - (->) Access UTicket (->)
         # -----------------------------------------------------
         permission_resource_tree = dict_to_jsonstr(
-            {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
         )
         task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}

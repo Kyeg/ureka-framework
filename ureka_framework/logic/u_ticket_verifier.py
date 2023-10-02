@@ -69,7 +69,10 @@ class UTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
 
-        if u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
+        if (
+            u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+        ):
             simple_log("info", success_msg)
             return Success(u_ticket_in)
         else:  # pragma: no cover -> Weird U-Ticket
@@ -87,23 +90,41 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        # TYPE_OWNERSHIP_UTICKET, TYPE_ACCESS_UTICKET
-        else:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+        ):
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_holder_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_HOLDER_ID"
         failure_msg = f"-> FAILURE: VERIFY_HOLDER_ID"
 
-        if u_ticket_in.u_ticket_id != None:
+        if (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
+            if u_ticket_in.u_ticket_id != None:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
+            # No HOLDER_ID
             simple_log("info", success_msg)
             return Success(u_ticket_in)
-        else:  # pragma: no cover -> Weird U-Ticket
+        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
@@ -114,11 +135,41 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
         ):
+            # No TASK_SCOPE
             simple_log("info", success_msg)
             return Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if u_ticket_in.u_ticket_id != None:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_ps(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_PS"
+        failure_msg = f"-> FAILURE: VERIFY_PS"
+
+        if (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
+            # No PS
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
+            if (
+                u_ticket_in.associated_plaintext != None
+                and u_ticket_in.iv != None
+                and u_ticket_in.ciphertext != None
+                and u_ticket_in.gcm_authentication_tag != None
+            ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
             else:  # pragma: no cover -> Weird U-Ticket
@@ -136,8 +187,11 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_ISSUER_SIGNATURE on {u_ticket_in.u_ticket_type} UTICKET"
 
         # Verify ISSUER_SIGNATURE
-        if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            # No need to verify ISSUER_SIGNATURE
+        if (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+        ):
+            # No ISSUER_SIGNATURE
             simple_log("info", success_msg)
             return Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
@@ -146,7 +200,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:  # TODO: Attack
+            else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
                 return Failure(RuntimeError(f"{failure_msg}"))
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
@@ -155,7 +209,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return Success(u_ticket_in)
-            else:  # TODO: Attack
+            else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
                 return Failure(RuntimeError(f"{failure_msg}"))
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
