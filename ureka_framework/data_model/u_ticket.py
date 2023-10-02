@@ -41,6 +41,7 @@ class UTicket(BaseModel):
     u_ticket_type: None | str = None
 
     device_id: None | str = None
+    ticket_order: None | int = None
     holder_id: None | str = None
     task_scope: None | str = None
 

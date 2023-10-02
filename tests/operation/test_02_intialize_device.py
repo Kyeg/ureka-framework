@@ -15,6 +15,7 @@ from ureka_framework.logic.device_controller import (
 )
 import ureka_framework.data_model.u_ticket as u_ticket
 import ureka_framework.data_model.this_device as this_device
+from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -167,11 +168,13 @@ class TestIntializeDevice:
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        simple_log("debug", f"test_u_ticket = {test_u_ticket}")
         result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
         # THEN: Failed to re-initialize DM's IoTD
         assert type(result) == Failure
-        assert result.failure().args[0] == "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+        # assert result.failure().args[0] == "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+        assert result.failure().args[0] == "-> FAILURE: VERIFY_TICKET_ORDER"
 
     def test_apply_initialization_u_ticket_to_agent_or_server_failed(self) -> None:
         current_test_given_log()

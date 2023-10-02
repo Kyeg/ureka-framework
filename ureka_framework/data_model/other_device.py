@@ -13,8 +13,10 @@ class OtherDevice:
     device_id: None | str = None
 
     device_name: None | str = None
-    # role: None | str = None
 
+    ticket_order: None | int = None
+
+    # role: None | str = None
     # consent_state: None | str = None
     # execution_state: None | str = None
 

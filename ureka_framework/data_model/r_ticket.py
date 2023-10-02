@@ -31,9 +31,9 @@ class RTicket(BaseModel):
     r_ticket_type: None | str = None
 
     device_id: None | str = None
+    ticket_order: None | int = None
     audit_start: None | str = None
     audit_end: None | str = None
-
     result: None | str = None
 
     # CR-KE
@@ -53,6 +53,7 @@ class RTicket(BaseModel):
     ciphertext_data: None | str = None
     gcm_authentication_tag_data: None | str = None
 
+    # RT
     device_signature: None | str = None
 
     def __eq__(self, other):

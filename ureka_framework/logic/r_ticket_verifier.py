@@ -6,33 +6,32 @@ import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.data_model.u_ticket import UTicket
 import ureka_framework.data_model.r_ticket as r_ticket
 from ureka_framework.data_model.this_device import ThisDevice
+from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
 from ureka_framework.resource.crypto.serialization_util import (
-    byte_to_base64str,
     str_to_key,
     base64str_backto_byte,
     str_to_byte,
-    byte_backto_str,
 )
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-import ureka_framework.resource.crypto.ecdh as ecdh
-from cryptography.exceptions import InvalidTag
 
 
 class RTicketVerifier:
     def __init__(
         self,
         this_device: ThisDevice,
+        device_table: dict[str, OtherDevice],
         audit_start_ticket: UTicket,
         audit_end_ticket: str | UTicket,
         current_session: CurrentSession,
     ) -> None:
         self.this_device = this_device
+        self.device_table = device_table
         self.audit_start_ticket = audit_start_ticket
         self.audit_end_ticket = audit_end_ticket
         self.current_session = current_session
@@ -124,6 +123,59 @@ class RTicketVerifier:
                 return Failure(RuntimeError(failure_msg))
         elif r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
             if r_ticket_in.device_id == self.current_session.current_device_id:
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_ticket_order(
+        self, r_ticket_in: RTicket
+    ) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_TICKET_ORDER"
+        failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
+
+        # If TX is finished, the ticket_order++
+        # "holder"
+        if r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            if r_ticket_in.ticket_order == 1:
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        elif r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+            if (
+                r_ticket_in.ticket_order
+                == self.device_table[r_ticket_in.device_id].ticket_order + 1
+            ):
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        # If TX is not finished, the ticket_order should be the same
+        # "holder"
+        elif (
+            r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
+            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
+        ):
+            if (
+                r_ticket_in.ticket_order
+                == self.device_table[r_ticket_in.device_id].ticket_order
+            ):
+                simple_log("info", success_msg)
+                return Success(r_ticket_in)
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        # "device"
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            if r_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket

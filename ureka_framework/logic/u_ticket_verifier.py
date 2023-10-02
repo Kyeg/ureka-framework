@@ -105,6 +105,27 @@ class UTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    def verify_ticket_order(
+        self, u_ticket_in: UTicket
+    ) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_TICKET_ORDER"
+        failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
+
+        if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            if u_ticket_in.ticket_order == 0 and self.this_device.ticket_order == 0:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:
+            if u_ticket_in.ticket_order == self.this_device.ticket_order:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+
     def verify_holder_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_HOLDER_ID"
         failure_msg = f"-> FAILURE: VERIFY_HOLDER_ID"

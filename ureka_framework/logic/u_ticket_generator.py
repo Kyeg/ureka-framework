@@ -13,12 +13,19 @@ import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.this_person import ThisPerson
+from ureka_framework.data_model.other_device import OtherDevice
 
 
 class UTicketGenerator:
-    def __init__(self, this_device: ThisDevice, this_person: ThisPerson) -> None:
+    def __init__(
+        self,
+        this_device: ThisDevice,
+        this_person: ThisPerson,
+        device_table: dict[str, OtherDevice],
+    ) -> None:
         self.this_device = this_device
         self.this_person = this_person
+        self.device_table = device_table
 
     ######################################################
     # Message Generation Flow
@@ -37,6 +44,14 @@ class UTicketGenerator:
         except ValidationError as error:
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
+
+        # Generate Ticket Order
+        if new_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            new_u_ticket.ticket_order = 0
+        else:
+            new_u_ticket.ticket_order = self.device_table[
+                new_u_ticket.device_id
+            ].ticket_order
 
         # Generate UTicket Id (UUID-4: Random, Unique, and Unpredictable)
         new_u_ticket.u_ticket_id = str(uuid.uuid4())
