@@ -6,7 +6,12 @@ from pydantic import ValidationError
 from ureka_framework.data_model.r_ticket import RTicket, r_ticket_to_jsonstr
 import ureka_framework.data_model.r_ticket as r_ticket
 import ureka_framework.data_model.u_ticket as u_ticket
-import ureka_framework.resource.crypto.serialization_util as serialization_util
+
+# import ureka_framework.resource.crypto.serialization_util as serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    str_to_byte,
+    byte_to_base64str,
+)
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.data_model.this_device import ThisDevice
@@ -47,9 +52,14 @@ class RTicketGenerator:
             new_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
+            or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key
+            )
+        if new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            new_r_ticket = self._add_device_signature_on_r_ticket(
+                new_r_ticket, self.this_person.person_priv_key
             )
 
         return new_r_ticket
@@ -62,15 +72,13 @@ class RTicketGenerator:
     ) -> RTicket:
         # Message
         unsigned_r_ticket_str = r_ticket_to_jsonstr(unsigned_r_ticket)
-        unsigned_r_ticket_byte = serialization_util.str_to_byte(unsigned_r_ticket_str)
+        unsigned_r_ticket_byte = str_to_byte(unsigned_r_ticket_str)
 
         # Sign Signature
         signature_byte = ecc.sign_signature(unsigned_r_ticket_byte, private_key)
 
         # Add Signature on New Signed RTicket, but Prevent side effect on Unsigned RTicket
         signed_r_ticket = copy.deepcopy(unsigned_r_ticket)
-        signed_r_ticket.device_signature = serialization_util.byte_to_base64str(
-            signature_byte
-        )
+        signed_r_ticket.device_signature = byte_to_base64str(signature_byte)
 
         return signed_r_ticket

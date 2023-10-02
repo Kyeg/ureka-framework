@@ -4,7 +4,6 @@ from typing import Optional, Union, Dict
 
 # Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.crypto.serialization_util import (
     byte_to_base64str,
     key_to_str,
@@ -59,31 +58,25 @@ class ThisDevice:
     def device_priv_key_str(self) -> None | str:
         if self.device_priv_key is None:
             return None
-        return serialization_util.key_to_str(
-            self.device_priv_key, key_type="ecc-private-key"
-        )
+        return key_to_str(self.device_priv_key, key_type="ecc-private-key")
 
     @property
     def device_pub_key_str(self) -> None | str:
         if self.device_pub_key is None:
             return None
-        return serialization_util.key_to_str(
-            self.device_pub_key, key_type="ecc-public-key"
-        )
+        return key_to_str(self.device_pub_key, key_type="ecc-public-key")
 
     @property
     def owner_pub_key_str(self) -> None | str:
         if self.owner_pub_key is None:
             return None
-        return serialization_util.key_to_str(
-            self.owner_pub_key, key_type="ecc-public-key"
-        )
+        return key_to_str(self.owner_pub_key, key_type="ecc-public-key")
 
     # @property
     # def current_holder_pub_key_str(self) -> None | str:
     #     if self.current_holder_pub_key is None:
     #         return None
-    #     return serialization_util.key_to_str(
+    #     return key_to_str(
     #         self.current_holder_pub_key, key_type="ecc-public-key"
     #     )
 

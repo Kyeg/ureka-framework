@@ -3,7 +3,8 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 import ureka_framework.data_model.u_ticket as u_ticket
 
 ######################################################
-# RTicket Type
+# RTicket Type (same as UTicket Type)
+# RTicket Type (CRKE: as following)
 ######################################################
 TYPE_CRKE1_RTICKET: str = "CR-KE-1"
 TYPE_CRKE2_RTICKET: str = "CR-KE-2"
@@ -30,15 +31,22 @@ class RTicket(BaseModel):
 
     result: None | str = None
 
-    # CR-KE-PS
+    # CR-KE
     challenge_1: None | str = None
     challenge_2: None | str = None
     key_exchange_salt_1: None | str = None
     key_exchange_salt_2: None | str = None
-    iv_1: None | str = None
-    cipher_text_1: None | str = None
-    iv_2: None | str = None
-    cipher_text_2: None | str = None
+
+    # PS
+    associated_plaintext_cmd: None | str = None
+    iv_cmd: None | str = None
+    ciphertext_cmd: None | str = None
+    gcm_authentication_tag_cmd: None | str = None
+
+    associated_plaintext_data: None | str = None
+    iv_data: None | str = None
+    ciphertext_data: None | str = None
+    gcm_authentication_tag_data: None | str = None
 
     device_signature: None | str = None
 

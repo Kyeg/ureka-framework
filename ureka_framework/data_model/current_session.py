@@ -1,22 +1,12 @@
 from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-# Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
-from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.resource.crypto import serialization_util
-from ureka_framework.resource.crypto.serialization_util import (
-    byte_to_base64str,
-    key_to_str,
-    base64str_backto_byte,
-    str_to_key,
-)
-
 
 ######################################################
 # Data Model
 ######################################################
 class CurrentSession(BaseModel):
-    # Access Permission UT
+    # Access UT
     current_u_ticket_id: None | str = None
     current_device_id: None | str = None
     current_holder_id: None | str = None
@@ -29,11 +19,19 @@ class CurrentSession(BaseModel):
     key_exchange_salt_2: None | str = None
 
     # PS
-    iv_1: None | str = None
-    cipher_text_1: None | str = None
-    iv_2: None | str = None
-    cipher_text_2: None | str = None
-    # current_session_key_byte: None | bytes = None
+    current_session_key_str: None | str = None
+
+    plaintext_cmd: None | str = None
+    associated_plaintext_cmd: None | str = None
+    iv_cmd: None | str = None
+    ciphertext_cmd: None | str = None
+    gcm_authentication_tag_cmd: None | str = None
+
+    plaintext_data: None | str = None
+    associated_plaintext_data: None | str = None
+    iv_data: None | str = None
+    ciphertext_data: None | str = None
+    gcm_authentication_tag_data: None | str = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema

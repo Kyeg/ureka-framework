@@ -1,3 +1,4 @@
+from ureka_framework.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.resource.logger.simple_logger import simple_log
 from returns.result import Success, Failure
 import pytest
@@ -13,7 +14,9 @@ from tests.conftest import (
     attacker_server,
 )
 import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto import serialization_util
+from ureka_framework.resource.crypto.serialization_util import (
+    dict_to_jsonstr,
+)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 
@@ -54,10 +57,10 @@ class TestAccessDevice:
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.this_device.device_pub_key_str
-        resource_tree = serialization_util.dict_to_jsonstr(
+        resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        generated_task_scope = serialization_util.dict_to_jsonstr(
+        generated_task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
         )
         generated_request: dict = {
@@ -73,7 +76,8 @@ class TestAccessDevice:
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        self.cloud_server_ep.holder_access_device(owned_device_id)
+        generated_command = "HELLO"
+        self.cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
@@ -82,11 +86,30 @@ class TestAccessDevice:
             self.iot_device.this_device.owner_pub_key_str
             == self.user_agent_do.this_person.person_pub_key_str
         )
-        # THEN: EP's CS can open a session with DO's IoTD
+        # THEN: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.current_session.current_holder_id
             == self.cloud_server_ep.current_session.current_holder_id
         )
+        assert (
+            self.iot_device.current_session.current_task_scope
+            == self.cloud_server_ep.current_session.current_task_scope
+        )
+        assert (
+            self.iot_device.current_session.current_session_key_str
+            == self.cloud_server_ep.current_session.current_session_key_str
+        )
+        assert (
+            self.iot_device.current_session.plaintext_cmd
+            == self.cloud_server_ep.current_session.plaintext_cmd
+        )
+        assert (
+            self.iot_device.current_session.plaintext_data
+            == self.cloud_server_ep.current_session.plaintext_data
+        )
+        assert current_session_to_jsonstr(
+            self.iot_device.current_session
+        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
@@ -106,12 +129,12 @@ class TestAccessDevice:
         # WHEN: DO's UA allow EP's CS to apply_access_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
@@ -197,12 +220,12 @@ class TestAccessDevice:
         # WHEN: DO's UA do not allow ATK's CS to apply_access_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
@@ -244,12 +267,12 @@ class TestAccessDevice:
         # WHEN: But the ATK's CS attempt to replace the holder in this session
         current_test_when_and_then_log()
         # -----------------------------------------------------
-        #     - (->) Access Permission UTicket (->)
+        #     - (->) Access UTicket (->)
         # -----------------------------------------------------
-        permission_resource_tree = serialization_util.dict_to_jsonstr(
+        permission_resource_tree = dict_to_jsonstr(
             {"OPEN-DOOR": "1", "CLOSE-DOOR": "1", "DOOR-LOG": "1"}
         )
-        task_scope = serialization_util.dict_to_jsonstr(
+        task_scope = dict_to_jsonstr(
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
