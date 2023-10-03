@@ -178,7 +178,7 @@ class DeviceController:
         # Update Ticket Order
         self._execute_update_ticket_order("receive", received_u_ticket)
 
-        # [FUNC-level: RTVE'G'TS]
+        # [FUNC-level: RTVE'GTS']
         # TODO: Can moreover _generate_xxx_r_ticket & _send_xxx_message
 
         return received_u_ticket_json
@@ -224,7 +224,7 @@ class DeviceController:
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         simple_log("demo", f"Received UTicket: {received_u_ticket_json}")
 
-        # [FUNC-level: R'VE'GTCS]
+        # [FUNC-level: RT'VE'GTCS]
         result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
         if type(result) == Success:
             result_message = f"Success"
