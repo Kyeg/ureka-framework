@@ -23,6 +23,8 @@ LEGAL_UTICKET_TYPES: {str} = {
 }
 # UToken
 TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
+# RToken (TX_END)
+TYPE_TX_END_UTOKEN: str = "TX_END"
 
 ######################################################
 # Task Scope

@@ -43,7 +43,6 @@ class RTicketGenerator:
         # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, etc.)
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
-            simple_log("info", success_msg)
         except ValidationError as error:
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
@@ -55,6 +54,7 @@ class RTicketGenerator:
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             new_r_ticket.ticket_order = self.this_device.ticket_order
         # "holder"
@@ -78,18 +78,22 @@ class RTicketGenerator:
             or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key
             )
+            simple_log("info", success_msg)
         # "holder"
         elif new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_person.person_priv_key
             )
+            simple_log("info", success_msg)
         # "device"
         elif new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            pass
+            # NO Signature
+            simple_log("info", success_msg)
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", failure_msg)
 

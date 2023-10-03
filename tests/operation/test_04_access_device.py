@@ -172,6 +172,18 @@ class TestAccessDevice:
             self.iot_device.current_session
         ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
+        # WHEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        generated_command = "TX_END"
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command, tx_end=True
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can end this private session with DO's IoTD
+        # THEN: EP's CS cannot access DO's IoTD anymore
+
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
         current_test_given_log()

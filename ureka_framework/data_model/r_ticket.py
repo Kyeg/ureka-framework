@@ -18,6 +18,8 @@ TYPE_CRKE3_RTICKET: str = "CR-KE-3"
 LEGAL_CRKE_TYPES: {str} = {TYPE_CRKE1_RTICKET, TYPE_CRKE2_RTICKET, TYPE_CRKE3_RTICKET}
 # RToken
 TYPE_DATA_RTOKEN: str = "DATA_RTOKEN"
+# RToken (TX_END)
+# TYPE_TX_END_UTOKEN: str = "TX_END"
 
 
 ######################################################

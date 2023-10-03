@@ -40,7 +40,6 @@ class UTicketGenerator:
         # Generate Task Scope (device_id, holder_id, u_ticket_type, task_scope, etc.)
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
-            simple_log("info", success_msg)
         except ValidationError as error:
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
@@ -61,12 +60,22 @@ class UTicketGenerator:
         ######################################################
         # Generate Signature
         if (
-            new_u_ticket.u_ticket_type != u_ticket.TYPE_INITIALIZATION_UTICKET
-            or new_u_ticket.u_ticket_type != u_ticket.TYPE_CMD_UTOKEN
+            new_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or new_u_ticket.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or new_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+        ):
+            # NO Signature
+            simple_log("info", success_msg)
+        elif (
+            new_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or new_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
         ):
             new_u_ticket = self._add_issuer_signature_on_u_ticket(
                 new_u_ticket, self.this_person.person_priv_key
             )
+            simple_log("info", success_msg)
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", failure_msg)
 
         return new_u_ticket
 
