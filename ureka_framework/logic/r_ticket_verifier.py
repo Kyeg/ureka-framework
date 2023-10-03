@@ -26,8 +26,8 @@ class RTicketVerifier:
         self,
         this_device: ThisDevice,
         device_table: dict[str, OtherDevice],
-        audit_start_ticket: UTicket,
-        audit_end_ticket: str | UTicket,
+        audit_start_ticket: None | UTicket,
+        audit_end_ticket: None | UTicket,
         current_session: CurrentSession,
     ) -> None:
         self.this_device = this_device
@@ -221,7 +221,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_AUDIT_END"
         failure_msg = f"-> FAILURE: VERIFY_AUDIT_END"
 
-        # TODO: Auditted by TXend UToken or Revocation UTicket
+        # TODO: Auditted by:
+        #   Per-Use
+        #   TXend UToken
+        #   Revocation UTicket
         if r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
             if r_ticket_in.audit_end == "TX_END":
                 simple_log("info", success_msg)
