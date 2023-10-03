@@ -30,7 +30,7 @@ class TestStorage:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Broken test because of the concurrent reciever")
+    @pytest.mark.skip(reason="Broken test because of the concurrent receiver")
     def test_comm_channel(self) -> None:
         current_test_given_log()
 

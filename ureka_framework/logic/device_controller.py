@@ -71,7 +71,7 @@ class DeviceController:
         self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
         # Set Communication
         self.comm_channel: FakeCommChannel = FakeCommChannel()
-        self.comm_channel.reciever_queue = Queue()
+        self.comm_channel.receiver_queue = Queue()
 
         # Always load Storage after Reboot
         (
@@ -168,7 +168,7 @@ class DeviceController:
         )
 
         # [FUNC-level: R'T'VEGTCS]
-        received_u_ticket = self._store_recieved_xxx_u_ticket(received_u_ticket_json)
+        received_u_ticket = self._store_received_xxx_u_ticket(received_u_ticket_json)
 
         # [FUNC-level: RT'V'EGTS]
         # TODO: Can moreover _verify_xxx_u_ticket
@@ -276,13 +276,13 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_UT)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_r_ticket(self, recieved_r_ticket_json: str) -> None:
+    def _holder_recv_r_ticket(self, received_r_ticket_json: str) -> None:
         # [FUNC-level: 'R'TVEGTCS]
-        # recieved_r_ticket_json: str = self._recv_xxx_message()
-        simple_log("demo", f"Received UTicket: {recieved_r_ticket_json}")
+        # received_r_ticket_json: str = self._recv_xxx_message()
+        simple_log("demo", f"Received UTicket: {received_r_ticket_json}")
 
         # [FUNC-level: R'T'VEGTCS]
-        device_id = self._store_recieved_xxx_r_ticket(recieved_r_ticket_json)
+        device_id = self._store_received_xxx_r_ticket(received_r_ticket_json)
 
         # [FUNC-level: RT'VE'GTCS]
         if device_id in self.device_table:
@@ -297,7 +297,7 @@ class DeviceController:
             )
 
             result = self._verify_and_execute_xxx_r_ticket(
-                arbitrary_json=recieved_r_ticket_json,
+                arbitrary_json=received_r_ticket_json,
                 audit_start_ticket=stored_u_ticket,
                 audit_end_ticket="",
             )
@@ -345,8 +345,8 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CRKE2)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_cr_ke_1(self, recieved_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
+    def _holder_recv_cr_ke_1(self, received_r_ticket_json: str) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket_json)
 
     def _holder_send_cr_ke_2(
         self, received_r_ticket: RTicket, result_message: str
@@ -373,8 +373,8 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CRKE3)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _device_recv_cr_ke_2(self, recieved_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
+    def _device_recv_cr_ke_2(self, received_r_ticket_json: str) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket_json)
 
     def _device_send_cr_ke_3(
         self, received_r_ticket: RTicket, result_message: str
@@ -399,12 +399,12 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_cr_ke_3(self, recieved_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(recieved_r_ticket_json)
+    def _holder_recv_cr_ke_3(self, received_r_ticket_json: str) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket_json)
 
     def _recv_cr_ke_r_tickets(self, received_r_ticket_json: str) -> None:
         # [FUNC-level: 'R'VEGTCS]
-        # recieved_r_ticket_json: str = self._recv_xxx_message()
+        # received_r_ticket_json: str = self._recv_xxx_message()
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
         simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
 
@@ -531,13 +531,13 @@ class DeviceController:
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
         self._send_xxx_message(generated_r_ticket_json)
 
-    def _holder_recv_data(self, recieved_r_token_json: str) -> None:
+    def _holder_recv_data(self, received_r_token_json: str) -> None:
         # [FUNC-level: 'R'TVEGTCS]
-        # recieved_r_ticket_json: str = self._recv_xxx_message()
-        simple_log("demo", f"Received RToken: {recieved_r_token_json}")
+        # received_r_ticket_json: str = self._recv_xxx_message()
+        simple_log("demo", f"Received RToken: {received_r_token_json}")
 
         # [FUNC-level: R'T'VEGTCS]
-        device_id = self._store_recieved_xxx_r_token(recieved_r_token_json)
+        device_id = self._store_received_xxx_r_token(received_r_token_json)
 
         # [FUNC-level: RT'VE'GTCS]
         if device_id in self.device_table:
@@ -551,7 +551,7 @@ class DeviceController:
             )
 
             result = self._verify_and_execute_xxx_r_ticket(
-                arbitrary_json=recieved_r_token_json,
+                arbitrary_json=received_r_token_json,
                 audit_start_ticket=stored_u_token,
                 audit_end_ticket="",
             )
@@ -579,11 +579,11 @@ class DeviceController:
         # )
         # Set Sender (on Main Thread)
         self.comm_channel.end = end
-        self.comm_channel.sender_queue = end.comm_channel.reciever_queue
+        self.comm_channel.sender_queue = end.comm_channel.receiver_queue
         # Start Reciever Thread
-        self._start_reciever()
+        self._start_receiver()
 
-    def _start_reciever(self) -> None:
+    def _start_receiver(self) -> None:
         # Create a receiver thread
         receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
         receiver_thread.start()
@@ -591,7 +591,7 @@ class DeviceController:
     def _recv_xxx_message(self) -> str:
         while True:
             # This will block until message is received
-            received_message_json = self.comm_channel.reciever_queue.get()
+            received_message_json = self.comm_channel.receiver_queue.get()
 
             simple_log(
                 "info",
@@ -678,7 +678,7 @@ class DeviceController:
     ######################################################
     # [FUNC-level: R'T'VEGTCS] Message Storage (after Receiving)
     ######################################################
-    def _store_recieved_xxx_u_ticket(self, received_u_ticket_json: str) -> str:
+    def _store_received_xxx_u_ticket(self, received_u_ticket_json: str) -> str:
         ######################################################
         # Update Device Table (Role, State, etc.)
         # RAM: Add Device & UTicket in Device Table
@@ -708,7 +708,7 @@ class DeviceController:
 
         return received_u_ticket
 
-    def _store_recieved_xxx_r_ticket(self, received_r_ticket_json: str) -> str:
+    def _store_received_xxx_r_ticket(self, received_r_ticket_json: str) -> str:
         ######################################################
         # Update Device Table (Role, State, etc.)
         # RAM: Add Device & UTicket in Device Table received_r_ticket_json
@@ -741,7 +741,7 @@ class DeviceController:
 
         return received_r_ticket.device_id
 
-    def _store_recieved_xxx_r_token(self, received_r_token_json: str) -> str:
+    def _store_received_xxx_r_token(self, received_r_token_json: str) -> str:
         ######################################################
         # Update Device Table (Role, State, etc.)
         # RAM: Add Device & UTicket in Device Table received_r_ticket_json
