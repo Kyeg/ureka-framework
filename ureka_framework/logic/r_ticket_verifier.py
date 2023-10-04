@@ -276,7 +276,6 @@ class RTicketVerifier:
                 and r_ticket_in.challenge_2 != None
                 and r_ticket_in.key_exchange_salt_2 != None
             ):
-                # TODO: Verify ciphertext here!?
                 simple_log("info", success_msg)
                 return Success(r_ticket_in)
             else:  # pragma: no cover -> Weird R-Ticket
