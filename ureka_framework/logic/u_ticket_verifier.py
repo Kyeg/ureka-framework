@@ -52,17 +52,6 @@ class UTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
-    def verify_u_ticket_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
-        success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
-        failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
-
-        if u_ticket_in.u_ticket_id != None:
-            simple_log("info", success_msg)
-            return Success(u_ticket_in)
-        else:  # pragma: no cover -> Weird U-Ticket
-            simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
-
     def verify_u_ticket_type(
         self, u_ticket_in: UTicket
     ) -> Result[UTicket, RuntimeError]:
@@ -74,6 +63,17 @@ class UTicketVerifier:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    def verify_u_ticket_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
+        failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
+
+        if u_ticket_in.u_ticket_id != None:
             simple_log("info", success_msg)
             return Success(u_ticket_in)
         else:  # pragma: no cover -> Weird U-Ticket

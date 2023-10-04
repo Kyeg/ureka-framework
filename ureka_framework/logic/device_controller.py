@@ -167,7 +167,7 @@ class DeviceController:
         # [TO-DO: STAGE: (SR)]
         received_u_ticket = self._store_received_xxx_u_ticket(received_u_ticket_json)
 
-        # [STAGE: (VE)]
+        # [STAGE: (V)]
         # TODO: Can moreover _verify_xxx_u_ticket
         # (but the actual ticket order in device is still unknown -> TODO: Attack)
 
@@ -223,10 +223,12 @@ class DeviceController:
         # [TO-DO: STAGE: (SR)]
         # No need to optionally _store_received_xxx_u_ticket
 
-        # [STAGE: (VE)]
-        result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
+        # [STAGE: (V)]
+        result = self._verify_xxx_u_ticket(received_u_ticket_json)
         if type(result) == Success:
             result_message = f"Success"
+            # [STAGE: (E)]
+            self._execute_xxx_u_ticket(result.unwrap())
         elif type(result) == Failure:  # pragma: no cover -> Weird U-Ticket
             result_message = f"{result.failure().args[0]}"
 
@@ -283,7 +285,6 @@ class DeviceController:
         # [TO-DO: STAGE: (SR)]
         device_id = self._store_received_xxx_r_ticket(received_r_ticket_json)
 
-        # [STAGE: (VE)]
         if device_id in self.device_table:
             # Query Corresponding UTicket(s)
             # Notice that even Initialization UTicket is copied to the device_table["device_id"]
@@ -300,16 +301,19 @@ class DeviceController:
                 received_r_ticket.audit_end == None
                 or received_r_ticket.audit_end == "TX_END"
             ):
-                result = self._verify_and_execute_xxx_r_ticket(
+                # [STAGE: (V)]
+                result = self._verify_xxx_r_ticket(
                     arbitrary_json=received_r_ticket_json,
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
             else:  # pragma: no cover -> TODO: Auditted by Revocation UTicket
-                pass
+                result = Failure(RuntimeError("Not implemented yet"))
 
             if type(result) == Success:
                 result_message = f"Success (meaningful R-Ticket)"
+                # [STAGE: (E)]
+                self._execute_xxx_r_ticket(result.unwrap())
             elif type(result) == Failure:  # pragma: no cover -> Weird R-Ticket
                 result_message = f"{result.failure().args[0]}"
             simple_log("debug", f"result_message = {result_message}")
@@ -414,14 +418,16 @@ class DeviceController:
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
         simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
 
-        # [STAGE: (VE)]
-        result = self._verify_and_execute_xxx_r_ticket(
+        # [STAGE: (V)]
+        result = self._verify_xxx_r_ticket(
             arbitrary_json=received_r_ticket_json,
             audit_start_ticket=None,
             audit_end_ticket=None,
         )
         if type(result) == Success:
             result_message = f"Success (meaningful R-Ticket)"
+            # [STAGE: (E)]
+            self._execute_xxx_r_ticket(result.unwrap())
         elif type(result) == Failure:  # pragma: no cover -> Weird R-Ticket
             result_message = f"{result.failure().args[0]}"
         simple_log("debug", f"result_message = {result_message}")
@@ -497,10 +503,12 @@ class DeviceController:
         received_u_token = jsonstr_to_u_ticket(received_u_token_json)
         simple_log("demo", f"Received UToken: {received_u_token_json}")
 
-        # [STAGE: (VE)]
-        result = self._verify_and_execute_xxx_u_ticket(received_u_token_json)
+        # [STAGE: (V)]
+        result = self._verify_xxx_u_ticket(received_u_token_json)
         if type(result) == Success:
             result_message = f"Success"
+            # [STAGE: (E)]
+            self._execute_xxx_u_ticket(result.unwrap())
         elif type(result) == Failure:  # pragma: no cover -> Weird U-Token
             result_message = f"{result.failure().args[0]}"
 
@@ -539,7 +547,7 @@ class DeviceController:
         # received_r_ticket_json: str = self._recv_xxx_message()
         simple_log("demo", f"Received RToken: {received_r_token_json}")
 
-        # [STAGE: (VE)]
+        # [STAGE: (V)]
         device_id = jsonstr_to_r_ticket(received_r_token_json).device_id
         if device_id in self.device_table:
             # Query Corresponding UTicket
@@ -551,7 +559,8 @@ class DeviceController:
                 f"Corresponding UTicket: {self.device_table[device_id].device_u_ticket}",
             )
 
-            result = self._verify_and_execute_xxx_r_ticket(
+            # [STAGE: (E)]
+            result = self._verify_xxx_r_ticket(
                 arbitrary_json=received_r_token_json,
                 audit_start_ticket=stored_u_ticket,
                 audit_end_ticket=None,
@@ -559,6 +568,7 @@ class DeviceController:
 
             if type(result) == Success:
                 result_message = f"Success (meaningful R-Token)"
+                self._execute_xxx_r_ticket(result.unwrap())
             elif type(result) == Failure:  # pragma: no cover -> Weird R-Token
                 result_message = f"{result.failure().args[0]}"
             simple_log("debug", f"result_message = {result_message}")
@@ -677,9 +687,9 @@ class DeviceController:
                 simple_log("error", "weird device type")
 
     ######################################################
-    # [STAGE: (VE)] Verify Message & Execute
+    # [STAGE: (V)] Verify Message & Execute
     ######################################################
-    def _verify_and_execute_xxx_u_ticket(
+    def _verify_xxx_u_ticket(
         self, arbitrary_json: str
     ) -> Result[UTicket, RuntimeError]:
         simple_log("info", f"+ {self.this_device.device_name} is verifying u_ticket...")
@@ -689,19 +699,19 @@ class DeviceController:
             arbitrary_json,
             u_ticket_verifier.verify_json_schema,
             bind(u_ticket_verifier.verify_protocol_version),
-            bind(u_ticket_verifier.verify_u_ticket_id),
             bind(u_ticket_verifier.verify_u_ticket_type),
+            bind(u_ticket_verifier.verify_u_ticket_id),
             bind(u_ticket_verifier.verify_device_id),
             bind(u_ticket_verifier.verify_ticket_order),
             bind(u_ticket_verifier.verify_holder_id),
             bind(u_ticket_verifier.verify_task_scope),
             bind(u_ticket_verifier.verify_ps),
             bind(u_ticket_verifier.verify_issuer_signature),
-            bind(self._execute_xxx_u_ticket),
+            # bind(self._execute_xxx_u_ticket),
         )
         return verification_and_execution_result
 
-    def _verify_and_execute_xxx_r_ticket(
+    def _verify_xxx_r_ticket(
         self,
         arbitrary_json: str,
         audit_start_ticket: None | UTicket,
@@ -720,8 +730,8 @@ class DeviceController:
             arbitrary_json,
             r_ticket_verifier.verify_json_schema,
             bind(r_ticket_verifier.verify_protocol_version),
-            bind(r_ticket_verifier.verify_r_ticket_id),
             bind(r_ticket_verifier.verify_r_ticket_type),
+            bind(r_ticket_verifier.verify_r_ticket_id),
             bind(r_ticket_verifier.verify_device_id),
             bind(r_ticket_verifier.verify_ticket_order),
             bind(r_ticket_verifier.verify_audit_start),
@@ -730,12 +740,12 @@ class DeviceController:
             bind(r_ticket_verifier.verify_cr_ke),
             bind(r_ticket_verifier.verify_ps),
             bind(r_ticket_verifier.verify_device_signature),
-            bind(self._execute_xxx_r_ticket),
+            # bind(self._execute_xxx_r_ticket),
         )
         return verification_and_execution_result
 
     ######################################################
-    # [STAGE: (VE)] Message Execution (after Verification)
+    # [STAGE: (E)] Execute
     ######################################################
     # Execute Initialization (Update Keystore)
     def _execute_one_time_set_time_device_type_and_name(
