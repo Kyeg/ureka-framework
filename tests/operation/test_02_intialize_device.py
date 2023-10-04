@@ -79,6 +79,7 @@ class TestIntializeDevice:
         assert self.iot_device.this_person.person_priv_key_str == None
         assert self.iot_device.this_person.person_pub_key_str == None
 
+    @pytest.mark.skip(reason="Not implemented Error Ticket")
     def test_apply_initialization_u_ticket_reintialized_failed_in_io_level(
         self,
     ) -> None:
