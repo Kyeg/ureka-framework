@@ -98,27 +98,25 @@ class TestStorage:
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_1
-        )
+        # u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        #     test_request_1
+        # )
 
         test_request_2: dict = {
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_2
-        )
+        # u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        #     test_request_2
+        # )
 
         self.cloud_server_dm.device_table["device_id_1"] = OtherDevice(
             device_id="device_id_1",
-            device_name="device_id_1's name",
-            device_u_ticket=u_ticket_json_1,
+            device_u_ticket="u_ticket_json_1",
         )
         self.cloud_server_dm.device_table["device_id_2"] = OtherDevice(
             device_id="device_id_2",
-            device_name="device_id_2's name",
-            device_u_ticket=u_ticket_json_2,
+            device_u_ticket="u_ticket_json_2",
         )
         simple_log(
             "debug",
@@ -149,16 +147,14 @@ class TestStorage:
         # THEN: Check SimpleStorage/test_storage/device_table.json to ensure the variables are stored correctly
         # THEN: The variables loaded from the Storage should be the same with the variables modified in the RAM
         assert updated_device_table["device_id_1"].device_id == "device_id_1"
-        assert updated_device_table["device_id_1"].device_name == "device_id_1's name"
         assert updated_device_table["device_id_2"].device_id == "device_id_2"
-        assert updated_device_table["device_id_2"].device_name == "device_id_2's name"
         assert (
             self.cloud_server_dm.device_table["device_id_1"].device_u_ticket
-            == u_ticket_json_1
+            == "u_ticket_json_1"
         )
         assert (
             self.cloud_server_dm.device_table["device_id_2"].device_u_ticket
-            == u_ticket_json_2
+            == "u_ticket_json_2"
         )
 
     def test_create_existed_dir(self) -> None:

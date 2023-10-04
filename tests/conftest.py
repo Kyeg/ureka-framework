@@ -139,7 +139,7 @@ def device_manufacturer_server_and_her_device() -> (
         "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
     }
-    cloud_server_dm.issuer_issue_consent_to_herself(
+    cloud_server_dm.issuer_issue_u_ticket_to_herself(
         device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
     )
     cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
@@ -166,7 +166,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
         "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
     }
-    cloud_server_dm.issuer_issue_consent_to_holder(
+    cloud_server_dm.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
     wait_comm_completed(user_agent_do, cloud_server_dm)
@@ -226,7 +226,7 @@ def enterprise_provider_server_and_her_session() -> (
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
-    user_agent_do.issuer_issue_consent_to_holder(
+    user_agent_do.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
     wait_comm_completed(cloud_server_ep, user_agent_do)

@@ -23,6 +23,8 @@ LEGAL_UTICKET_TYPES: {str} = {
 }
 # UToken
 TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
+# RToken (TX_END)
+TYPE_TX_END_UTOKEN: str = "TX_END"
 
 ######################################################
 # Task Scope
@@ -41,6 +43,7 @@ class UTicket(BaseModel):
     u_ticket_type: None | str = None
 
     device_id: None | str = None
+    ticket_order: None | int = None
     holder_id: None | str = None
     task_scope: None | str = None
 

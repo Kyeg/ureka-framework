@@ -10,6 +10,7 @@ from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_key,
 )
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 ######################################################
 # Device Type (can be refactored by Inheritance)
@@ -42,8 +43,11 @@ class ThisDevice:
     device_name: None | str = None
     has_device_type: None | bool = False
 
-    # Generate Device Key after Intialization
+    # Ticket Order
+    ticket_order: None | int = None
     is_initialized: None | bool = False
+
+    # Generate Device Key after Intialization
     device_priv_key: None | ec.EllipticCurvePrivateKey = None
     device_pub_key: None | ec.EllipticCurvePublicKey = None
 
@@ -100,6 +104,7 @@ def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
     this_device_dict["device_type"] = this_device_obj.device_type
     this_device_dict["device_name"] = this_device_obj.device_name
     this_device_dict["has_device_type"] = this_device_obj.has_device_type
+    this_device_dict["ticket_order"] = this_device_obj.ticket_order
     this_device_dict["is_initialized"] = this_device_obj.is_initialized
 
     # Not JSON Serializable
@@ -185,7 +190,7 @@ def this_device_to_jsonstr(this_device_obj: ThisDevice) -> str:
 def jsonstr_to_this_device(json_str: str) -> ThisDevice:
     try:
         return json.loads(json_str, object_hook=_dict_to_this_device)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
         failure_msg = "NOT VALID JSON"
-        # simple_log("error",failure_msg)
+        simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

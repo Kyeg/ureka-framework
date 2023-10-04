@@ -72,6 +72,7 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             simple_log("info", success_msg)
             return Success(u_ticket_in)
@@ -94,6 +95,7 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 simple_log("info", success_msg)
@@ -104,6 +106,27 @@ class UTicketVerifier:
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
+
+    def verify_ticket_order(
+        self, u_ticket_in: UTicket
+    ) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_TICKET_ORDER"
+        failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
+
+        if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            if u_ticket_in.ticket_order == 0 and self.this_device.ticket_order == 0:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
+        else:
+            if u_ticket_in.ticket_order == self.this_device.ticket_order:
+                simple_log("info", success_msg)
+                return Success(u_ticket_in)
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                return Failure(RuntimeError(failure_msg))
 
     def verify_holder_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_HOLDER_ID"
@@ -120,7 +143,10 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+        ):
             # No HOLDER_ID
             simple_log("info", success_msg)
             return Success(u_ticket_in)
@@ -136,6 +162,7 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # No TASK_SCOPE
             simple_log("info", success_msg)
@@ -163,7 +190,10 @@ class UTicketVerifier:
             # No PS
             simple_log("info", success_msg)
             return Success(u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+        ):
             if (
                 u_ticket_in.associated_plaintext != None
                 and u_ticket_in.iv != None
@@ -190,6 +220,7 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)

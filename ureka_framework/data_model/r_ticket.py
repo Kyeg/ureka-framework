@@ -18,6 +18,8 @@ TYPE_CRKE3_RTICKET: str = "CR-KE-3"
 LEGAL_CRKE_TYPES: {str} = {TYPE_CRKE1_RTICKET, TYPE_CRKE2_RTICKET, TYPE_CRKE3_RTICKET}
 # RToken
 TYPE_DATA_RTOKEN: str = "DATA_RTOKEN"
+# RToken (TX_END)
+# TYPE_TX_END_UTOKEN: str = "TX_END"
 
 
 ######################################################
@@ -31,9 +33,9 @@ class RTicket(BaseModel):
     r_ticket_type: None | str = None
 
     device_id: None | str = None
+    ticket_order: None | int = None
     audit_start: None | str = None
     audit_end: None | str = None
-
     result: None | str = None
 
     # CR-KE
@@ -53,6 +55,7 @@ class RTicket(BaseModel):
     ciphertext_data: None | str = None
     gcm_authentication_tag_data: None | str = None
 
+    # RT
     device_signature: None | str = None
 
     def __eq__(self, other):

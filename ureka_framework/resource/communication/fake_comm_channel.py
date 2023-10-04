@@ -13,4 +13,4 @@ class FakeCommChannel:
     end: "DeviceController" = None
     # put/get str in Queue
     sender_queue: None | Queue = None
-    reciever_queue: None | Queue = None
+    receiver_queue: None | Queue = None

@@ -5,7 +5,7 @@ from ureka_framework.environment import Environment
 def simple_log(log_level: str, log_info: str):  # pragma: no cover
     if Environment.DEPLOYMENT_ENV == "TEST":
         if log_level == "demo":
-            pass
+            logging.debug(log_info)
         elif log_level == "debug":
             logging.debug(log_info)
         elif log_level == "info":
@@ -21,7 +21,7 @@ def simple_log(log_level: str, log_info: str):  # pragma: no cover
     elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
         # Can omit debug logs, or even omit all logs
         if log_level == "demo":
-            pass
+            print(f"[   DEBUG] : {log_info}")
         elif log_level == "debug":
             print(f"[   DEBUG] : {log_info}")
         elif log_level == "info":

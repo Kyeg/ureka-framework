@@ -74,7 +74,7 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
-        self.user_agent_do.issuer_issue_consent_to_holder(
+        self.user_agent_do.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
         wait_comm_completed(self.cloud_server_ep, self.user_agent_do)
@@ -172,6 +172,27 @@ class TestAccessDevice:
             self.iot_device.current_session
         ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
 
+        # WHEN: Holder: EP's CS forward the u_token (TX_END)
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        original_device_order = self.iot_device.this_device.ticket_order
+        original_agent_order = self.cloud_server_ep.device_table[
+            owned_device_id
+        ].ticket_order
+        generated_command = "TX_END"
+        self.cloud_server_ep.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command, tx_end=True
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert self.iot_device.this_device.ticket_order == original_device_order + 1
+        assert (
+            self.cloud_server_ep.device_table[owned_device_id].ticket_order
+            == original_agent_order + 1
+        )
+        # THEN: EP's CS cannot access DO's IoTD anymore
+
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket(self) -> None:
         current_test_given_log()
@@ -209,7 +230,7 @@ class TestAccessDevice:
             "task_scope": f"{task_scope}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
-        self.user_agent_do._stored_generated_xxx_u_ticket(test_u_ticket)
+        self.user_agent_do._store_generated_xxx_u_ticket(test_u_ticket)
         simple_log("debug", f"ACCESS_UTICKET: {test_u_ticket}")
         self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
@@ -222,7 +243,7 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
-        self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
+        self.iot_device._store_generated_xxx_u_ticket(test_u_ticket)
         simple_log("debug", f"CHALLENGE_UTICKET: {test_u_ticket}")
         self.cloud_server_ep._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
@@ -235,7 +256,7 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
-        self.cloud_server_ep._stored_generated_xxx_u_ticket(test_u_ticket)
+        self.cloud_server_ep._store_generated_xxx_u_ticket(test_u_ticket)
         simple_log("debug", f"RESPONSE_UTICKET: {test_u_ticket}")
         self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
@@ -248,7 +269,7 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
-        self.iot_device._stored_generated_xxx_u_ticket(test_u_ticket)
+        self.iot_device._store_generated_xxx_u_ticket(test_u_ticket)
         simple_log("debug", f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
         result = self.cloud_server_ep._verify_and_execute_xxx_u_ticket(test_u_ticket)
 
