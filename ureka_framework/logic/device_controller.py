@@ -1,41 +1,45 @@
 import time
 from queue import Queue
+import threading
+
 from typing import Tuple
 from returns.pipeline import flow
 from returns.pointfree import bind
 from returns.result import Result, Success, Failure
-from ureka_framework.data_model.r_ticket import (
-    RTicket,
-    jsonstr_to_r_ticket,
-    r_ticket_to_jsonstr,
-)
+
 from ureka_framework.logic.r_ticket_generator import RTicketGenerator
 from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
-from ureka_framework.logic.u_ticket_generator import (
-    UTicketGenerator,
-)
-from ureka_framework.logic.u_ticket_verifier import (
-    UTicketVerifier,
-)
+from ureka_framework.logic.u_ticket_generator import UTicketGenerator
+from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
+
 import ureka_framework.data_model.this_device as this_device
 from ureka_framework.data_model.this_device import ThisDevice
 from ureka_framework.data_model.other_device import OtherDevice
 from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.current_session import (
-    CurrentSession,
-    current_session_to_jsonstr,
-)
+from ureka_framework.data_model.current_session import CurrentSession
+
+import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.data_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
-import ureka_framework.data_model.u_ticket as u_ticket
 import ureka_framework.data_model.r_ticket as r_ticket
+from ureka_framework.data_model.r_ticket import (
+    RTicket,
+    jsonstr_to_r_ticket,
+    r_ticket_to_jsonstr,
+)
 
-from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
+from ureka_framework.environment import Environment
+from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
+from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 
+import ureka_framework.resource.crypto.ecc as ecc
+import ureka_framework.resource.crypto.ecdh as ecdh
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.exceptions import InvalidTag
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     byte_to_base64str,
@@ -43,13 +47,6 @@ from ureka_framework.resource.crypto.serialization_util import (
     str_to_byte,
     byte_backto_str,
 )
-import ureka_framework.resource.crypto.ecc as ecc
-import ureka_framework.resource.crypto.ecdh as ecdh
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.exceptions import InvalidTag
-import threading
-from ureka_framework.resource.logger.simple_logger import simple_log
-from ureka_framework.environment import Environment
 
 
 class DeviceController:
@@ -113,7 +110,7 @@ class DeviceController:
         )
 
     ######################################################
-    # [IO-level]
+    # [PIPELINE FLOW]
     #
     # CST: issuer_issue_u_ticket_to_herself()
     # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
@@ -125,13 +122,13 @@ class DeviceController:
     def issuer_issue_u_ticket_to_herself(
         self, device_id: str, arbitrary_dict: dict
     ) -> str:
-        # [FUNC-level: RTVE'GT'CS]
+        # [STAGE: (G)(SG)]
         if device_id in self.device_table or device_id == "no_id":
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
             # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
             self._store_generated_xxx_u_ticket(generated_u_ticket_json)
             return generated_u_ticket_json
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
             simple_log("error", failure_msg)
             return failure_msg
@@ -139,7 +136,7 @@ class DeviceController:
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
     ) -> str:
-        # [FUNC-level: RTVE'GTCS']
+        # [STAGE: (G)(SG)(C)(S)]
         if device_id in self.device_table:
             generated_u_ticket_json: str = self._generate_xxx_u_ticket(arbitrary_dict)
             # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
@@ -155,36 +152,35 @@ class DeviceController:
             self.complete_comm()
 
             return generated_u_ticket_json
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
             simple_log("error", failure_msg)
             return failure_msg
 
     def _holder_recv_u_ticket(self, received_u_ticket_json: str) -> str:
-        # [FUNC-level: 'R'TVEGTCS]
+        # [STAGE: (R)]
         # received_u_ticket_json: str = self._recv_xxx_message()
         simple_log(
             "demo", f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}"
         )
 
-        # [FUNC-level: R'T'VEGTCS]
+        # [TO-DO: STAGE: (SR)]
         received_u_ticket = self._store_received_xxx_u_ticket(received_u_ticket_json)
 
-        # [FUNC-level: RT'V'EGTS]
+        # [STAGE: (VE)]
         # TODO: Can moreover _verify_xxx_u_ticket
         # (but the actual ticket order in device is still unknown -> TODO: Attack)
 
-        # [FUNC-level: RTV'E'GTS]
-        # Update Ticket Order
+        # [STAGE: (O)]
         self._execute_update_ticket_order("receive", received_u_ticket)
 
-        # [FUNC-level: RTVE'GTS']
+        # [STAGE: (G)(SG)(C)(S)]
         # TODO: Can moreover _generate_xxx_r_ticket & _send_xxx_message
 
         return received_u_ticket_json
 
     ######################################################
-    # [IO-level]
+    # [PIPELINE FLOW]
     #
     # APY (No CR):
     #       holder_apply_u_ticket() -> _device_recv_u_ticket()
@@ -195,7 +191,7 @@ class DeviceController:
     #           i.e., FakeComm (Sequential Sender/Receiver) -> (Concurrent Sender/Receiver)
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
-        # [FUNC-level: RTVEGT'CS']
+        # [STAGE: (C)(S)]
         if device_id in self.device_table:
             stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
             stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
@@ -214,24 +210,27 @@ class DeviceController:
 
             self._send_xxx_message(stored_u_ticket_json)
 
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
             simple_log("error", failure_msg)
 
     def _device_recv_u_ticket(self, received_u_ticket_json: str) -> None:
-        # [FUNC-level: 'R'TVEGTCS]
+        # [STAGE: (R)]
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         simple_log("demo", f"Received UTicket: {received_u_ticket_json}")
 
-        # [FUNC-level: RT'VE'GTCS]
+        # [TO-DO: STAGE: (SR)]
+        # No need to optionally _store_received_xxx_u_ticket
+
+        # [STAGE: (VE)]
         result = self._verify_and_execute_xxx_u_ticket(received_u_ticket_json)
         if type(result) == Success:
             result_message = f"Success"
         elif type(result) == Failure:  # pragma: no cover -> Weird U-Ticket
             result_message = f"{result.failure().args[0]}"
 
-        # [FUNC-level: RTVE'GTCS']
+        # [STAGE: (G)(SG)(C)(S)]
         # CR-KE-PS
         if received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             self._device_send_cr_ke_1(received_u_ticket, result_message)
@@ -242,7 +241,7 @@ class DeviceController:
     def _device_send_r_ticket(
         self, received_u_ticket: UTicket, result_message: str
     ) -> None:
-        # [FUNC-level: RVE'G'TCS]
+        # [STAGE: (G)]
 
         if (
             received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -269,22 +268,22 @@ class DeviceController:
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
-        # [FUNC-level: RVEG'T'CS]
+        # [STAGE: (SG)]
         # Can optionally _stored_generated_xxx_r_ticket
 
-        # [FUNC-level: RVEGT'CS']
+        # [STAGE: (C)(S)]
         self._change_state(this_device.STATE_WAIT_FOR_UT)
         self._send_xxx_message(generated_r_ticket_json)
 
     def _holder_recv_r_ticket(self, received_r_ticket_json: str) -> None:
-        # [FUNC-level: 'R'TVEGTCS]
+        # [STAGE: (R)]
         # received_r_ticket_json: str = self._recv_xxx_message()
         simple_log("demo", f"Received UTicket: {received_r_ticket_json}")
 
-        # [FUNC-level: R'T'VEGTCS]
+        # [TO-DO: STAGE: (SR)]
         device_id = self._store_received_xxx_r_ticket(received_r_ticket_json)
 
-        # [FUNC-level: RT'VE'GTCS]
+        # [STAGE: (VE)]
         if device_id in self.device_table:
             # Query Corresponding UTicket(s)
             # Notice that even Initialization UTicket is copied to the device_table["device_id"]
@@ -314,17 +313,17 @@ class DeviceController:
             elif type(result) == Failure:  # pragma: no cover -> Weird R-Ticket
                 result_message = f"{result.failure().args[0]}"
             simple_log("debug", f"result_message = {result_message}")
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = (
                 f"FAILURE: YOU DO NOT HAVE CORRESPONDING UTICKET FOR THIS DEVICE"
             )
             simple_log("error", failure_msg)
 
-        # [FUNC-level: RTVEGT'C'S]
+        # [STAGE: (C)]
         self._change_state(this_device.STATE_WAIT_FOR_UT)
 
     ######################################################
-    # [IO-level]
+    # [PIPELINE FLOW]
     #
     # APY (CR-KE):
     #       holder_apply_u_ticket() -> _device_recv_u_ticket()
@@ -335,7 +334,7 @@ class DeviceController:
     def _device_send_cr_ke_1(
         self, received_u_ticket: UTicket, result_message: str
     ) -> None:
-        # [FUNC-level: RTVE'G'TCS]
+        # [STAGE: (G)]
         # Generate CR-KE RTicket
         r_ticket_request: dict = {
             "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
@@ -348,7 +347,7 @@ class DeviceController:
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
-        # [FUNC-level: RTVEGT'CS']
+        # [STAGE: (C)(S)]
         self._change_state(this_device.STATE_WAIT_FOR_CRKE2)
         self._send_xxx_message(generated_r_ticket_json)
 
@@ -358,7 +357,7 @@ class DeviceController:
     def _holder_send_cr_ke_2(
         self, received_r_ticket: RTicket, result_message: str
     ) -> None:
-        # [FUNC-level: RTVE'G'TCS]
+        # [STAGE: (G)]
         # Generate CR-KE RTicket
         r_ticket_request: dict = {
             "r_ticket_type": f"{r_ticket.TYPE_CRKE2_RTICKET}",
@@ -376,7 +375,7 @@ class DeviceController:
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
-        # [FUNC-level: RTVEGT'CS']
+        # [STAGE: (C)(S)]
         self._change_state(this_device.STATE_WAIT_FOR_CRKE3)
         self._send_xxx_message(generated_r_ticket_json)
 
@@ -386,7 +385,7 @@ class DeviceController:
     def _device_send_cr_ke_3(
         self, received_r_ticket: RTicket, result_message: str
     ) -> None:
-        # [FUNC-level: RTVE'G'TCS]
+        # [STAGE: (G)]
         # Generate CR-KE RTicket
         r_ticket_request: dict = {
             "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
@@ -402,7 +401,7 @@ class DeviceController:
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
         # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
-        # [FUNC-level: RTVEGT'CS']
+        # [STAGE: (C)(S)]
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
         self._send_xxx_message(generated_r_ticket_json)
 
@@ -410,12 +409,12 @@ class DeviceController:
         self._recv_cr_ke_r_tickets(received_r_ticket_json)
 
     def _recv_cr_ke_r_tickets(self, received_r_ticket_json: str) -> None:
-        # [FUNC-level: 'R'VEGTCS]
+        # [STAGE: (R)]
         # received_r_ticket_json: str = self._recv_xxx_message()
         received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
         simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
 
-        # [FUNC-level: R'VE'GTCS]
+        # [STAGE: (VE)]
         result = self._verify_and_execute_xxx_r_ticket(
             arbitrary_json=received_r_ticket_json,
             audit_start_ticket=None,
@@ -427,7 +426,7 @@ class DeviceController:
             result_message = f"{result.failure().args[0]}"
         simple_log("debug", f"result_message = {result_message}")
 
-        # [FUNC-level: RVE'GTCS']
+        # [STAGE: (G)(SG)(C)(S)]
         if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             self._holder_send_cr_ke_2(received_r_ticket, result_message)
         elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
@@ -441,7 +440,7 @@ class DeviceController:
             simple_log("error", "weird ticket type")
 
     ######################################################
-    # [IO-level]
+    # [PIPELINE FLOW]
     #
     # APY (PS):
     #       holder_send_cmd()   -> _device_recv_cmd()
@@ -454,7 +453,7 @@ class DeviceController:
     ######################################################
     def holder_send_cmd(self, device_id: str, cmd: str, tx_end: bool = False) -> None:
         if device_id in self.device_table:
-            # [FUNC-level: RTV'E'GTCS]
+            # [STAGE: RTV'E'GTCS]
             # Update Session: PS
             self.current_session.plaintext_cmd = cmd
             self.current_session.associated_plaintext_cmd = "additional unencrypted cmd"
@@ -463,7 +462,7 @@ class DeviceController:
                 base64str_backto_byte(self.current_session.current_session_key_str)
             )
 
-            # [FUNC-level: RTVE'G'TCS]
+            # [STAGE: (G)]
             if tx_end == False:
                 u_ticket_type = f"{u_ticket.TYPE_CMD_UTOKEN}"
             else:
@@ -481,31 +480,31 @@ class DeviceController:
             )
             # simple_log("debug", f"Generated UToken: {generated_u_ticket_json}")
 
-            # [FUNC-level: RTVEGT'CS']
+            # [STAGE: (C)(S)]
             if tx_end == False:
                 self._change_state(this_device.STATE_WAIT_FOR_DATA)
             else:
                 self._change_state(this_device.STATE_WAIT_FOR_RT)
             self._send_xxx_message(generated_u_ticket_json)
 
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
             simple_log("error", failure_msg)
 
     def _device_recv_cmd(self, received_u_token_json: str) -> None:
-        # [FUNC-level: 'R'TVEGTCS]
+        # [STAGE: (R)]
         # received_u_ticket_json: str = self._recv_xxx_message()
         received_u_token = jsonstr_to_u_ticket(received_u_token_json)
         simple_log("demo", f"Received UToken: {received_u_token_json}")
 
-        # [FUNC-level: R'VE'GTCS]
+        # [STAGE: (VE)]
         result = self._verify_and_execute_xxx_u_ticket(received_u_token_json)
         if type(result) == Success:
             result_message = f"Success"
         elif type(result) == Failure:  # pragma: no cover -> Weird U-Token
             result_message = f"{result.failure().args[0]}"
 
-        # [FUNC-level: RTVE'GTCS']
+        # [STAGE: (G)(SG)(C)(S)]
         # PS
         if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
             self._device_send_data(received_u_token, result_message)
@@ -517,7 +516,7 @@ class DeviceController:
     def _device_send_data(
         self, received_u_ticket: UTicket, result_message: str
     ) -> None:
-        # [FUNC-level: RTVE'G'TCS]
+        # [STAGE: (G)]
         generated_request: dict = {
             "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
             "device_id": f"{received_u_ticket.device_id}",
@@ -531,16 +530,16 @@ class DeviceController:
         generated_r_ticket_json: str = self._generate_xxx_r_ticket(generated_request)
         # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
 
-        # [FUNC-level: RTVEGT'CS']
+        # [STAGE: (C)(S)]
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
         self._send_xxx_message(generated_r_ticket_json)
 
     def _holder_recv_data(self, received_r_token_json: str) -> None:
-        # [FUNC-level: 'R'TVEGTCS]
+        # [STAGE: (R)]
         # received_r_ticket_json: str = self._recv_xxx_message()
         simple_log("demo", f"Received RToken: {received_r_token_json}")
 
-        # [FUNC-level: RT'VE'GTCS]
+        # [STAGE: (VE)]
         device_id = jsonstr_to_r_ticket(received_r_token_json).device_id
         if device_id in self.device_table:
             # Query Corresponding UTicket
@@ -563,17 +562,17 @@ class DeviceController:
             elif type(result) == Failure:  # pragma: no cover -> Weird R-Token
                 result_message = f"{result.failure().args[0]}"
             simple_log("debug", f"result_message = {result_message}")
-        else:  # pragma: no cover -> IO-level
+        else:  # pragma: no cover -> PIPELINE FLOW
             failure_msg = (
                 f"FAILURE: YOU DO NOT HAVE CORRESPONDING UTOKEN FOR THIS DEVICE"
             )
             simple_log("error", failure_msg)
 
-        # [FUNC-level: RTVEGT'C'S]
+        # [STAGE: (C)]
         self._change_state(this_device.STATE_WAIT_FOR_CMD)
 
     ######################################################
-    # [FUNC-level: 'R'TVEGTCS] Message Receiving
+    # [STAGE: (R)] Receive Message
     ######################################################
     def _connect(self, end: "DeviceController") -> None:
         # simple_log("info",
@@ -678,71 +677,7 @@ class DeviceController:
                 simple_log("error", "weird device type")
 
     ######################################################
-    # [FUNC-level: R'T'VEGTCS] Message Storage (after Receiving)
-    ######################################################
-    def _store_received_xxx_u_ticket(self, received_u_ticket_json: str) -> str:
-        ######################################################
-        # Update Device Table (Role, State, etc.)
-        # RAM: Add Device & UTicket in Device Table
-        ######################################################
-        received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
-
-        # We store this UTicket in device_table["device_id"]
-        # We do not forward Initialization UTicket
-        if (
-            received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
-        ):
-            self.device_table[received_u_ticket.device_id] = OtherDevice(
-                device_id=received_u_ticket.device_id,
-                device_u_ticket=received_u_ticket_json,
-            )
-        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-            simple_log("error", "weird ticket type")
-
-        ######################################################
-        # Storage
-        ######################################################
-        self.simple_storage.store_storage(
-            self.this_device, self.device_table, self.this_person, self.current_session
-        )
-
-        return received_u_ticket
-
-    def _store_received_xxx_r_ticket(self, received_r_ticket_json: str) -> str:
-        ######################################################
-        # Update Device Table (Role, State, etc.)
-        # RAM: Add Device & UTicket in Device Table received_r_ticket_json
-        ######################################################
-        received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
-
-        # We store this RTicket (but not verified) in device_table["device_id"]
-        if received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            # Create new table by newly-created device public key
-            created_device_id = received_r_ticket.device_id
-            # Put u_ticket (temporary in device_table["no_id"]) & r_ticket in device_table["created_device_id"]
-            self.device_table[created_device_id] = OtherDevice(
-                device_id=created_device_id,
-                device_u_ticket=self.device_table["no_id"].device_u_ticket,
-                device_r_ticket=received_r_ticket_json,
-            )
-        elif received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
-            # Not create new table, just add r_ticket to existing table
-            self.device_table[
-                received_r_ticket.device_id
-            ].device_r_ticket = received_r_ticket_json
-        elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-            # Not create new table, just add r_ticket to existing table
-            self.device_table[
-                received_r_ticket.device_id
-            ].device_r_ticket = received_r_ticket_json
-        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-            simple_log("error", "weird ticket type")
-
-        return received_r_ticket.device_id
-
-    ######################################################
-    # [FUNC-level: RT'VE'GTCS] Message Verification
+    # [STAGE: (VE)] Verify Message & Execute
     ######################################################
     def _verify_and_execute_xxx_u_ticket(
         self, arbitrary_json: str
@@ -800,9 +735,9 @@ class DeviceController:
         return verification_and_execution_result
 
     ######################################################
-    # [FUNC-level: RT'VE'GTCS] Message Execution (after Verification)
+    # [STAGE: (VE)] Message Execution (after Verification)
     ######################################################
-    # Execute Initialization
+    # Execute Initialization (Update Keystore)
     def _execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
@@ -817,12 +752,14 @@ class DeviceController:
         ######################################################
         # Initial Order
         ######################################################
+        # [STAGE: (O)]
         self.this_device.ticket_order = 0
         self.this_device.is_initialized = False
 
         ######################################################
         # Initial State
         ######################################################
+        # [STAGE: (C)]
         if self.this_device.device_type == this_device.IOT_DEVICE:
             self._change_state(this_device.STATE_WAIT_FOR_UT)
         elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
@@ -839,6 +776,14 @@ class DeviceController:
 
     def _execute_one_time_intialize_agent_or_server(self) -> Result[None, RuntimeError]:
         simple_log("info", f"+ {self.this_device.device_name} is initializing...")
+
+        ######################################################
+        # TODO: New way for _execute_one_time_intialize_agent_or_server()
+        #         + DM: Apply Initialization Ticket
+        #         + DM: Apply Personal Key Gen Ticket
+        #         + DO: Generate Personal Key
+        #         + DO: Request Ownership Ticket from DM
+        ######################################################
 
         if self.this_device.device_type != this_device.USER_AGENT_OR_CLOUD_SERVER:
             failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
@@ -884,14 +829,7 @@ class DeviceController:
         # RAM
         self.this_device.owner_pub_key = self.this_person.person_pub_key
 
-        ######################################################
-        # Update Ticket Order
-        # TODO: New way for _execute_one_time_intialize_agent_or_server()
-        #         + DM: Apply Initialization Ticket
-        #         + DM: Apply Personal Key Gen Ticket
-        #         + DO: Generate Personal Key
-        #         + DO: Request Ownership Ticket from DM
-        ######################################################
+        # [STAGE: (O)]
         self.this_device.ticket_order = self.this_device.ticket_order + 1
         simple_log(
             "debug",
@@ -907,7 +845,7 @@ class DeviceController:
 
         return Success(None)
 
-    # Execute UTicket
+    # Execute UTicket (Update Keystore)
     def _execute_xxx_u_ticket(
         self, u_ticket_in: UTicket
     ) -> Result[UTicket, RuntimeError]:
@@ -916,19 +854,19 @@ class DeviceController:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             # Initialization
             result = self._execute_one_time_initialize_iot_device(u_ticket_in)
-            # Update Ticket Order
+            # [STAGE: (O)]
             if type(result) == Success:
                 self._execute_update_ticket_order("verify", u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             # Ownership Transfer
             self._execute_ownership_transfer(u_ticket_in)
-            # Update Ticket Order
+            # [STAGE: (O)]
             self._execute_update_ticket_order("verify", u_ticket_in)
             result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             # CR-KE
             self._execute_cr_ke(u_ticket_in, "device")
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
             result = Success(u_ticket_in)
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
@@ -951,11 +889,11 @@ class DeviceController:
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 if self.current_session.plaintext_cmd == "TX_END":
                     simple_log("info", f"-> SUCCESS: VERIFY_TX_END")
-                    # Update Ticket Order
+                    # [STAGE: (O)]
                     self._execute_update_ticket_order("verify", u_ticket_in)
                 else:  # pragma: no cover -> Weird U-Ticket
                     simple_log("error", f"-> FAILURE: VERIFY_TX_END")
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
             result = Success(u_ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
@@ -1030,7 +968,7 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person, self.current_session
         )
 
-    # Execute UTicket & Update Session
+    # Execute UTicket (Update Session)
     def _execute_cr_ke(
         self, ticket_in: UTicket | RTicket, comm_end: str, cmd: str = ""
     ) -> None:
@@ -1308,7 +1246,7 @@ class DeviceController:
 
         return plaintext
 
-    # Execute RTicket
+    # Execute RTicket (Update Session)
     def _execute_xxx_r_ticket(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -1317,17 +1255,17 @@ class DeviceController:
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
-            # Update Ticket Order
+            # [STAGE: (O)]
             self._execute_update_ticket_order("verify", r_ticket_in)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             self._execute_cr_ke(r_ticket_in, "holder")
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             self._execute_cr_ke(r_ticket_in, "device")
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
             self._execute_cr_ke(r_ticket_in, "holder")
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # Session Key Obtaining ("holder")
             current_session_key_byte = base64str_backto_byte(
@@ -1341,7 +1279,7 @@ class DeviceController:
                 gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
             )
-            # NOT Update Ticket Order (Update Ticket Order when TXEnd)
+            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -1356,10 +1294,77 @@ class DeviceController:
         associated_plaintext_cmd = f"Data: {associated_plaintext_cmd}"
         return (plaintext_cmd, associated_plaintext_cmd)
 
-    # Update Ticket Order after:
-    #   "holder": Receive UTicket (expected ticket order)
-    #   "device": Verify UTicket & End TX (actual ticket order)
-    #   "holder": Verify RTicket (actual ticket order)
+    ######################################################
+    # [STAGE: (SR)] Store Received Message
+    ######################################################
+    def _store_received_xxx_u_ticket(self, received_u_ticket_json: str) -> str:
+        ######################################################
+        # Update Device Table (Role, State, etc.)
+        # RAM: Add Device & UTicket in Device Table
+        ######################################################
+        received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
+
+        # We store this UTicket in device_table["device_id"]
+        # We do not forward Initialization UTicket
+        if (
+            received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
+            self.device_table[received_u_ticket.device_id] = OtherDevice(
+                device_id=received_u_ticket.device_id,
+                device_u_ticket=received_u_ticket_json,
+            )
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", "weird ticket type")
+
+        ######################################################
+        # Storage
+        ######################################################
+        self.simple_storage.store_storage(
+            self.this_device, self.device_table, self.this_person, self.current_session
+        )
+
+        return received_u_ticket
+
+    def _store_received_xxx_r_ticket(self, received_r_ticket_json: str) -> str:
+        ######################################################
+        # Update Device Table (Role, State, etc.)
+        # RAM: Add Device & UTicket in Device Table received_r_ticket_json
+        ######################################################
+        received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
+
+        # We store this RTicket (but not verified) in device_table["device_id"]
+        if received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+            # Create new table by newly-created device public key
+            created_device_id = received_r_ticket.device_id
+            # Put u_ticket (temporary in device_table["no_id"]) & r_ticket in device_table["created_device_id"]
+            self.device_table[created_device_id] = OtherDevice(
+                device_id=created_device_id,
+                device_u_ticket=self.device_table["no_id"].device_u_ticket,
+                device_r_ticket=received_r_ticket_json,
+            )
+        elif received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+            # Not create new table, just add r_ticket to existing table
+            self.device_table[
+                received_r_ticket.device_id
+            ].device_r_ticket = received_r_ticket_json
+        elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            # Not create new table, just add r_ticket to existing table
+            self.device_table[
+                received_r_ticket.device_id
+            ].device_r_ticket = received_r_ticket_json
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", "weird ticket type")
+
+        return received_r_ticket.device_id
+
+    ######################################################
+    # [STAGE: (O)] Update Ticket Order
+    #   Update Ticket Order after:
+    #       "holder": Receive UTicket (expected ticket order)
+    #       "device": Verify UTicket & End TX (actual ticket order)
+    #       "holder": Verify RTicket (actual ticket order)
+    ######################################################
     def _execute_update_ticket_order(
         self, updating_case: str, ticket_in: UTicket | RTicket
     ) -> None:
@@ -1367,9 +1372,6 @@ class DeviceController:
             "info", f"+ {self.this_device.device_name} is updating ticket order..."
         )
 
-        ######################################################
-        # Update Ticket Order
-        ######################################################
         if updating_case == "receive":
             # Recieve UTicket
             if type(ticket_in) == UTicket and (
@@ -1426,7 +1428,7 @@ class DeviceController:
         )
 
     ######################################################
-    # [FUNC-level: RTVE'G'TCS] Message Generation
+    # [STAGE: (G)] Generate Message
     ######################################################
     def _generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
         simple_log(
@@ -1461,7 +1463,7 @@ class DeviceController:
         return generated_r_ticket_json
 
     ######################################################
-    # [FUNC-level: RTVEG'T'CS] Message Storage (after Generation)
+    # [STAGE: (SG)] Store Generated Message
     ######################################################
     def _store_generated_xxx_u_ticket(self, generated_u_ticket_json: str) -> str:
         generated_u_ticket = jsonstr_to_u_ticket(generated_u_ticket_json)
@@ -1484,13 +1486,13 @@ class DeviceController:
             simple_log("error", "weird ticket type")
 
     ######################################################
-    # [FUNC-level: RTVEGT'C'S] Change Recieving State
+    # [STAGE: (C)] Change Reciever State
     ######################################################
     def _change_state(self, new_state: str) -> None:
         self.state = new_state
 
     ######################################################
-    # [FUNC-level: RTVEGTC'S'] Message Sending
+    # [STAGE: (S)] Send Message
     ######################################################
     def _send_xxx_message(self, sent_message_json: str) -> None:
         simple_log(
