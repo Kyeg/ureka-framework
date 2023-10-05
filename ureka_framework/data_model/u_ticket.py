@@ -8,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 PROTOCOL_VERSION: str = "UREKA-1.0"
 
 ######################################################
+# Message Type
+######################################################
+MESSAGE_TYPE: str = "UTICKET"
+
+######################################################
 # UTicket Type
 ######################################################
 # UTicket
@@ -38,8 +43,9 @@ TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
 class UTicket(BaseModel):
     # UT
     protocol_verision: None | str = PROTOCOL_VERSION
-    u_ticket_id: None | str = None
+    message_type: None | str = MESSAGE_TYPE
 
+    u_ticket_id: None | str = None
     u_ticket_type: None | str = None
 
     device_id: None | str = None

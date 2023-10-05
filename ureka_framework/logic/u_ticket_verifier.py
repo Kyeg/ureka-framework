@@ -17,7 +17,7 @@ from ureka_framework.data_model.this_device import ThisDevice
 
 
 class UTicketVerifier:
-    def __init__(self, this_device: ThisDevice) -> None:
+    def __init__(self, this_device: None | ThisDevice) -> None:
         self.this_device = this_device
 
     ######################################################
@@ -52,6 +52,19 @@ class UTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    def verify_message_type(
+        self, u_ticket_in: UTicket
+    ) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
+        failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
+
+        if u_ticket_in.message_type != None:
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
     def verify_u_ticket_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
@@ -80,6 +93,19 @@ class UTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    # Because holder do not really know whether this device_id is correct before get RT
+    def has_device_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: HAS_DEVICE_ID = {u_ticket_in.device_id}"
+        failure_msg = f"-> FAILURE: HAS_DEVICE_ID = {u_ticket_in.device_id}"
+
+        if u_ticket_in.device_id != None:
+            simple_log("info", success_msg)
+            return Success(u_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
+    # However, device can verify whether this device_id is correct
     def verify_device_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"

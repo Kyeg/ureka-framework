@@ -200,7 +200,7 @@ class DeviceController:
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
-            failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+            failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
@@ -250,7 +250,7 @@ class DeviceController:
             simple_log("error", failure_msg)
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
-            failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+            failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -390,10 +390,10 @@ class DeviceController:
 
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
             if error == "NOT VALID JSON or VALID RTICKET SCHEMA":
-                failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+                failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
                 simple_log("error", failure_msg)
             elif error == "NOT VALID JSON or VALID UTICKET SCHEMA":
-                failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+                failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
                 simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -688,10 +688,10 @@ class DeviceController:
 
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
             if error == "NOT VALID JSON or VALID RTICKET SCHEMA":
-                failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+                failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
                 simple_log("error", failure_msg)
             elif error == "NOT VALID JSON or VALID UTICKET SCHEMA":
-                failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+                failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
                 simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -806,22 +806,68 @@ class DeviceController:
     ######################################################
     # [STAGE: (V)] Verify Message & Execute
     #   (V0): has_u_ticket_in_device_table
-    #   (V1): verify_message_is_defined_type
+    #   (V1): classify_message_is_defined_type
     #   (V2): verify_u_ticket_can_execute
     #   (V3): verify_u_ticket_has_successfully_executed_through_r_ticket
     #   (V4): verify_u_token_with_hmac
     #   (V5): verify_cmd_is_in_task_scope
     ######################################################
+    def _classify_message_is_defined_type(
+        self, arbitrary_json: str
+    ) -> Result[UTicket | RTicket, RuntimeError]:
+        simple_log(
+            "info", f"+ {self.this_device.device_name} is classifying message..."
+        )
+
+        # Notice that Pydantic can classify message type by json schema,
+        #   while other implementation may need classify message type by message_type field
+        u_ticket_verifier = UTicketVerifier(this_device=None)
+        result_is_u_ticket = u_ticket_verifier.verify_json_schema(arbitrary_json)
+        if type(result_is_u_ticket) == Success:
+            # Valid UTICKET SCHEMA, but not sure if the following content is valid
+            result_is_u_ticket_with_required_field = flow(
+                result_is_u_ticket.unwrap(),
+                u_ticket_verifier.verify_protocol_version,
+                bind(u_ticket_verifier.verify_message_type),
+                bind(u_ticket_verifier.verify_u_ticket_id),
+                bind(u_ticket_verifier.verify_u_ticket_type),
+                bind(u_ticket_verifier.has_device_id),
+            )
+            return result_is_u_ticket_with_required_field
+
+        r_ticket_verifier = RTicketVerifier(
+            this_device=None,
+            device_table=None,
+            audit_start_ticket=None,
+            audit_end_ticket=None,
+            current_session=None,
+        )
+        result_is_r_ticket = r_ticket_verifier.verify_json_schema(arbitrary_json)
+        if type(result_is_r_ticket) == Success:
+            # Valid RTICKET SCHEMA, but not sure if the following content is valid
+            result_is_r_ticket_with_required_field = flow(
+                result_is_r_ticket.unwrap(),
+                r_ticket_verifier.verify_protocol_version,
+                bind(r_ticket_verifier.verify_message_type),
+                bind(r_ticket_verifier.verify_r_ticket_id),
+                bind(r_ticket_verifier.verify_r_ticket_type),
+                bind(r_ticket_verifier.has_device_id),
+            )
+            return result_is_r_ticket_with_required_field
+
+        return result_is_r_ticket.failure().args[0]
+
     def _verify_xxx_u_ticket(
         self, arbitrary_json: str
     ) -> Result[UTicket, RuntimeError]:
         simple_log("info", f"+ {self.this_device.device_name} is verifying u_ticket...")
 
-        u_ticket_verifier = UTicketVerifier(self.this_device)
-        verification_and_execution_result = flow(
+        u_ticket_verifier = UTicketVerifier(this_device=self.this_device)
+        result = flow(
             arbitrary_json,
             u_ticket_verifier.verify_json_schema,
             bind(u_ticket_verifier.verify_protocol_version),
+            bind(u_ticket_verifier.verify_message_type),
             bind(u_ticket_verifier.verify_u_ticket_id),
             bind(u_ticket_verifier.verify_u_ticket_type),
             bind(u_ticket_verifier.verify_device_id),
@@ -832,7 +878,7 @@ class DeviceController:
             bind(u_ticket_verifier.verify_issuer_signature),
             # bind(self._execute_xxx_u_ticket),
         )
-        return verification_and_execution_result
+        return result
 
     def _verify_xxx_r_ticket(
         self,
@@ -849,10 +895,11 @@ class DeviceController:
             audit_end_ticket=audit_end_ticket,
             current_session=self.current_session,
         )
-        verification_and_execution_result = flow(
+        result = flow(
             arbitrary_json,
             r_ticket_verifier.verify_json_schema,
             bind(r_ticket_verifier.verify_protocol_version),
+            bind(r_ticket_verifier.verify_message_type),
             bind(r_ticket_verifier.verify_r_ticket_id),
             bind(r_ticket_verifier.verify_r_ticket_type),
             bind(r_ticket_verifier.verify_device_id),
@@ -865,7 +912,7 @@ class DeviceController:
             bind(r_ticket_verifier.verify_device_signature),
             # bind(self._execute_xxx_r_ticket),
         )
-        return verification_and_execution_result
+        return result
 
     ######################################################
     # [STAGE: (E)] Execute
@@ -1470,7 +1517,7 @@ class DeviceController:
             )
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
-            failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+            failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -1515,7 +1562,7 @@ class DeviceController:
             )
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
-            failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+            failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -1649,7 +1696,7 @@ class DeviceController:
                 simple_log("error", failure_msg)
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
-            failure_msg = f"FAILURE: (V1): verify_message_is_defined_type"
+            failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error

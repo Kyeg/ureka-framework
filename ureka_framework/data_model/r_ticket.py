@@ -3,6 +3,11 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 import ureka_framework.data_model.u_ticket as u_ticket
 
 ######################################################
+# Message Type
+######################################################
+MESSAGE_TYPE: str = "RTICKET"
+
+######################################################
 # RTicket Type (same as UTicket Type)
 # RTicket Type (CRKE)
 # RTicket Type (PS)
@@ -28,8 +33,9 @@ TYPE_DATA_RTOKEN: str = "DATA_RTOKEN"
 class RTicket(BaseModel):
     # RT
     protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
-    r_ticket_id: None | str = None
+    message_type: None | str = MESSAGE_TYPE
 
+    r_ticket_id: None | str = None
     r_ticket_type: None | str = None
 
     device_id: None | str = None

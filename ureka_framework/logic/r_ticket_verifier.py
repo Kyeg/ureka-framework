@@ -24,11 +24,11 @@ from cryptography.hazmat.primitives.asymmetric import ec
 class RTicketVerifier:
     def __init__(
         self,
-        this_device: ThisDevice,
-        device_table: dict[str, OtherDevice],
+        this_device: None | ThisDevice,
+        device_table: None | dict[str, OtherDevice],
         audit_start_ticket: None | UTicket,
         audit_end_ticket: None | UTicket,
-        current_session: CurrentSession,
+        current_session: None | CurrentSession,
     ) -> None:
         self.this_device = this_device
         self.device_table = device_table
@@ -68,6 +68,19 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    def verify_message_type(
+        self, r_ticket_in: RTicket
+    ) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
+        failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
+
+        if r_ticket_in.message_type != None:
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
     def verify_r_ticket_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
@@ -79,6 +92,7 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    # Because holder do not really know whether this device_id is correct before get RT
     def verify_r_ticket_type(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -99,6 +113,18 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
+
+    # However, device can verify whether this device_id is correct
+    def has_device_id(self, r_ticket_in: RTicket) -> Result[UTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: HAS_DEVICE_ID = {r_ticket_in.device_id}"
+        failure_msg = f"-> FAILURE: HAS_DEVICE_ID = {r_ticket_in.device_id}"
+
+        if r_ticket_in.device_id != None:
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        else:  # pragma: no cover -> Weird U-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
 
     def verify_device_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
