@@ -68,6 +68,17 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             return Failure(RuntimeError(failure_msg))
 
+    def verify_r_ticket_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
+        success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
+        failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
+
+        if r_ticket_in.r_ticket_id != None:
+            simple_log("info", success_msg)
+            return Success(r_ticket_in)
+        else:  # pragma: no cover -> Weird R-Ticket
+            simple_log("error", failure_msg)
+            return Failure(RuntimeError(failure_msg))
+
     def verify_r_ticket_type(
         self, r_ticket_in: RTicket
     ) -> Result[RTicket, RuntimeError]:
@@ -88,17 +99,6 @@ class RTicketVerifier:
             else:  # pragma: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 return Failure(RuntimeError(failure_msg))
-
-    def verify_r_ticket_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
-        success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
-        failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
-
-        if r_ticket_in.r_ticket_id != None:
-            simple_log("info", success_msg)
-            return Success(r_ticket_in)
-        else:  # pragma: no cover -> Weird R-Ticket
-            simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
 
     def verify_device_id(self, r_ticket_in: RTicket) -> Result[RTicket, RuntimeError]:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"

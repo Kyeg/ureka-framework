@@ -43,6 +43,7 @@ class UTicket(BaseModel):
     u_ticket_type: None | str = None
 
     device_id: None | str = None
+
     ticket_order: None | int = None
     holder_id: None | str = None
     task_scope: None | str = None
@@ -85,6 +86,6 @@ def jsonstr_to_u_ticket(json_str: str) -> UTicket:
     try:
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
-        failure_msg = "NOT VALID JSON or VALID SCHEMA"
+        failure_msg = "NOT VALID JSON or VALID UTICKET SCHEMA"
         simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

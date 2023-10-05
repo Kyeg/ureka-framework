@@ -33,6 +33,7 @@ class RTicket(BaseModel):
     r_ticket_type: None | str = None
 
     device_id: None | str = None
+
     ticket_order: None | int = None
     audit_start: None | str = None
     audit_end: None | str = None
@@ -88,6 +89,6 @@ def jsonstr_to_r_ticket(json_str: str) -> RTicket:
     try:
         return RTicket.model_validate_json(json_str)
     except ValidationError as error:
-        failure_msg = "NOT VALID JSON or VALID SCHEMA"
+        failure_msg = "NOT VALID JSON or VALID RTICKET SCHEMA"
         simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

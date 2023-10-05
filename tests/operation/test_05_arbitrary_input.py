@@ -161,7 +161,7 @@ class TestArbitraryInput:
         assert type(result) == Failure
         assert (
             result.failure().args[0]
-            == "-> FAILURE: VERIFY_JSON_SCHEMA: NOT VALID JSON or VALID SCHEMA"
+            == "-> FAILURE: VERIFY_JSON_SCHEMA: NOT VALID JSON or VALID UTICKET SCHEMA"
         )
 
     def test_apply_wrong_protocol_version_in_u_ticket(self) -> None:

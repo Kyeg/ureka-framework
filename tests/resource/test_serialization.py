@@ -212,11 +212,11 @@ class TestSerialization:
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
         assert (
             str(jsonstr_to_u_ticket_error_info.value)
-            == "NOT VALID JSON or VALID SCHEMA"
+            == "NOT VALID JSON or VALID UTICKET SCHEMA"
         )
         assert (
             str(jsonstr_to_r_ticket_error_info.value)
-            == "NOT VALID JSON or VALID SCHEMA"
+            == "NOT VALID JSON or VALID RTICKET SCHEMA"
         )
         assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
         assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
