@@ -131,7 +131,7 @@ class DeviceController:
             # [STAGE: (SG)]
             self._store_generated_xxx_u_ticket(generated_u_ticket_json)
         else:  # pragma: no cover -> PIPELINE FLOW
-            failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
+            failure_msg = f"FAILURE: has_ticket_in_device_table"
             simple_log("error", failure_msg)
 
     def issuer_issue_u_ticket_to_holder(
@@ -156,7 +156,7 @@ class DeviceController:
             simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
             self.complete_comm()
         else:  # pragma: no cover -> PIPELINE FLOW
-            failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
+            failure_msg = f"FAILURE: has_ticket_in_device_table"
             simple_log("error", failure_msg)
 
     def _holder_recv_u_ticket(self, received_u_ticket_json: str) -> None:
@@ -169,7 +169,7 @@ class DeviceController:
         try:
             received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         except:  # pragma: no cover -> Weird U-Ticket
-            failure_msg = f"FAILURE: WEIRD U-TICKET"
+            failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
@@ -198,17 +198,13 @@ class DeviceController:
     #           i.e., FakeComm (Sequential Sender/Receiver) -> (Concurrent Sender/Receiver)
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
-        if device_id in self.device_table:
+        # [STAGE: (V0)]
+        try:
             stored_u_ticket_json: str = self.device_table[device_id].device_u_ticket
             # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
 
             # [STAGE: (V1)]
-            try:
-                stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
-            except:  # pragma: no cover -> Weird U-Ticket
-                failure_msg = f"FAILURE: WEIRD U-TICKET"
-                simple_log("error", failure_msg)
-                raise RuntimeError(failure_msg)
+            stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
 
             if (
                 stored_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -227,8 +223,16 @@ class DeviceController:
             # [STAGE: (S)]
             self._send_xxx_message(stored_u_ticket_json)
 
-        else:  # pragma: no cover -> PIPELINE FLOW
-            failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
+        except KeyError:  # pragma: no cover -> PIPELINE FLOW
+            failure_msg = f"FAILURE: has_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except RuntimeError:  # pragma: no cover -> Weird U-Ticket
+            failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
+            simple_log("error", failure_msg)
+
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _device_recv_u_ticket(self, received_u_ticket_json: str) -> None:
@@ -327,7 +331,7 @@ class DeviceController:
                     self.device_table[received_r_ticket.device_id].device_u_ticket
                 )
             except:  # pragma: no cover -> Weird U-Ticket
-                failure_msg = f"FAILURE: WEIRD U-TICKET"
+                failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
                 simple_log("error", failure_msg)
                 raise RuntimeError(failure_msg)
             simple_log(
@@ -525,7 +529,7 @@ class DeviceController:
             self._send_xxx_message(generated_u_ticket_json)
 
         else:  # pragma: no cover -> PIPELINE FLOW
-            failure_msg = f"FAILURE: YOU DO NOT OWN THIS DEVICE"
+            failure_msg = f"FAILURE: has_ticket_in_device_table"
             simple_log("error", failure_msg)
 
     def _device_recv_cmd(self, received_u_token_json: str) -> None:
@@ -591,7 +595,7 @@ class DeviceController:
                         self.device_table[device_id].device_u_ticket
                     )
                 except:  # pragma: no cover -> Weird U-Ticket
-                    failure_msg = f"FAILURE: WEIRD U-TICKET"
+                    failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
                     simple_log("error", failure_msg)
                     raise RuntimeError(failure_msg)
                 simple_log(
@@ -1304,9 +1308,9 @@ class DeviceController:
 
             plaintext: str = byte_backto_str(plaintext_byte)
 
-            simple_log("info", "-> SUCCESS: VERIFY_GCM_HMAC")
+            simple_log("info", "-> SUCCESS: verify_u_token_with_hmac")
         except InvalidTag:  # pragma: no cover -> TODO: Attack
-            simple_log("info", "-> FAILURE: VERIFY_GCM_HMAC")
+            simple_log("info", "-> FAILURE: verify_u_token_with_hmac")
 
         return plaintext
 
@@ -1367,7 +1371,7 @@ class DeviceController:
         try:
             received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
         except:  # pragma: no cover -> Weird U-Ticket
-            failure_msg = f"FAILURE: WEIRD U-TICKET"
+            failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
@@ -1542,7 +1546,7 @@ class DeviceController:
         try:
             generated_u_ticket = jsonstr_to_u_ticket(generated_u_ticket_json)
         except:  # pragma: no cover -> Weird U-Ticket
-            failure_msg = f"FAILURE: WEIRD U-TICKET"
+            failure_msg = f"FAILURE: verify_message_has_type_and_device_id"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
