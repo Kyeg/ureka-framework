@@ -56,7 +56,7 @@ class TestStorage:
         self.cloud_server_dm._send_xxx_message(test_u_ticket)
 
         self.iot_device._recv_xxx_message()
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: The messages sent and received are the same
         assert (

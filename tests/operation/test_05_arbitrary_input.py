@@ -44,7 +44,7 @@ class TestArbitraryInput:
         # WHEN: Not fit with json format '{"key": "value"}'
         current_test_when_and_then_log()
         test_u_ticket: str = "WRONG-JSON-SCHEMA"
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Raise the RuntimeError (Invalid JSON)
         # assert type(result) == Failure
@@ -159,7 +159,7 @@ class TestArbitraryInput:
         simple_log("debug", f"modified_test_u_ticket = {modified_test_u_ticket}")
 
         # WHEN: Verify the modified u_ticket
-        result = self.iot_device._verify_xxx_u_ticket(modified_test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(modified_test_u_ticket)
 
         # THEN: Raise the RuntimeError (Extra inputs are not permitted)
         assert type(result) == Failure
@@ -173,7 +173,7 @@ class TestArbitraryInput:
         # WHEN: Wrong u_ticket protocol version
         current_test_when_and_then_log()
         test_u_ticket: str = '{"protocol_verision": "WRONG-PROTOCOL-VERSION"}'
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
@@ -186,7 +186,7 @@ class TestArbitraryInput:
             "u_ticket_type": f"WRONG-UTICKET-TYPE",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
         assert type(result) == Failure
@@ -200,7 +200,7 @@ class TestArbitraryInput:
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device._verify_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
         # assert type(result) == Failure
