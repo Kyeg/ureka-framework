@@ -18,13 +18,11 @@ from ureka_framework.data_model.current_session import CurrentSession
 import ureka_framework.data_model.u_ticket as u_ticket
 from ureka_framework.data_model.u_ticket import (
     UTicket,
-    jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
 import ureka_framework.data_model.r_ticket as r_ticket
 from ureka_framework.data_model.r_ticket import (
     RTicket,
-    jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
 
@@ -181,7 +179,9 @@ class DeviceController:
             )
 
             # [TO-DO: STAGE: (V1)]
-            received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
+            received_u_ticket = self._classify_message_is_defined_type(
+                received_u_ticket_json
+            )
 
             # [STAGE: (V2)]
             # TODO: Can moreover _verify_xxx_u_ticket
@@ -223,7 +223,9 @@ class DeviceController:
             # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
 
             # [STAGE: (V1)]
-            stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
+            stored_u_ticket = self._classify_message_is_defined_type(
+                stored_u_ticket_json
+            )
 
             if (
                 stored_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -340,8 +342,11 @@ class DeviceController:
             # [STAGE: (R)]
             simple_log("demo", f"Received RTicket: {received_r_ticket_json}")
 
-            # [TO-DO: STAGE: (V1)]
-            received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
+            # [STAGE: (V1)]
+            # received_r_ticket = self._classify_message_is_defined_type(received_r_ticket_json)
+            received_r_ticket = self._classify_message_is_defined_type(
+                received_r_ticket_json
+            )
 
             # [TO-DO: STAGE: (SR)]
             self._store_received_xxx_r_ticket(received_r_ticket_json)
@@ -354,7 +359,9 @@ class DeviceController:
             ].device_u_ticket
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (V1)]
-            stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
+            stored_u_ticket = self._classify_message_is_defined_type(
+                stored_u_ticket_json
+            )
 
             if (
                 received_r_ticket.audit_end == None
@@ -653,14 +660,18 @@ class DeviceController:
             simple_log("demo", f"Received RToken: {received_r_token_json}")
 
             # [STAGE: (V1)]
-            device_id = jsonstr_to_r_ticket(received_r_token_json).device_id
+            device_id = self._classify_message_is_defined_type(
+                received_r_token_json
+            ).device_id
 
             # Query Corresponding UTicket
             # [STAGE: (V0)]
             stored_u_ticket_json = self.device_table[device_id].device_u_ticket
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (V1)]
-            stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
+            stored_u_ticket = self._classify_message_is_defined_type(
+                stored_u_ticket_json
+            )
 
             try:
                 # [STAGE: (V3)]
@@ -819,6 +830,7 @@ class DeviceController:
         # Notice that Pydantic can classify message type by json schema,
         #   while other implementation may need classify message type by message_type field
         try:
+            # [STAGE: (V1: UTicket)]
             u_ticket_verifier = UTicketVerifier(this_device=None)
 
             u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
@@ -829,29 +841,31 @@ class DeviceController:
 
             return u_ticket_in
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
-            raise RuntimeError(error)
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+            try:
+                # [STAGE: (V1: RTicket)]
+                r_ticket_verifier = RTicketVerifier(
+                    this_device=None,
+                    device_table=None,
+                    audit_start_ticket=None,
+                    audit_end_ticket=None,
+                    current_session=None,
+                )
 
-        try:
-            r_ticket_verifier = RTicketVerifier(
-                this_device=None,
-                device_table=None,
-                audit_start_ticket=None,
-                audit_end_ticket=None,
-                current_session=None,
-            )
+                r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+                r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
+                r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+                r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+                r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
 
-            r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
-            r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
-
-            return r_ticket_in
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
-            raise RuntimeError(error)
+                return r_ticket_in
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
+                # "NOT VALID JSON or VALID UTICKET/RTICKET SCHEMA"
+                failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
+                simple_log("error", f"{failure_msg}: {error}")
+                raise RuntimeError(error)
+            except:  # pragma: no cover -> Unpredicted Error
+                failure_msg = f"FAILURE: UNPREDICTED ERROR"
+                simple_log("error", failure_msg)
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
@@ -1483,7 +1497,9 @@ class DeviceController:
     def _store_received_xxx_u_ticket(self, received_u_ticket_json: str) -> None:
         try:
             # [STAGE: (V1)]
-            received_u_ticket = jsonstr_to_u_ticket(received_u_ticket_json)
+            received_u_ticket = self._classify_message_is_defined_type(
+                received_u_ticket_json
+            )
 
             # [STAGE: (SR)]
             # We store this UTicket in device_table["device_id"]
@@ -1518,9 +1534,12 @@ class DeviceController:
             simple_log("error", failure_msg)
 
     def _store_received_xxx_r_ticket(self, received_r_ticket_json: str) -> None:
-        # [STAGE: (V1)]
         try:
-            received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
+            # [STAGE: (V1)]
+            received_r_ticket = self._classify_message_is_defined_type(
+                received_r_ticket_json
+            )
+
             # We store this RTicket (but not verified) in device_table["device_id"]
             if received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
                 # Create new table by newly-created device public key
@@ -1670,7 +1689,9 @@ class DeviceController:
     def _store_generated_xxx_u_ticket(self, generated_u_ticket_json: str) -> None:
         try:
             # [STAGE: (V1)]
-            generated_u_ticket = jsonstr_to_u_ticket(generated_u_ticket_json)
+            generated_u_ticket = self._classify_message_is_defined_type(
+                generated_u_ticket_json
+            )
 
             # Because device hasn't created the id yet,
             #   we temporary store Initialization UTicket in device_table["no_id"]

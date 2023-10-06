@@ -20,16 +20,19 @@ TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
 TYPE_OWNERSHIP_UTICKET: str = "OWNERSHIP"
 TYPE_ACCESS_UTICKET: str = "ACCESS"
 # TYPE_QUERY_UTICKET: str = "QUERY"
+# UToken
+TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
+# RToken (TX_END)
+TYPE_TX_END_UTOKEN: str = "TX_END"
 # UTicket
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
     TYPE_OWNERSHIP_UTICKET,
     TYPE_ACCESS_UTICKET,
+    TYPE_CMD_UTOKEN,
+    TYPE_TX_END_UTOKEN,
 }
-# UToken
-TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
-# RToken (TX_END)
-TYPE_TX_END_UTOKEN: str = "TX_END"
+
 
 ######################################################
 # Task Scope
@@ -93,5 +96,5 @@ def jsonstr_to_u_ticket(json_str: str) -> UTicket:
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID UTICKET SCHEMA"
-        simple_log("error", f"{failure_msg}: {error}")
+        # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

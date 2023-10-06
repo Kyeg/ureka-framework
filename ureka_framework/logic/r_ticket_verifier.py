@@ -88,27 +88,18 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
-    # Because holder do not really know whether this device_id is correct before get RT
     def verify_r_ticket_type(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_TYPE = {r_ticket_in.r_ticket_type}"
 
-        if (
-            r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES
-            or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
-        ):
+        if r_ticket_in.r_ticket_type in r_ticket.LEGAL_RTICKET_TYPES:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:
-            if r_ticket_in.r_ticket_type == self.audit_start_ticket.u_ticket_type:
-                simple_log("info", success_msg)
-                return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
-                simple_log("error", failure_msg)
-                raise RuntimeError(f"{failure_msg}")
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", failure_msg)
+            raise RuntimeError(f"{failure_msg}")
 
-    # However, device can verify whether this device_id is correct
+    # Because holder do not really know whether this device_id is correct before get RT
     def has_device_id(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: HAS_DEVICE_ID = {r_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: HAS_DEVICE_ID = {r_ticket_in.device_id}"
@@ -120,6 +111,7 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
+    # However, device can verify whether this device_id is correct
     def verify_device_id(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {r_ticket_in.device_id}"

@@ -25,6 +25,16 @@ LEGAL_CRKE_TYPES: {str} = {TYPE_CRKE1_RTICKET, TYPE_CRKE2_RTICKET, TYPE_CRKE3_RT
 TYPE_DATA_RTOKEN: str = "DATA_RTOKEN"
 # RToken (TX_END)
 # TYPE_TX_END_UTOKEN: str = "TX_END"
+# All
+LEGAL_RTICKET_TYPES: {str} = {
+    u_ticket.TYPE_INITIALIZATION_UTICKET,
+    u_ticket.TYPE_OWNERSHIP_UTICKET,
+    TYPE_CRKE1_RTICKET,
+    TYPE_CRKE2_RTICKET,
+    TYPE_CRKE3_RTICKET,
+    TYPE_DATA_RTOKEN,
+    u_ticket.TYPE_TX_END_UTOKEN,
+}
 
 
 ######################################################
@@ -96,5 +106,5 @@ def jsonstr_to_r_ticket(json_str: str) -> RTicket:
         return RTicket.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID RTICKET SCHEMA"
-        simple_log("error", f"{failure_msg}: {error}")
+        # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

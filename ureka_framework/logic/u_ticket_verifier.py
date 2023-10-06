@@ -31,7 +31,7 @@ class UTicketVerifier:
             simple_log("info", success_msg)
             return u_ticket_in
         except RuntimeError as error:  # pragma: no cover -> Weird U-Ticket
-            simple_log("error", f"{failure_msg}: {error}")
+            # simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(f"{failure_msg}: {error}")
 
     def verify_protocol_version(self, u_ticket_in: UTicket) -> UTicket:
@@ -75,11 +75,7 @@ class UTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
 
-        if (
-            u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
-        ):
+        if u_ticket_in.u_ticket_type in u_ticket.LEGAL_UTICKET_TYPES:
             simple_log("info", success_msg)
             return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
