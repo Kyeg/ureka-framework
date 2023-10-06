@@ -154,8 +154,6 @@ class DeviceController:
                 # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
                 # self._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
-                # [STAGE: (C)]
-                self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                 # [STAGE: (S)]
                 self._send_xxx_message(generated_u_ticket_json)
 
@@ -188,7 +186,7 @@ class DeviceController:
                 "holder-receive-uticket", received_u_ticket
             )
 
-            # [STAGE: (G)(C)(S)]
+            # [STAGE: (G)(S)]
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
@@ -270,7 +268,9 @@ class DeviceController:
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (C)]
+                self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
+                # [STAGE: (G)(S)]
                 self._device_send_r_ticket(
                     received_u_ticket.u_ticket_type,
                     received_u_ticket.u_ticket_id,
@@ -278,7 +278,9 @@ class DeviceController:
                 )
             # CR-KE-PS
             elif received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (C)]
+                self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CRKE2)
+                # [STAGE: (G)(S)]
                 self._device_send_cr_ke_1(result_message)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
@@ -322,8 +324,6 @@ class DeviceController:
             # [STAGE: (SG)]
             # Can optionally _stored_generated_xxx_r_ticket
 
-            # [STAGE: (C)]
-            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -414,8 +414,6 @@ class DeviceController:
             generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
-            # [STAGE: (C)]
-            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CRKE2)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -437,7 +435,9 @@ class DeviceController:
                 result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                 # [STAGE: (E)]
                 self._execute_xxx_r_ticket(received_r_ticket)
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (C)]
+                self._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
+                # [STAGE: (G)(S)]
                 self._holder_send_cr_ke_2(result_message)
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
                 result_message = f"{error}"
@@ -467,8 +467,6 @@ class DeviceController:
             generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
-            # [STAGE: (C)]
-            self._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -490,7 +488,9 @@ class DeviceController:
                 result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                 # [STAGE: (E)]
                 self._execute_xxx_r_ticket(received_r_ticket)
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (C)]
+                self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
+                # [STAGE: (G)(S)]
                 self._device_send_cr_ke_3(result_message)
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
                 result_message = f"{error}"
@@ -518,8 +518,6 @@ class DeviceController:
             generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
-            # [STAGE: (C)]
-            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -579,12 +577,18 @@ class DeviceController:
                     base64str_backto_byte(self.current_session.current_session_key_str)
                 )
 
-                # [STAGE: (G)]
                 if tx_end == False:
+                    # [STAGE: (C)]
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_DATA)
+                    # [STAGE: (G)]
                     u_ticket_type = f"{u_ticket.TYPE_CMD_UTOKEN}"
                 else:
+                    # [STAGE: (C)]
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
+                    # [STAGE: (G)]
                     u_ticket_type = f"{u_ticket.TYPE_TX_END_UTOKEN}"
 
+                # [STAGE: (G)]
                 generated_request: dict = {
                     "device_id": f"{self.current_session.current_device_id}",
                     "u_ticket_type": f"{u_ticket_type}",
@@ -598,11 +602,6 @@ class DeviceController:
                 )
                 # simple_log("debug", f"Generated UToken: {generated_u_ticket_json}")
 
-                # [STAGE: (C)]
-                if tx_end == False:
-                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_DATA)
-                else:
-                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                 # [STAGE: (S)]
                 self._send_xxx_message(generated_u_ticket_json)
 
@@ -630,10 +629,12 @@ class DeviceController:
             self._execute_xxx_u_ticket(received_u_token)
             # PS
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (C)]
+                self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
+                # [STAGE: (G)(S)]
                 self._device_send_data(result_message)
             elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                # [STAGE: (G)(C)(S)]
+                # [STAGE: (G)(S)]
                 self._device_send_r_ticket(
                     received_u_token.u_ticket_type,
                     received_u_token.u_ticket_id,
@@ -667,8 +668,6 @@ class DeviceController:
             )
             # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
 
-            # [STAGE: (C)]
-            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
