@@ -1,8 +1,8 @@
 import inspect
 from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.logic.device_controller import DeviceController
-from ureka_framework.data_model import u_ticket
-import ureka_framework.data_model.this_device as this_device
+from ureka_framework.model.message import u_ticket
+import ureka_framework.model.data_model.this_device as this_device
 from typing import Tuple
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,

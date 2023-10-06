@@ -9,7 +9,7 @@ from tests.conftest import (
     enterprise_provider_server,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
-import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.model.message.u_ticket as u_ticket
 from typing import Iterator
 
 

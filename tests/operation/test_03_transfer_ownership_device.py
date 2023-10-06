@@ -11,8 +11,8 @@ from tests.conftest import (
     device_owner_agent_and_her_device,
     attacker_server,
 )
-from ureka_framework.data_model.other_device import OtherDevice
-import ureka_framework.data_model.u_ticket as u_ticket
+from ureka_framework.model.data_model.other_device import OtherDevice
+import ureka_framework.model.message.u_ticket as u_ticket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 

@@ -12,8 +12,8 @@ from tests.conftest import (
 from ureka_framework.logic.device_controller import (
     DeviceController,
 )
-import ureka_framework.data_model.u_ticket as u_ticket
-import ureka_framework.data_model.this_device as this_device
+import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator

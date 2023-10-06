@@ -9,29 +9,29 @@ from tests.conftest import (
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
-from ureka_framework.data_model import u_ticket
-from ureka_framework.data_model.r_ticket import (
+from ureka_framework.model.message import u_ticket
+from ureka_framework.model.message.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
-from ureka_framework.data_model.u_ticket import (
+from ureka_framework.model.message.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
-from ureka_framework.data_model.this_device import (
+from ureka_framework.model.data_model.this_device import (
     jsonstr_to_this_device,
     this_device_to_jsonstr,
 )
-from ureka_framework.data_model.other_device import (
+from ureka_framework.model.data_model.other_device import (
     jsonstr_to_device_table,
 )
-from ureka_framework.data_model.this_person import (
+from ureka_framework.model.data_model.this_person import (
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
-from ureka_framework.data_model.current_session import (
+from ureka_framework.model.data_model.current_session import (
     jsonstr_to_current_session,
 )
 from ureka_framework.resource.crypto import ecdh

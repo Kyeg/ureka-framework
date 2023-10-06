@@ -9,19 +9,19 @@ from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
 from ureka_framework.logic.u_ticket_generator import UTicketGenerator
 from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
 
-import ureka_framework.data_model.this_device as this_device
-from ureka_framework.data_model.this_device import ThisDevice
-from ureka_framework.data_model.other_device import OtherDevice
-from ureka_framework.data_model.this_person import ThisPerson
-from ureka_framework.data_model.current_session import CurrentSession
+import ureka_framework.model.data_model.this_device as this_device
+from ureka_framework.model.data_model.this_device import ThisDevice
+from ureka_framework.model.data_model.other_device import OtherDevice
+from ureka_framework.model.data_model.this_person import ThisPerson
+from ureka_framework.model.data_model.current_session import CurrentSession
 
-import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.data_model.u_ticket import (
+import ureka_framework.model.message.u_ticket as u_ticket
+from ureka_framework.model.message.u_ticket import (
     UTicket,
     u_ticket_to_jsonstr,
 )
-import ureka_framework.data_model.r_ticket as r_ticket
-from ureka_framework.data_model.r_ticket import (
+import ureka_framework.model.message.r_ticket as r_ticket
+from ureka_framework.model.message.r_ticket import (
     RTicket,
     r_ticket_to_jsonstr,
 )

@@ -4,22 +4,22 @@ import shutil
 
 from typing import Tuple
 from ureka_framework.resource.logger.simple_logger import simple_log
-from ureka_framework.data_model.this_device import (
+from ureka_framework.model.data_model.this_device import (
     ThisDevice,
     jsonstr_to_this_device,
     this_device_to_jsonstr,
 )
-from ureka_framework.data_model.other_device import (
+from ureka_framework.model.data_model.other_device import (
     OtherDevice,
     jsonstr_to_device_table,
     device_table_to_jsonstr,
 )
-from ureka_framework.data_model.this_person import (
+from ureka_framework.model.data_model.this_person import (
     ThisPerson,
     jsonstr_to_this_person,
     this_person_to_jsonstr,
 )
-from ureka_framework.data_model.current_session import (
+from ureka_framework.model.data_model.current_session import (
     CurrentSession,
     jsonstr_to_current_session,
     current_session_to_jsonstr,

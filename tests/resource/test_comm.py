@@ -8,8 +8,8 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.logic.device_controller import DeviceController
-from ureka_framework.data_model import u_ticket
-import ureka_framework.data_model.this_device as this_device
+from ureka_framework.model.message import u_ticket
+import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 

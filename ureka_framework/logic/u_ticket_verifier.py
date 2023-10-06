@@ -1,18 +1,18 @@
 import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
-from ureka_framework.data_model.u_ticket import (
+from ureka_framework.model.message.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
-import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.model.message.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
 )
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.data_model.this_device import ThisDevice
+from ureka_framework.model.data_model.this_device import ThisDevice
 
 
 class UTicketVerifier:
