@@ -154,7 +154,7 @@ class DeviceController:
                 # self._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
                 # [STAGE: (C)]
-                self._change_state(this_device.STATE_WAIT_FOR_RT)
+                self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                 # [STAGE: (S)]
                 self._send_xxx_message(generated_u_ticket_json)
 
@@ -170,25 +170,14 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _holder_recv_u_ticket(self, received_u_ticket_json: str) -> None:
+    def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log(
-                "demo",
-                f"Received (& to be Forwarded) UTicket: {received_u_ticket_json}",
-            )
-
-            # [TO-DO: STAGE: (V1)]
-            received_u_ticket = self._classify_message_is_defined_type(
-                received_u_ticket_json
-            )
-
-            # [STAGE: (V2)]
-            # TODO: Can moreover _verify_xxx_u_ticket
-            # (but the actual ticket order in device is still unknown -> TODO: Attack)
+            # [STAGE: (V1)]
+            # But the actual ticket order in device is still unknown -> TODO: Attack
 
             # [TO-DO: STAGE: (SR)]
-            self._store_received_xxx_u_ticket(received_u_ticket_json)
+            self._store_received_xxx_u_ticket(received_u_ticket)
 
             # [STAGE: (O)]
             self._execute_update_ticket_order("receive", received_u_ticket)
@@ -232,12 +221,12 @@ class DeviceController:
                 or stored_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             ):
                 # [STAGE: (C)]
-                self._change_state(this_device.STATE_WAIT_FOR_RT)
+                self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
             elif stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
                 # [STAGE: (E)]
                 self._execute_cr_ke(stored_u_ticket, "holder", cmd)
                 # [STAGE: (C)]
-                self._change_state(this_device.STATE_WAIT_FOR_CRKE1)
+                self._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE1)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
@@ -256,16 +245,15 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _device_recv_u_ticket(self, received_u_ticket_json: str) -> None:
+    def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received UTicket: {received_u_ticket_json}")
 
             # [TO-DO: STAGE: (SR)]
             # No need to optionally _store_received_xxx_u_ticket
 
             # [STAGE: (V2)]
-            received_u_ticket = self._verify_xxx_u_ticket(received_u_ticket_json)
+            self._verify_xxx_u_ticket(received_u_ticket)
             result_message = f"Success (verify_u_ticket_can_execute)"
 
             # [STAGE: (E)]
@@ -329,7 +317,7 @@ class DeviceController:
             # Can optionally _stored_generated_xxx_r_ticket
 
             # [STAGE: (C)]
-            self._change_state(this_device.STATE_WAIT_FOR_UT)
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -337,19 +325,13 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _holder_recv_r_ticket(self, received_r_ticket_json: str) -> None:
+    def _holder_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received RTicket: {received_r_ticket_json}")
-
             # [STAGE: (V1)]
-            # received_r_ticket = self._classify_message_is_defined_type(received_r_ticket_json)
-            received_r_ticket = self._classify_message_is_defined_type(
-                received_r_ticket_json
-            )
 
             # [TO-DO: STAGE: (SR)]
-            self._store_received_xxx_r_ticket(received_r_ticket_json)
+            self._store_received_xxx_r_ticket(received_r_ticket)
 
             # Query Corresponding UTicket(s)
             #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
@@ -369,8 +351,8 @@ class DeviceController:
             ):
                 try:
                     # [STAGE: (V3)]
-                    received_r_ticket = self._verify_xxx_r_ticket(
-                        arbitrary_json=received_r_ticket_json,
+                    self._verify_xxx_r_ticket(
+                        r_ticket_in=received_r_ticket,
                         audit_start_ticket=stored_u_ticket,
                         audit_end_ticket=None,
                     )
@@ -378,7 +360,7 @@ class DeviceController:
                     # [STAGE: (E)]
                     self._execute_xxx_r_ticket(received_r_ticket)
                     # [STAGE: (C)]
-                    self._change_state(this_device.STATE_WAIT_FOR_UT)
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
                 except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
                     result_message = f"{error}"
 
@@ -428,7 +410,7 @@ class DeviceController:
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (C)]
-            self._change_state(this_device.STATE_WAIT_FOR_CRKE2)
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CRKE2)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -436,8 +418,8 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _holder_recv_cr_ke_1(self, received_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(received_r_ticket_json)
+    def _holder_recv_cr_ke_1(self, received_r_ticket: RTicket) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket)
 
     def _holder_send_cr_ke_2(self, result_message: str) -> None:
         try:
@@ -459,7 +441,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (C)]
-            self._change_state(this_device.STATE_WAIT_FOR_CRKE3)
+            self._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -467,8 +449,8 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _device_recv_cr_ke_2(self, received_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(received_r_ticket_json)
+    def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket)
 
     def _device_send_cr_ke_3(self, result_message: str) -> None:
         try:
@@ -488,7 +470,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (C)]
-            self._change_state(this_device.STATE_WAIT_FOR_CMD)
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -496,18 +478,18 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _holder_recv_cr_ke_3(self, received_r_ticket_json: str) -> None:
-        self._recv_cr_ke_r_tickets(received_r_ticket_json)
+    def _holder_recv_cr_ke_3(self, received_r_ticket: RTicket) -> None:
+        self._recv_cr_ke_r_tickets(received_r_ticket)
 
-    def _recv_cr_ke_r_tickets(self, received_r_ticket_json: str) -> None:
+    def _recv_cr_ke_r_tickets(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
+            # [STAGE: (V1)]
 
             try:
                 # [STAGE: (V3)]
-                received_r_ticket = self._verify_xxx_r_ticket(
-                    arbitrary_json=received_r_ticket_json,
+                self._verify_xxx_r_ticket(
+                    r_ticket_in=received_r_ticket,
                     audit_start_ticket=None,
                     audit_end_ticket=None,
                 )
@@ -522,7 +504,7 @@ class DeviceController:
                     self._device_send_cr_ke_3(result_message)
                 elif received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
                     # [STAGE: (C)]
-                    self._change_state(this_device.STATE_WAIT_FOR_UT)
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
                 else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                     simple_log("error", "weird ticket type")
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
@@ -581,9 +563,9 @@ class DeviceController:
 
                 # [STAGE: (C)]
                 if tx_end == False:
-                    self._change_state(this_device.STATE_WAIT_FOR_DATA)
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_DATA)
                 else:
-                    self._change_state(this_device.STATE_WAIT_FOR_RT)
+                    self._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                 # [STAGE: (S)]
                 self._send_xxx_message(generated_u_ticket_json)
 
@@ -595,13 +577,13 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _device_recv_cmd(self, received_u_token_json: str) -> None:
+    def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received UToken: {received_u_token_json}")
+            # [STAGE: (V1)]
 
             # [STAGE: (V2)]
-            received_u_token = self._verify_xxx_u_ticket(received_u_token_json)
+            self._verify_xxx_u_ticket(received_u_token)
             result_message = f"Success (verify_u_ticket_can_execute)"
 
             # [STAGE: (E)]
@@ -646,7 +628,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
 
             # [STAGE: (C)]
-            self._change_state(this_device.STATE_WAIT_FOR_CMD)
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             # [STAGE: (S)]
             self._send_xxx_message(generated_r_ticket_json)
 
@@ -654,18 +636,14 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _holder_recv_data(self, received_r_token_json: str) -> None:
+    def _holder_recv_data(self, received_r_token: RTicket) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received RToken: {received_r_token_json}")
-
             # [STAGE: (V1)]
-            device_id = self._classify_message_is_defined_type(
-                received_r_token_json
-            ).device_id
 
             # Query Corresponding UTicket
             # [STAGE: (V0)]
+            device_id = received_r_token.device_id
             stored_u_ticket_json = self.device_table[device_id].device_u_ticket
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (V1)]
@@ -675,16 +653,16 @@ class DeviceController:
 
             try:
                 # [STAGE: (V3)]
-                received_r_ticket = self._verify_xxx_r_ticket(
-                    arbitrary_json=received_r_token_json,
+                self._verify_xxx_r_ticket(
+                    r_ticket_in=received_r_token,
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
                 result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                 # [STAGE: (E)]
-                self._execute_xxx_r_ticket(received_r_ticket)
+                self._execute_xxx_r_ticket(received_r_token)
                 # [STAGE: (C)]
-                self._change_state(this_device.STATE_WAIT_FOR_CMD)
+                self._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
                 result_message = f"{error}"
 
@@ -726,21 +704,29 @@ class DeviceController:
 
     def _recv_xxx_message(self) -> str:
         while True:
-            # This will block until message is received
-            received_message_json = self.comm_channel.receiver_queue.get()
+            try:
+                # [STAGE: (R)]
+                # This will block until message is received
+                received_message_json = self.comm_channel.receiver_queue.get()
+                simple_log(
+                    "info",
+                    f"+ {self.this_device.device_name} is receiving message from {self.comm_channel.end.this_device.device_name}...",
+                )
+                simple_log("demo", f"Received Message: {received_message_json}")
 
-            simple_log(
-                "info",
-                f"+ {self.this_device.device_name} is receiving message from {self.comm_channel.end.this_device.device_name}...",
-            )
-            if self.this_device.device_type == this_device.IOT_DEVICE:
-                if self.state == this_device.STATE_WAIT_FOR_UT:
-                    self._device_recv_u_ticket(received_message_json)
+                # [STAGE: (V1)]
+                received_message = self._classify_message_is_defined_type(
+                    received_message_json
+                )
+
+                # IOT_DEVICE
+                if self.state == this_device.STATE_DEVICE_WAIT_FOR_UT:
+                    self._device_recv_u_ticket(received_message)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
                     self.complete_comm()
-                elif self.state == this_device.STATE_WAIT_FOR_CRKE2:
-                    self._device_recv_cr_ke_2(received_message_json)
+                elif self.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
+                    self._device_recv_cr_ke_2(received_message)
                     # End Comm
                     # simple_log(
                     #     "debug",
@@ -752,8 +738,8 @@ class DeviceController:
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
                     self.complete_comm()
-                elif self.state == this_device.STATE_WAIT_FOR_CMD:
-                    self._device_recv_cmd(received_message_json)
+                elif self.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
+                    self._device_recv_cmd(received_message)
                     # End Comm
                     # simple_log(
                     #     "debug",
@@ -765,21 +751,22 @@ class DeviceController:
                     )
                     simple_log("debug", f"+ Finish PS~~ (device)")
                     self.complete_comm()
-            elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
-                if self.state == this_device.STATE_WAIT_FOR_UT:
-                    self._holder_recv_u_ticket(received_message_json)
+
+                # USER_AGENT_OR_CLOUD_SERVER
+                elif self.state == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT:
+                    self._holder_recv_u_ticket(received_message)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-UT~~ (holder)")
                     self.complete_comm()
-                elif self.state == this_device.STATE_WAIT_FOR_RT:
-                    self._holder_recv_r_ticket(received_message_json)
+                elif self.state == this_device.STATE_AGENT_WAIT_FOR_RT:
+                    self._holder_recv_r_ticket(received_message)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
                     self.complete_comm()
-                elif self.state == this_device.STATE_WAIT_FOR_CRKE1:
-                    self._holder_recv_cr_ke_1(received_message_json)
-                elif self.state == this_device.STATE_WAIT_FOR_CRKE3:
-                    self._holder_recv_cr_ke_3(received_message_json)
+                elif self.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
+                    self._holder_recv_cr_ke_1(received_message)
+                elif self.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
+                    self._holder_recv_cr_ke_3(received_message)
                     # End Comm
                     # simple_log(
                     #     "debug",
@@ -795,8 +782,8 @@ class DeviceController:
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.complete_comm()
-                elif self.state == this_device.STATE_WAIT_FOR_DATA:
-                    self._holder_recv_data(received_message_json)
+                elif self.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
+                    self._holder_recv_data(received_message)
                     # End Comm
                     # simple_log(
                     #     "debug",
@@ -808,8 +795,16 @@ class DeviceController:
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.complete_comm()
-            else:  # pragma: no cover -> Weird Device Type
-                simple_log("error", "weird device type")
+                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                    simple_log("error", "weird ticket type")
+
+            except RuntimeError:  # pragma: no cover -> FAILURE: (V1)
+                failure_msg = f"FAILURE: (V1): classify_message_is_defined_type"
+                simple_log("error", failure_msg)
+
+            except:  # pragma: no cover -> Unpredicted Error
+                failure_msg = f"FAILURE: UNPREDICTED ERROR"
+                simple_log("error", failure_msg)
 
     ######################################################
     # [STAGE: (V)] Verify Message & Execute
@@ -834,6 +829,7 @@ class DeviceController:
             u_ticket_verifier = UTicketVerifier(this_device=None)
 
             u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
+            u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
@@ -852,9 +848,10 @@ class DeviceController:
                 )
 
                 r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+                r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+                r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
 
                 return r_ticket_in
@@ -870,17 +867,17 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _verify_xxx_u_ticket(self, arbitrary_json: str) -> UTicket:
+    def _verify_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         simple_log("info", f"+ {self.this_device.device_name} is verifying u_ticket...")
 
         try:
             u_ticket_verifier = UTicketVerifier(this_device=self.this_device)
 
-            u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
-            u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
-            u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
-            u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
-            u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
+            # u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
+            # u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
+            # u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
+            # u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
+            # u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_device_id(u_ticket_in)
 
             u_ticket_in = u_ticket_verifier.verify_ticket_order(u_ticket_in)
@@ -888,8 +885,6 @@ class DeviceController:
             u_ticket_in = u_ticket_verifier.verify_task_scope(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_ps(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
-
-            return u_ticket_in
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (V2)
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
@@ -898,10 +893,10 @@ class DeviceController:
 
     def _verify_xxx_r_ticket(
         self,
-        arbitrary_json: str,
+        r_ticket_in: RTicket,
         audit_start_ticket: None | UTicket,
         audit_end_ticket: None | UTicket,
-    ) -> RTicket:
+    ) -> None:
         simple_log("info", f"+ {self.this_device.device_name} is verifying r_ticket...")
 
         try:
@@ -913,11 +908,11 @@ class DeviceController:
                 current_session=self.current_session,
             )
 
-            r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
-            r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
+            # r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+            # r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
+            # r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
+            # r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+            # r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)
 
             r_ticket_in = r_ticket_verifier.verify_ticket_order(r_ticket_in)
@@ -927,8 +922,6 @@ class DeviceController:
             r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
-
-            return r_ticket_in
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
@@ -962,9 +955,9 @@ class DeviceController:
         ######################################################
         # [STAGE: (C)]
         if self.this_device.device_type == this_device.IOT_DEVICE:
-            self._change_state(this_device.STATE_WAIT_FOR_UT)
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
         elif self.this_device.device_type == this_device.USER_AGENT_OR_CLOUD_SERVER:
-            self._change_state(this_device.STATE_WAIT_FOR_UT)
+            self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
 
         ######################################################
         # Storage
@@ -1494,12 +1487,9 @@ class DeviceController:
     ######################################################
     # [STAGE: (SR)] Store Received Message
     ######################################################
-    def _store_received_xxx_u_ticket(self, received_u_ticket_json: str) -> None:
+    def _store_received_xxx_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
-            # [STAGE: (V1)]
-            received_u_ticket = self._classify_message_is_defined_type(
-                received_u_ticket_json
-            )
+            received_u_ticket_json = u_ticket_to_jsonstr(received_u_ticket)
 
             # [STAGE: (SR)]
             # We store this UTicket in device_table["device_id"]
@@ -1533,12 +1523,10 @@ class DeviceController:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    def _store_received_xxx_r_ticket(self, received_r_ticket_json: str) -> None:
+    def _store_received_xxx_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (V1)]
-            received_r_ticket = self._classify_message_is_defined_type(
-                received_r_ticket_json
-            )
+            received_r_ticket_json = r_ticket_to_jsonstr(received_r_ticket)
 
             # We store this RTicket (but not verified) in device_table["device_id"]
             if received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:

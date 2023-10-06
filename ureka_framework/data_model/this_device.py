@@ -15,22 +15,22 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 ######################################################
 # Device Type (can be refactored by Inheritance)
 ######################################################
-USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
 IOT_DEVICE: str = "IOT_DEVICE"
+USER_AGENT_OR_CLOUD_SERVER: str = "USER-AGENT-OR-CLOUD-SERVER"
 
 ######################################################
 # Device State
 ######################################################
-# USER_AGENT_OR_CLOUD_SERVER
-STATE_WAIT_FOR_UT: str = "STATE_WAIT_FOR_UT"
-STATE_WAIT_FOR_RT: str = "STATE_WAIT_FOR_RT"
-STATE_WAIT_FOR_CRKE1: str = "STATE_WAIT_FOR_CRKE1"
-STATE_WAIT_FOR_CRKE3: str = "STATE_WAIT_FOR_CRKE3"
-STATE_WAIT_FOR_DATA: str = "STATE_WAIT_FOR_DATA"
 # IOT_DEVICE
-# STATE_WAIT_FOR_UT: str = "STATE_WAIT_FOR_UT"
-STATE_WAIT_FOR_CRKE2: str = "STATE_WAIT_FOR_CRKE2"
-STATE_WAIT_FOR_CMD: str = "STATE_WAIT_FOR_CMD"
+STATE_DEVICE_WAIT_FOR_UT: str = "STATE_DEVICE_WAIT_FOR_UT"
+STATE_DEVICE_WAIT_FOR_CRKE2: str = "STATE_DEVICE_WAIT_FOR_CRKE2"
+STATE_DEVICE_WAIT_FOR_CMD: str = "STATE_DEVICE_WAIT_FOR_CMD"
+# USER_AGENT_OR_CLOUD_SERVER
+STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT: str = "STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT"
+STATE_AGENT_WAIT_FOR_RT: str = "STATE_AGENT_WAIT_FOR_RT"
+STATE_AGENT_WAIT_FOR_CRKE1: str = "STATE_AGENT_WAIT_FOR_CRKE1"
+STATE_AGENT_WAIT_FOR_CRKE3: str = "STATE_AGENT_WAIT_FOR_CRKE3"
+STATE_AGENT_WAIT_FOR_DATA: str = "STATE_AGENT_WAIT_FOR_DATA"
 
 
 ######################################################
