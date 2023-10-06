@@ -113,6 +113,7 @@ class DeviceController:
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
+    #         execution only change state after success, but need pay attention to (SR)
     ######################################################
     def issuer_issue_u_ticket_to_herself(
         self, device_id: str, arbitrary_dict: dict
@@ -176,15 +177,16 @@ class DeviceController:
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
             # But the actual ticket order in device is still unknown -> TODO: Attack
 
-            # [TO-DO: STAGE: (SR)]
+            # [STAGE: (SR)]
             self._store_received_xxx_u_ticket(received_u_ticket)
 
             # [STAGE: (O)]
-            self._execute_update_ticket_order("receive", received_u_ticket)
+            self._execute_update_ticket_order(
+                "holder-receive-uticket", received_u_ticket
+            )
 
             # [STAGE: (G)(C)(S)]
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
@@ -251,9 +253,9 @@ class DeviceController:
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
-            # [STAGE: (R)]
+            # [STAGE: (R)(VR)]
 
-            # [TO-DO: STAGE: (SR)]
+            # [STAGE: (SR)]
             # No need to optionally _store_received_xxx_u_ticket
 
             # [STAGE: (VUT)]
@@ -331,10 +333,9 @@ class DeviceController:
 
     def _holder_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
-            # [TO-DO: STAGE: (SR)]
+            # [STAGE: (SR)]
             self._store_received_xxx_r_ticket(received_r_ticket)
 
             # Query Corresponding UTicket(s)
@@ -424,8 +425,7 @@ class DeviceController:
 
     def _holder_recv_cr_ke_1(self, received_r_ticket: RTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
             try:
                 # [STAGE: (VRT)]
@@ -478,8 +478,7 @@ class DeviceController:
 
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
             try:
                 # [STAGE: (VRT)]
@@ -530,8 +529,7 @@ class DeviceController:
 
     def _holder_recv_cr_ke_3(self, received_r_ticket: RTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
             try:
                 # [STAGE: (VRT)]
@@ -622,8 +620,7 @@ class DeviceController:
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
             # [STAGE: (VUT)]
             self.verify_u_ticket_can_execute(received_u_token)
@@ -681,8 +678,7 @@ class DeviceController:
 
     def _holder_recv_data(self, received_r_token: RTicket) -> None:
         try:
-            # [STAGE: (R)]
-            # [STAGE: (VR)]
+            # [STAGE: (R)(VR)]
 
             # Query Corresponding UTicket
             # [STAGE: (VL)]
@@ -990,7 +986,7 @@ class DeviceController:
         # Initial Order
         ######################################################
         # [STAGE: (O)]
-        self.this_device.ticket_order = 0
+        self._execute_update_ticket_order("has-type")
         self.this_device.is_initialized = False
 
         ######################################################
@@ -1067,7 +1063,7 @@ class DeviceController:
         self.this_device.owner_pub_key = self.this_person.person_pub_key
 
         # [STAGE: (O)]
-        self.this_device.ticket_order = self.this_device.ticket_order + 1
+        self._execute_update_ticket_order("agent-initialization")
         simple_log(
             "debug",
             f"{self.this_device.device_name}: ticket_order={self.this_device.ticket_order}",
@@ -1087,18 +1083,17 @@ class DeviceController:
                 # [STAGE: (E)]
                 self._execute_one_time_initialize_iot_device(u_ticket_in)
                 # [STAGE: (O)]
-                self._execute_update_ticket_order("verify", u_ticket_in)
+                self._execute_update_ticket_order("device-verify-uticket", u_ticket_in)
             except RuntimeError as error:  # pragma: no cover -> werid operation
                 simple_log("error", f"{error}")
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             # [STAGE: (E)]
             self._execute_ownership_transfer(u_ticket_in)
             # [STAGE: (O)]
-            self._execute_update_ticket_order("verify", u_ticket_in)
+            self._execute_update_ticket_order("device-verify-uticket", u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             # [STAGE: (E)]
             self._execute_cr_ke(u_ticket_in, "device")
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
@@ -1123,10 +1118,11 @@ class DeviceController:
                 if self.current_session.plaintext_cmd == "TX_END":
                     simple_log("info", f"-> SUCCESS: VERIFY_TX_END")
                     # [STAGE: (O)]
-                    self._execute_update_ticket_order("verify", u_ticket_in)
+                    self._execute_update_ticket_order(
+                        "device-verify-uticket", u_ticket_in
+                    )
                 else:  # pragma: no cover -> FAILURE: (VTK)
                     simple_log("error", f"-> FAILURE: VERIFY_TX_END")
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -1487,19 +1483,16 @@ class DeviceController:
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # [STAGE: (O)]
-            self._execute_update_ticket_order("verify", r_ticket_in)
+            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
             # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "holder")
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "device")
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
             # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "holder")
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # [STAGE: (E)]
             # Session Key Obtaining ("holder")
@@ -1514,7 +1507,6 @@ class DeviceController:
                 gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
             )
-            # [STAGE: (O)] (Update Ticket Order when TXEnd)
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -1534,7 +1526,6 @@ class DeviceController:
         try:
             received_u_ticket_json = u_ticket_to_jsonstr(received_u_ticket)
 
-            # [STAGE: (SR)]
             # We store this UTicket in device_table["device_id"]
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
@@ -1615,18 +1606,25 @@ class DeviceController:
     ######################################################
     # [STAGE: (O)] Update Ticket Order
     #   Update Ticket Order after:
-    #       "holder": Receive UTicket (expected ticket order)
-    #       "device": Verify UTicket & End TX (actual ticket order)
-    #       "holder": Verify RTicket (actual ticket order)
+    #       "has-type": Intial Ticket Order = 0
+    #       "agent-initialization": Ticket Order = 1 after device/agent is initialized
+    #       "holder-receive-uticket": Receive UTicket (expected ticket order)
+    #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
+    #       "holder-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
     def _execute_update_ticket_order(
-        self, updating_case: str, ticket_in: UTicket | RTicket
+        self, updating_case: str, ticket_in: UTicket | RTicket = None
     ) -> None:
         simple_log(
             "info", f"+ {self.this_device.device_name} is updating ticket order..."
         )
 
-        if updating_case == "receive":
+        if updating_case == "has-type":
+            self.this_device.ticket_order = 0
+        elif updating_case == "agent-initialization":
+            # TODO: New way for _execute_one_time_intialize_agent_or_server()
+            self.this_device.ticket_order = self.this_device.ticket_order + 1
+        elif updating_case == "holder-receive-uticket":
             # Recieve UTicket
             if type(ticket_in) == UTicket and (
                 ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
@@ -1641,7 +1639,7 @@ class DeviceController:
                 )
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "Other ticket types should not update ticket_order")
-        elif updating_case == "verify":
+        elif updating_case == "device-verify-uticket":
             # Execute UTicket
             if type(ticket_in) == UTicket and (
                 ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -1653,8 +1651,11 @@ class DeviceController:
                     "debug",
                     f"{self.this_device.device_name}: ticket_order={self.this_device.ticket_order}",
                 )
+            else:  # pragma: no cover -> Never reach here
+                simple_log("error", "Other ticket types should not update ticket_order")
+        elif updating_case == "holder-verify-rticket":
             # Execute UTicket
-            elif type(ticket_in) == RTicket and (
+            if type(ticket_in) == RTicket and (
                 ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
                 or ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN

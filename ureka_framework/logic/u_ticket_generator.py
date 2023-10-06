@@ -37,7 +37,6 @@ class UTicketGenerator:
         ######################################################
         # Unsigned UTicket
         ######################################################
-        # Generate Task Scope (device_id, holder_id, u_ticket_type, task_scope, etc.)
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
         except (

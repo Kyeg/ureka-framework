@@ -40,7 +40,6 @@ class RTicketGenerator:
         ######################################################
         # Unsigned RTicket
         ######################################################
-        # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, etc.)
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
         except ValidationError as error:  # pragma: no cover -> Weird R-Ticket
