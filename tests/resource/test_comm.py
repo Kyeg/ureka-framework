@@ -1,4 +1,3 @@
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     create_comm_connection,
@@ -9,9 +8,8 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.logic.device_controller import DeviceController
-from ureka_framework.data_model import u_ticket
-import ureka_framework.data_model.this_device as this_device
-
+from ureka_framework.model.message import u_ticket
+import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
@@ -58,7 +56,7 @@ class TestStorage:
         self.cloud_server_dm._send_xxx_message(test_u_ticket)
 
         self.iot_device._recv_xxx_message()
-        result = self.iot_device._verify_and_execute_xxx_u_ticket(test_u_ticket)
+        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: The messages sent and received are the same
         assert (

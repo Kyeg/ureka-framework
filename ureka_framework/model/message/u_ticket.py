@@ -8,6 +8,11 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 PROTOCOL_VERSION: str = "UREKA-1.0"
 
 ######################################################
+# Message Type
+######################################################
+MESSAGE_TYPE: str = "UTICKET"
+
+######################################################
 # UTicket Type
 ######################################################
 # UTicket
@@ -15,16 +20,19 @@ TYPE_INITIALIZATION_UTICKET: str = "INITIALIZATION"
 TYPE_OWNERSHIP_UTICKET: str = "OWNERSHIP"
 TYPE_ACCESS_UTICKET: str = "ACCESS"
 # TYPE_QUERY_UTICKET: str = "QUERY"
+# UToken
+TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
+# RToken (TX_END)
+TYPE_TX_END_UTOKEN: str = "TX_END"
 # UTicket
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
     TYPE_OWNERSHIP_UTICKET,
     TYPE_ACCESS_UTICKET,
+    TYPE_CMD_UTOKEN,
+    TYPE_TX_END_UTOKEN,
 }
-# UToken
-TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
-# RToken (TX_END)
-TYPE_TX_END_UTOKEN: str = "TX_END"
+
 
 ######################################################
 # Task Scope
@@ -38,11 +46,13 @@ TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
 class UTicket(BaseModel):
     # UT
     protocol_verision: None | str = PROTOCOL_VERSION
-    u_ticket_id: None | str = None
+    message_type: None | str = MESSAGE_TYPE
 
+    u_ticket_id: None | str = None
     u_ticket_type: None | str = None
 
     device_id: None | str = None
+
     ticket_order: None | int = None
     holder_id: None | str = None
     task_scope: None | str = None
@@ -85,6 +95,6 @@ def jsonstr_to_u_ticket(json_str: str) -> UTicket:
     try:
         return UTicket.model_validate_json(json_str)
     except ValidationError as error:
-        failure_msg = "NOT VALID JSON or VALID SCHEMA"
-        simple_log("error", f"{failure_msg}: {error}")
+        failure_msg = "NOT VALID JSON or VALID UTICKET SCHEMA"
+        # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

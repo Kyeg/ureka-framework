@@ -12,7 +12,7 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
-import ureka_framework.data_model.u_ticket as u_ticket
+import ureka_framework.model.message.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
 )
