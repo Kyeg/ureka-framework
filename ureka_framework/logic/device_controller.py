@@ -129,8 +129,8 @@ class DeviceController:
                 # [STAGE: (SG)]
                 self._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
+            failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -164,6 +164,10 @@ class DeviceController:
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
+            failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -582,6 +586,7 @@ class DeviceController:
                     u_ticket_type = f"{u_ticket.TYPE_CMD_UTOKEN}"
                 else:
                     u_ticket_type = f"{u_ticket.TYPE_TX_END_UTOKEN}"
+
                 generated_request: dict = {
                     "device_id": f"{self.current_session.current_device_id}",
                     "u_ticket_type": f"{u_ticket_type}",
@@ -605,6 +610,10 @@ class DeviceController:
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except RuntimeError:  # pragma: no cover -> Weird UTK-Request (ValidationError)
+            failure_msg = f"FAILURE: (VUTKREQ)"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
