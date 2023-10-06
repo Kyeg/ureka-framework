@@ -1,4 +1,3 @@
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     create_comm_connection,
@@ -11,7 +10,6 @@ from tests.conftest import (
 from ureka_framework.logic.device_controller import DeviceController
 from ureka_framework.data_model import u_ticket
 import ureka_framework.data_model.this_device as this_device
-
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 

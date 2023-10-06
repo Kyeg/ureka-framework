@@ -1,4 +1,3 @@
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     current_setup_log,

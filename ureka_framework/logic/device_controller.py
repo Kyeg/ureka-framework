@@ -3,9 +3,6 @@ from queue import Queue
 import threading
 
 from typing import Tuple
-from returns.pipeline import flow
-from returns.pointfree import bind
-from returns.result import Result, Success, Failure
 
 from ureka_framework.logic.r_ticket_generator import RTicketGenerator
 from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
@@ -266,34 +263,32 @@ class DeviceController:
             # No need to optionally _store_received_xxx_u_ticket
 
             # [STAGE: (V2)]
-            result = self._verify_xxx_u_ticket(received_u_ticket_json)
-            if type(result) == Success:
-                result_message = f"Success"
-                # [STAGE: (E)]
-                received_u_ticket: UTicket = result.unwrap()
-                self._execute_xxx_u_ticket(received_u_ticket)
-                # After TX End
-                if (
-                    received_u_ticket.u_ticket_type
-                    == u_ticket.TYPE_INITIALIZATION_UTICKET
-                    or received_u_ticket.u_ticket_type
-                    == u_ticket.TYPE_OWNERSHIP_UTICKET
-                    or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
-                ):
-                    # [STAGE: (G)(C)(S)]
-                    self._device_send_r_ticket(
-                        received_u_ticket.u_ticket_type,
-                        received_u_ticket.u_ticket_id,
-                        result_message,
-                    )
-                # CR-KE-PS
-                elif received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-                    # [STAGE: (G)(C)(S)]
-                    self._device_send_cr_ke_1(result_message)
-                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                    simple_log("error", "weird ticket type")
-            elif type(result) == Failure:  # pragma: no cover -> FAILURE: (V2)
-                result_message = f"{result.failure().args[0]}"
+            received_u_ticket = self._verify_xxx_u_ticket(received_u_ticket_json)
+            result_message = f"Success (verify_u_ticket_can_execute)"
+
+            # [STAGE: (E)]
+            self._execute_xxx_u_ticket(received_u_ticket)
+            # After TX End
+            if (
+                received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            ):
+                # [STAGE: (G)(C)(S)]
+                self._device_send_r_ticket(
+                    received_u_ticket.u_ticket_type,
+                    received_u_ticket.u_ticket_id,
+                    result_message,
+                )
+            # CR-KE-PS
+            elif received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+                # [STAGE: (G)(C)(S)]
+                self._device_send_cr_ke_1(result_message)
+            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                simple_log("error", "weird ticket type")
+
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V2)
+            result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -343,7 +338,7 @@ class DeviceController:
     def _holder_recv_r_ticket(self, received_r_ticket_json: str) -> None:
         try:
             # [STAGE: (R)]
-            simple_log("demo", f"Received UTicket: {received_r_ticket_json}")
+            simple_log("demo", f"Received RTicket: {received_r_ticket_json}")
 
             # [TO-DO: STAGE: (V1)]
             received_r_ticket = jsonstr_to_r_ticket(received_r_ticket_json)
@@ -365,21 +360,23 @@ class DeviceController:
                 received_r_ticket.audit_end == None
                 or received_r_ticket.audit_end == "TX_END"
             ):
-                # [STAGE: (V3)]
-                result = self._verify_xxx_r_ticket(
-                    arbitrary_json=received_r_ticket_json,
-                    audit_start_ticket=stored_u_ticket,
-                    audit_end_ticket=None,
-                )
-                if type(result) == Success:
-                    result_message = f"Success (meaningful R-Ticket)"
+                try:
+                    # [STAGE: (V3)]
+                    received_r_ticket = self._verify_xxx_r_ticket(
+                        arbitrary_json=received_r_ticket_json,
+                        audit_start_ticket=stored_u_ticket,
+                        audit_end_ticket=None,
+                    )
+                    result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                     # [STAGE: (E)]
                     self._execute_xxx_r_ticket(received_r_ticket)
                     # [STAGE: (C)]
                     self._change_state(this_device.STATE_WAIT_FOR_UT)
-                elif type(result) == Failure:  # pragma: no cover -> FAILURE: (V3)
-                    result_message = f"{result.failure().args[0]}"
+                except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
+                    result_message = f"{error}"
+
                 simple_log("debug", f"result_message = {result_message}")
+
             else:  # pragma: no cover -> TODO: Auditted by Revocation UTicket
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
@@ -500,16 +497,15 @@ class DeviceController:
             # [STAGE: (R)]
             simple_log("demo", f"Received CRKE-RTicket: {received_r_ticket_json}")
 
-            # [STAGE: (V3)]
-            result = self._verify_xxx_r_ticket(
-                arbitrary_json=received_r_ticket_json,
-                audit_start_ticket=None,
-                audit_end_ticket=None,
-            )
-            if type(result) == Success:
-                result_message = f"Success (meaningful R-Ticket)"
+            try:
+                # [STAGE: (V3)]
+                received_r_ticket = self._verify_xxx_r_ticket(
+                    arbitrary_json=received_r_ticket_json,
+                    audit_start_ticket=None,
+                    audit_end_ticket=None,
+                )
+                result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                 # [STAGE: (E)]
-                received_r_ticket: RTicket = result.unwrap()
                 self._execute_xxx_r_ticket(received_r_ticket)
                 if received_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
                     # [STAGE: (G)(C)(S)]
@@ -522,8 +518,10 @@ class DeviceController:
                     self._change_state(this_device.STATE_WAIT_FOR_UT)
                 else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                     simple_log("error", "weird ticket type")
-            elif type(result) == Failure:  # pragma: no cover -> FAILURE: (V3)
-                result_message = f"{result.failure().args[0]}"
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
+                result_message = f"{error}"
+
+            simple_log("debug", f"result_message = {result_message}")
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -596,27 +594,27 @@ class DeviceController:
             simple_log("demo", f"Received UToken: {received_u_token_json}")
 
             # [STAGE: (V2)]
-            result = self._verify_xxx_u_ticket(received_u_token_json)
-            if type(result) == Success:
-                result_message = f"Success"
-                # [STAGE: (E)]
-                received_u_token: UTicket = result.unwrap()
-                self._execute_xxx_u_ticket(received_u_token)
-                # PS
-                if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
-                    # [STAGE: (G)(C)(S)]
-                    self._device_send_data(result_message)
-                elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                    # [STAGE: (G)(C)(S)]
-                    self._device_send_r_ticket(
-                        received_u_token.u_ticket_type,
-                        received_u_token.u_ticket_id,
-                        result_message,
-                    )
-                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                    simple_log("error", "weird ticket type")
-            elif type(result) == Failure:  # pragma: no cover -> Weird U-Token
-                result_message = f"{result.failure().args[0]}"
+            received_u_token = self._verify_xxx_u_ticket(received_u_token_json)
+            result_message = f"Success (verify_u_ticket_can_execute)"
+
+            # [STAGE: (E)]
+            self._execute_xxx_u_ticket(received_u_token)
+            # PS
+            if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
+                # [STAGE: (G)(C)(S)]
+                self._device_send_data(result_message)
+            elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+                # [STAGE: (G)(C)(S)]
+                self._device_send_r_ticket(
+                    received_u_token.u_ticket_type,
+                    received_u_token.u_ticket_id,
+                    result_message,
+                )
+            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                simple_log("error", "weird ticket type")
+
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V2)
+            result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -664,22 +662,21 @@ class DeviceController:
             # [STAGE: (V1)]
             stored_u_ticket: UTicket = jsonstr_to_u_ticket(stored_u_ticket_json)
 
-            # [STAGE: (V3)]
-            result = self._verify_xxx_r_ticket(
-                arbitrary_json=received_r_token_json,
-                audit_start_ticket=stored_u_ticket,
-                audit_end_ticket=None,
-            )
-
-            if type(result) == Success:
-                result_message = f"Success (meaningful R-Token)"
+            try:
+                # [STAGE: (V3)]
+                received_r_ticket = self._verify_xxx_r_ticket(
+                    arbitrary_json=received_r_token_json,
+                    audit_start_ticket=stored_u_ticket,
+                    audit_end_ticket=None,
+                )
+                result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
                 # [STAGE: (E)]
-                received_r_ticket: UTicket = result.unwrap()
                 self._execute_xxx_r_ticket(received_r_ticket)
                 # [STAGE: (C)]
                 self._change_state(this_device.STATE_WAIT_FOR_CMD)
-            elif type(result) == Failure:  # pragma: no cover -> Weird R-Token
-                result_message = f"{result.failure().args[0]}"
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
+                result_message = f"{error}"
+
             simple_log("debug", f"result_message = {result_message}")
 
         except KeyError:  # pragma: no cover -> FAILURE: (V0)
@@ -814,105 +811,115 @@ class DeviceController:
     ######################################################
     def _classify_message_is_defined_type(
         self, arbitrary_json: str
-    ) -> Result[UTicket | RTicket, RuntimeError]:
+    ) -> UTicket | RTicket:
         simple_log(
             "info", f"+ {self.this_device.device_name} is classifying message..."
         )
 
         # Notice that Pydantic can classify message type by json schema,
         #   while other implementation may need classify message type by message_type field
-        u_ticket_verifier = UTicketVerifier(this_device=None)
-        result_is_u_ticket = u_ticket_verifier.verify_json_schema(arbitrary_json)
-        if type(result_is_u_ticket) == Success:
-            # Valid UTICKET SCHEMA, but not sure if the following content is valid
-            result_is_u_ticket_with_required_field = flow(
-                result_is_u_ticket.unwrap(),
-                u_ticket_verifier.verify_protocol_version,
-                bind(u_ticket_verifier.verify_message_type),
-                bind(u_ticket_verifier.verify_u_ticket_id),
-                bind(u_ticket_verifier.verify_u_ticket_type),
-                bind(u_ticket_verifier.has_device_id),
+        try:
+            u_ticket_verifier = UTicketVerifier(this_device=None)
+
+            u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
+            u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.has_device_id(u_ticket_in)
+
+            return u_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
+            raise RuntimeError(error)
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
+
+        try:
+            r_ticket_verifier = RTicketVerifier(
+                this_device=None,
+                device_table=None,
+                audit_start_ticket=None,
+                audit_end_ticket=None,
+                current_session=None,
             )
-            return result_is_u_ticket_with_required_field
 
-        r_ticket_verifier = RTicketVerifier(
-            this_device=None,
-            device_table=None,
-            audit_start_ticket=None,
-            audit_end_ticket=None,
-            current_session=None,
-        )
-        result_is_r_ticket = r_ticket_verifier.verify_json_schema(arbitrary_json)
-        if type(result_is_r_ticket) == Success:
-            # Valid RTICKET SCHEMA, but not sure if the following content is valid
-            result_is_r_ticket_with_required_field = flow(
-                result_is_r_ticket.unwrap(),
-                r_ticket_verifier.verify_protocol_version,
-                bind(r_ticket_verifier.verify_message_type),
-                bind(r_ticket_verifier.verify_r_ticket_id),
-                bind(r_ticket_verifier.verify_r_ticket_type),
-                bind(r_ticket_verifier.has_device_id),
-            )
-            return result_is_r_ticket_with_required_field
+            r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+            r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
 
-        return result_is_r_ticket.failure().args[0]
+            return r_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V1)
+            raise RuntimeError(error)
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
 
-    def _verify_xxx_u_ticket(
-        self, arbitrary_json: str
-    ) -> Result[UTicket, RuntimeError]:
+    def _verify_xxx_u_ticket(self, arbitrary_json: str) -> UTicket:
         simple_log("info", f"+ {self.this_device.device_name} is verifying u_ticket...")
 
-        u_ticket_verifier = UTicketVerifier(this_device=self.this_device)
-        result = flow(
-            arbitrary_json,
-            u_ticket_verifier.verify_json_schema,
-            bind(u_ticket_verifier.verify_protocol_version),
-            bind(u_ticket_verifier.verify_message_type),
-            bind(u_ticket_verifier.verify_u_ticket_id),
-            bind(u_ticket_verifier.verify_u_ticket_type),
-            bind(u_ticket_verifier.verify_device_id),
-            bind(u_ticket_verifier.verify_ticket_order),
-            bind(u_ticket_verifier.verify_holder_id),
-            bind(u_ticket_verifier.verify_task_scope),
-            bind(u_ticket_verifier.verify_ps),
-            bind(u_ticket_verifier.verify_issuer_signature),
-            # bind(self._execute_xxx_u_ticket),
-        )
-        return result
+        try:
+            u_ticket_verifier = UTicketVerifier(this_device=self.this_device)
+
+            u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
+            u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_device_id(u_ticket_in)
+
+            u_ticket_in = u_ticket_verifier.verify_ticket_order(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_holder_id(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_task_scope(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_ps(u_ticket_in)
+            u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
+
+            return u_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V2)
+            raise RuntimeError(error)
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
 
     def _verify_xxx_r_ticket(
         self,
         arbitrary_json: str,
         audit_start_ticket: None | UTicket,
         audit_end_ticket: None | UTicket,
-    ) -> Result[RTicket, RuntimeError]:
+    ) -> RTicket:
         simple_log("info", f"+ {self.this_device.device_name} is verifying r_ticket...")
 
-        r_ticket_verifier = RTicketVerifier(
-            this_device=self.this_device,
-            device_table=self.device_table,
-            audit_start_ticket=audit_start_ticket,
-            audit_end_ticket=audit_end_ticket,
-            current_session=self.current_session,
-        )
-        result = flow(
-            arbitrary_json,
-            r_ticket_verifier.verify_json_schema,
-            bind(r_ticket_verifier.verify_protocol_version),
-            bind(r_ticket_verifier.verify_message_type),
-            bind(r_ticket_verifier.verify_r_ticket_id),
-            bind(r_ticket_verifier.verify_r_ticket_type),
-            bind(r_ticket_verifier.verify_device_id),
-            bind(r_ticket_verifier.verify_ticket_order),
-            bind(r_ticket_verifier.verify_audit_start),
-            bind(r_ticket_verifier.verify_audit_end),
-            bind(r_ticket_verifier.verify_result),
-            bind(r_ticket_verifier.verify_cr_ke),
-            bind(r_ticket_verifier.verify_ps),
-            bind(r_ticket_verifier.verify_device_signature),
-            # bind(self._execute_xxx_r_ticket),
-        )
-        return result
+        try:
+            r_ticket_verifier = RTicketVerifier(
+                this_device=self.this_device,
+                device_table=self.device_table,
+                audit_start_ticket=audit_start_ticket,
+                audit_end_ticket=audit_end_ticket,
+                current_session=self.current_session,
+            )
+
+            r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+            r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)
+
+            r_ticket_in = r_ticket_verifier.verify_ticket_order(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_audit_start(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_audit_end(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
+
+            return r_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (V3)
+            raise RuntimeError(error)
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
 
     ######################################################
     # [STAGE: (E)] Execute
@@ -952,9 +959,7 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person, self.current_session
         )
 
-        return Success(None)
-
-    def _execute_one_time_intialize_agent_or_server(self) -> Result[None, RuntimeError]:
+    def _execute_one_time_intialize_agent_or_server(self) -> None:
         simple_log("info", f"+ {self.this_device.device_name} is initializing...")
 
         ######################################################
@@ -965,22 +970,24 @@ class DeviceController:
         #         + DO: Request Ownership Ticket from DM
         ######################################################
 
-        if self.this_device.device_type != this_device.USER_AGENT_OR_CLOUD_SERVER:
+        if (
+            self.this_device.device_type != this_device.USER_AGENT_OR_CLOUD_SERVER
+        ):  # pragma: no cover -> weird operation
             failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
-
-        if self.this_device.ticket_order != 0:
-            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
-            simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(failure_msg)
 
         if (
-            self.this_device.is_initialized
-        ):  # pragma: no cover -> Never reach here: Because of verify_ticket_order()
+            self.this_device.ticket_order != 0
+        ):  # pragma: no cover -> FAILURE: (V1), because of verify_ticket_order()
             failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(failure_msg)
+
+        if self.this_device.is_initialized:  # pragma: no cover -> FAILURE: (V1)
+            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            simple_log("error", failure_msg)
+            raise RuntimeError(failure_msg)
 
         ######################################################
         # Initialize Device Id
@@ -1023,35 +1030,30 @@ class DeviceController:
             self.this_device, self.device_table, self.this_person, self.current_session
         )
 
-        return Success(None)
-
     # Execute UTicket (Update Keystore)
-    def _execute_xxx_u_ticket(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
-        failure_msg = f"-> FAILURE: WIRED UTICKET TYPE {u_ticket_in.u_ticket_type}"
-
+    def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            # Initialization
-            result = self._execute_one_time_initialize_iot_device(u_ticket_in)
-            # [STAGE: (O)]
-            if type(result) == Success:
+            try:
+                # [STAGE: (E)]
+                self._execute_one_time_initialize_iot_device(u_ticket_in)
+                # [STAGE: (O)]
                 self._execute_update_ticket_order("verify", u_ticket_in)
+            except RuntimeError as error:  # pragma: no cover -> werid operation
+                simple_log("error", f"{error}")
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
-            # Ownership Transfer
+            # [STAGE: (E)]
             self._execute_ownership_transfer(u_ticket_in)
             # [STAGE: (O)]
             self._execute_update_ticket_order("verify", u_ticket_in)
-            result = Success(u_ticket_in)
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            # CR-KE
+            # [STAGE: (E)]
             self._execute_cr_ke(u_ticket_in, "device")
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
-            result = Success(u_ticket_in)
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
+            # [STAGE: (E)]
             # Message Decryption (str + key byte)
             self._execute_cmd_decryption(
                 associated_plaintext=u_ticket_in.associated_plaintext,
@@ -1075,33 +1077,27 @@ class DeviceController:
                 else:  # pragma: no cover -> FAILURE: (V4)
                     simple_log("error", f"-> FAILURE: VERIFY_TX_END")
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
-            result = Success(u_ticket_in)
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
-            simple_log("error", failure_msg)
-            result = Failure(RuntimeError(failure_msg))
+        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+            simple_log("error", "weird ticket type")
 
-        return result
-
-    def _execute_one_time_initialize_iot_device(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
+    def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
         simple_log("info", f"+ {self.this_device.device_name} is intializing...")
 
         if (
             self.this_device.device_type != this_device.IOT_DEVICE
-        ):  # pragma: no cover -> Never reach here: Weird operation
+        ):  # pragma: no cover -> Never reach here: weird operation
             failure_msg = (
                 "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
             )
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(failure_msg)
 
         if (
             self.this_device.is_initialized
-        ):  # pragma: no cover -> Never reach here: Because of verify_ticket_order()
+        ):  # pragma: no cover -> Never reach here: FAILURE: (V1), because of verify_ticket_order()
             failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(failure_msg)
 
         ######################################################
         # Initialize Device Id
@@ -1128,8 +1124,6 @@ class DeviceController:
         self.simple_storage.store_storage(
             self.this_device, self.device_table, self.this_person, self.current_session
         )
-
-        return Success(u_ticket_in)
 
     def _execute_ownership_transfer(self, new_u_ticket: UTicket) -> None:
         simple_log(
@@ -1436,9 +1430,7 @@ class DeviceController:
         return plaintext
 
     # Execute RTicket (Update Session)
-    def _execute_xxx_r_ticket(
-        self, r_ticket_in: RTicket
-    ) -> Result[RTicket, RuntimeError]:
+    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
@@ -1447,15 +1439,19 @@ class DeviceController:
             # [STAGE: (O)]
             self._execute_update_ticket_order("verify", r_ticket_in)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "holder")
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "device")
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            # [STAGE: (E)]
             self._execute_cr_ke(r_ticket_in, "holder")
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            # [STAGE: (E)]
             # Session Key Obtaining ("holder")
             current_session_key_byte = base64str_backto_byte(
                 self.current_session.current_session_key_str
@@ -1471,9 +1467,6 @@ class DeviceController:
             # [STAGE: (O)] (Update Ticket Order when TXEnd)
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
-
-        result = Success(r_ticket_in)
-        return result
 
     # [STAGE: (V5)] TODO: Verify Task Scope before Execution
     # Execute Application & Data Processing
@@ -1649,9 +1642,8 @@ class DeviceController:
         u_ticket_generator = UTicketGenerator(
             self.this_device, self.this_person, self.device_table
         )
-        generated_u_ticket = flow(
-            arbitrary_dict,
-            u_ticket_generator.generate_arbitrary_u_ticket,
+        generated_u_ticket = u_ticket_generator.generate_arbitrary_u_ticket(
+            arbitrary_dict
         )
         generated_u_ticket_json = u_ticket_to_jsonstr(generated_u_ticket)
 
@@ -1665,9 +1657,8 @@ class DeviceController:
         r_ticket_generator = RTicketGenerator(
             self.this_device, self.this_person, self.device_table
         )
-        generated_r_ticket = flow(
-            arbitrary_dict,
-            r_ticket_generator.generate_arbitrary_r_ticket,
+        generated_r_ticket = r_ticket_generator.generate_arbitrary_r_ticket(
+            arbitrary_dict
         )
         generated_r_ticket_json = r_ticket_to_jsonstr(generated_r_ticket)
 

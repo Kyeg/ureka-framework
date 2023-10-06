@@ -1,6 +1,5 @@
 import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
-from returns.result import Result, Success, Failure
 from ureka_framework.data_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
@@ -23,21 +22,19 @@ class UTicketVerifier:
     ######################################################
     # Message Verification Flow
     ######################################################
-    def verify_json_schema(self, arbitrary_json: str) -> Result[UTicket, RuntimeError]:
+    def verify_json_schema(self, arbitrary_json: str) -> UTicket:
         success_msg = "-> SUCCESS: VERIFY_JSON_SCHEMA"
         failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
 
         try:
             u_ticket_in: UTicket = jsonstr_to_u_ticket(arbitrary_json)
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
-        except RuntimeError as error:
+            return u_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", f"{failure_msg}: {error}")
-            return Failure(RuntimeError(f"{failure_msg}: {error}"))
+            raise RuntimeError(f"{failure_msg}: {error}")
 
-    def verify_protocol_version(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
+    def verify_protocol_version(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = (
             f"-> SUCCESS: VERIFY_PROTOCOL_VERSION = {u_ticket_in.protocol_verision}"
         )
@@ -47,38 +44,34 @@ class UTicketVerifier:
 
         if u_ticket_in.protocol_verision == u_ticket.PROTOCOL_VERSION:
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_message_type(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
+    def verify_message_type(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
         failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
 
         if u_ticket_in.message_type != None:
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_u_ticket_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def verify_u_ticket_id(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
 
         if u_ticket_in.u_ticket_id != None:
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_u_ticket_type(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
+    def verify_u_ticket_type(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_TYPE = {u_ticket_in.u_ticket_type}"
 
@@ -88,35 +81,35 @@ class UTicketVerifier:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
     # Because holder do not really know whether this device_id is correct before get RT
-    def has_device_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def has_device_id(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: HAS_DEVICE_ID = {u_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: HAS_DEVICE_ID = {u_ticket_in.device_id}"
 
         if u_ticket_in.device_id != None:
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
     # However, device can verify whether this device_id is correct
-    def verify_device_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def verify_device_id(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"
         failure_msg = f"-> FAILURE: VERIFY_DEVICE_ID = {u_ticket_in.device_id}"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             if u_ticket_in.device_id == "no_id":
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
@@ -125,36 +118,34 @@ class UTicketVerifier:
         ):
             if u_ticket_in.device_id == self.this_device.device_pub_key_str:
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_ticket_order(
-        self, u_ticket_in: UTicket
-    ) -> Result[UTicket, RuntimeError]:
+    def verify_ticket_order(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_ORDER"
         failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             if u_ticket_in.ticket_order == 0 and self.this_device.ticket_order == 0:
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         else:
             if u_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
 
-    def verify_holder_id(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def verify_holder_id(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_HOLDER_ID"
         failure_msg = f"-> FAILURE: VERIFY_HOLDER_ID"
 
@@ -165,22 +156,22 @@ class UTicketVerifier:
         ):
             if u_ticket_in.u_ticket_id != None:
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # No HOLDER_ID
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_task_scope(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def verify_task_scope(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_TASK_SCOPE"
         failure_msg = f"-> FAILURE: VERIFY_TASK_SCOPE"
 
@@ -192,19 +183,19 @@ class UTicketVerifier:
         ):
             # No TASK_SCOPE
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if u_ticket_in.u_ticket_id != None:
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
-    def verify_ps(self, u_ticket_in: UTicket) -> Result[UTicket, RuntimeError]:
+    def verify_ps(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_PS"
         failure_msg = f"-> FAILURE: VERIFY_PS"
 
@@ -215,7 +206,7 @@ class UTicketVerifier:
         ):
             # No PS
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
@@ -227,18 +218,18 @@ class UTicketVerifier:
                 and u_ticket_in.gcm_authentication_tag != None
             ):
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
-                return Failure(RuntimeError(failure_msg))
+                raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
     def verify_issuer_signature(
         self,
         u_ticket_in: UTicket,
-    ) -> Result[UTicket, RuntimeError]:
+    ) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_ISSUER_SIGNATURE on {u_ticket_in.u_ticket_type} UTICKET"
         failure_msg = f"-> FAILURE: VERIFY_ISSUER_SIGNATURE on {u_ticket_in.u_ticket_type} UTICKET"
 
@@ -250,28 +241,28 @@ class UTicketVerifier:
         ):
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)
-            return Success(u_ticket_in)
+            return u_ticket_in
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
-                return Failure(RuntimeError(f"{failure_msg}"))
+                raise RuntimeError(f"{failure_msg}")
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
                 simple_log("info", success_msg)
-                return Success(u_ticket_in)
+                return u_ticket_in
             else:  # pragma: no cover -> TODO: Attack
                 simple_log("error", f"{failure_msg}")
-                return Failure(RuntimeError(f"{failure_msg}"))
+                raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
             simple_log("error", failure_msg)
-            return Failure(RuntimeError(failure_msg))
+            raise RuntimeError(f"{failure_msg}")
 
     ######################################################
     # Verify ECC Signature on UTicket

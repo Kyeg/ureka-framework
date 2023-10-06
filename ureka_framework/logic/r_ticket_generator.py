@@ -43,7 +43,7 @@ class RTicketGenerator:
         # Generate Audit Info (r_ticket_type, audit_start, audit_end, result, etc.)
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
-        except ValidationError as error:
+        except ValidationError as error:  # pragma: no cover -> Weird R-Ticket
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 

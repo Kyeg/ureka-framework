@@ -40,7 +40,7 @@ class UTicketGenerator:
         # Generate Task Scope (device_id, holder_id, u_ticket_type, task_scope, etc.)
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
-        except ValidationError as error:
+        except ValidationError as error:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 

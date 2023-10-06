@@ -1,4 +1,3 @@
-from returns.result import Success, Failure
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -14,7 +13,6 @@ from tests.conftest import (
 )
 from ureka_framework.data_model.other_device import OtherDevice
 import ureka_framework.data_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto import serialization_util
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
