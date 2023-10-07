@@ -102,7 +102,7 @@ class TestStorage:
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        # u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        # u_ticket_json_1: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
         #     test_request_1
         # )
 
@@ -110,7 +110,7 @@ class TestStorage:
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        # u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        # u_ticket_json_2: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
         #     test_request_2
         # )
 

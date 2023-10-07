@@ -143,8 +143,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request
+        u_ticket_json_befo: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request)
         )
         # simple_log("debug",f"u_ticket_json_befo = {u_ticket_json_befo}")
 
@@ -171,8 +171,8 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
-            test_request
+        r_ticket_json_befo: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_r_ticket(test_request)
         )
         simple_log("debug", f"r_ticket_json_befo = {r_ticket_json_befo}")
 
@@ -326,8 +326,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_1
+        u_ticket_json_1: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_1)
         )
         simple_log("debug", f"u_ticket_json_1 = {u_ticket_json_1}")
         u_ticket_obj_1: UTicket = jsonstr_to_u_ticket(u_ticket_json_1)
@@ -342,8 +342,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_2
+        u_ticket_json_2: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_2)
         )
         simple_log("debug", f"u_ticket_json_2 = {u_ticket_json_2}")
         u_ticket_obj_2: UTicket = jsonstr_to_u_ticket(u_ticket_json_2)
@@ -373,7 +373,9 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
+        r_ticket_json_1: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+            test_request_1
+        )
         simple_log("debug", f"r_ticket_json_1 = {r_ticket_json_1}")
         r_ticket_obj_1: RTicket = jsonstr_to_r_ticket(r_ticket_json_1)
         simple_log("debug", f"r_ticket_obj_1 = {r_ticket_obj_1}")
@@ -388,7 +390,9 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)
+        r_ticket_json_2: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+            test_request_2
+        )
         simple_log("debug", f"r_ticket_json_2 = {r_ticket_json_2}")
         r_ticket_obj_2: RTicket = jsonstr_to_r_ticket(r_ticket_json_2)
         simple_log("debug", f"r_ticket_obj_2 = {r_ticket_obj_2}")

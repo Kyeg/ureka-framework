@@ -136,7 +136,9 @@ class TestIntializeDevice:
             "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Succeed to initialize DM's IoTD
@@ -169,7 +171,9 @@ class TestIntializeDevice:
             "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         simple_log("debug", f"test_u_ticket = {test_u_ticket}")
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
@@ -199,7 +203,9 @@ class TestIntializeDevice:
             "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.user_agent.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Failed to initialize UA

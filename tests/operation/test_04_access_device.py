@@ -242,7 +242,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.user_agent_do.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.user_agent_do.generated_msg_storer._store_generated_xxx_u_ticket(
             test_u_ticket
         )
@@ -257,7 +259,9 @@ class TestAccessDevice:
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
-        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.iot_device.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.iot_device.generated_msg_storer._store_generated_xxx_u_ticket(
             test_u_ticket
         )
@@ -272,7 +276,9 @@ class TestAccessDevice:
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_ep.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.cloud_server_ep.generated_msg_storer._store_generated_xxx_u_ticket(
             test_u_ticket
         )
@@ -287,7 +293,9 @@ class TestAccessDevice:
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
         }
-        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.iot_device.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.iot_device.generated_msg_storer._store_generated_xxx_u_ticket(
             test_u_ticket
         )
@@ -347,7 +355,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_atk.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD
@@ -400,7 +410,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
-        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.user_agent_do.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # -----------------------------------------------------
@@ -411,7 +423,9 @@ class TestAccessDevice:
             "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
-        test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.iot_device.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         self.cloud_server_atk.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # -----------------------------------------------------
@@ -422,7 +436,9 @@ class TestAccessDevice:
             "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_ep.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Failed to allow ATK's CS Access DO's IoTD

@@ -64,7 +64,9 @@ class TestArbitraryInput:
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
-            test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+            test_u_ticket: str = (
+                self.user_agent_do.msg_generator._generate_xxx_u_ticket(test_request)
+            )
 
         # THEN: Raise the RuntimeError (Input should be a valid string)
         assert (
@@ -85,7 +87,9 @@ class TestArbitraryInput:
             "result": f"Success/Failure",
         }
         with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
-            test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
+            test_r_ticket: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+                test_request
+            )
 
         # THEN: Raise the RuntimeError (Input should be a valid string)
         assert (
@@ -107,7 +111,9 @@ class TestArbitraryInput:
             "undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_u_ticket_error_info:
-            test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+            test_u_ticket: str = (
+                self.user_agent_do.msg_generator._generate_xxx_u_ticket(test_request)
+            )
             simple_log("debug", f"test_u_ticket = {test_u_ticket}")
 
         # THEN: Raise the RuntimeError
@@ -127,7 +133,9 @@ class TestArbitraryInput:
             "undefined_u_ticket_field": "UNDEFINED-RTICKET-FIELD",
         }
         with pytest.raises(RuntimeError) as generate_xxx_r_ticket_error_info:
-            test_r_ticket: str = self.iot_device._generate_xxx_r_ticket(test_request)
+            test_r_ticket: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+                test_request
+            )
             simple_log("debug", f"test_r_ticket = {test_r_ticket}")
 
         # THEN: Raise the RuntimeError
@@ -148,7 +156,9 @@ class TestArbitraryInput:
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.user_agent_do.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         simple_log("debug", f"test_u_ticket = {test_u_ticket}")
 
         # WHEN: Issuer bypasses the legal u_ticket generator & adds undefined u_ticket field in UTicket (& add signature)
@@ -189,7 +199,9 @@ class TestArbitraryInput:
         test_request: dict = {
             "u_ticket_type": f"WRONG-UTICKET-TYPE",
         }
-        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_atk.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD
@@ -203,7 +215,9 @@ class TestArbitraryInput:
             "device_id": f"WRONG-DEVICE-ID",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_atk.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to do anything on DO's IoTD

@@ -1,6 +1,5 @@
 # Deployment Environment
 from ureka_framework.environment import Environment
-from ureka_framework.logic.msg_verifier import MsgVerifier
 
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
@@ -12,15 +11,9 @@ from ureka_framework.model.data_model.this_person import ThisPerson
 
 # Data Model (Message)
 import ureka_framework.model.message.u_ticket as u_ticket
-from ureka_framework.model.message.u_ticket import (
-    UTicket,
-    u_ticket_to_jsonstr,
-)
+from ureka_framework.model.message.u_ticket import UTicket
 import ureka_framework.model.message.r_ticket as r_ticket
-from ureka_framework.model.message.r_ticket import (
-    RTicket,
-    r_ticket_to_jsonstr,
-)
+from ureka_framework.model.message.r_ticket import RTicket
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -46,11 +39,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Worker
 from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
-from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
-from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
+from ureka_framework.logic.msg_verifier import MsgVerifier
 from ureka_framework.logic.executor import Executor
-from ureka_framework.logic.u_ticket_generator import UTicketGenerator
-from ureka_framework.logic.r_ticket_generator import RTicketGenerator
+from ureka_framework.logic.msg_generator import MsgGenerator
 from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
 
 # Threading
@@ -81,6 +72,7 @@ class DeviceController:
         self.executor = Executor(
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
+        self.msg_generator = MsgGenerator(shared_data=self.shared_data)
         self.generated_msg_storer = GeneratedMsgStorer(
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
@@ -142,8 +134,8 @@ class DeviceController:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table or device_id == "no_id":
                 # [STAGE: (G)]
-                generated_u_ticket_json: str = self._generate_xxx_u_ticket(
-                    arbitrary_dict
+                generated_u_ticket_json: str = (
+                    self.msg_generator._generate_xxx_u_ticket(arbitrary_dict)
                 )
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
@@ -167,8 +159,8 @@ class DeviceController:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (G)]
-                generated_u_ticket_json: str = self._generate_xxx_u_ticket(
-                    arbitrary_dict
+                generated_u_ticket_json: str = (
+                    self.msg_generator._generate_xxx_u_ticket(arbitrary_dict)
                 )
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
@@ -358,7 +350,9 @@ class DeviceController:
                 }
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
-            generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+            generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
+                r_ticket_request
+            )
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (SG)]
@@ -453,7 +447,9 @@ class DeviceController:
                 "challenge_1": f"{self.shared_data.current_session.challenge_1}",
                 "key_exchange_salt_1": f"{self.shared_data.current_session.key_exchange_salt_1}",
             }
-            generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+            generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
+                r_ticket_request
+            )
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
@@ -508,7 +504,9 @@ class DeviceController:
                 "ciphertext_cmd": f"{self.shared_data.current_session.ciphertext_cmd}",
                 "gcm_authentication_tag_cmd": f"{self.shared_data.current_session.gcm_authentication_tag_cmd}",
             }
-            generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+            generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
+                r_ticket_request
+            )
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
@@ -560,7 +558,9 @@ class DeviceController:
                 "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
                 "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
             }
-            generated_r_ticket_json: str = self._generate_xxx_r_ticket(r_ticket_request)
+            generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
+                r_ticket_request
+            )
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
@@ -646,8 +646,8 @@ class DeviceController:
                     "ciphertext": f"{self.shared_data.current_session.ciphertext_cmd}",
                     "gcm_authentication_tag": f"{self.shared_data.current_session.gcm_authentication_tag_cmd}",
                 }
-                generated_u_ticket_json: str = self._generate_xxx_u_ticket(
-                    generated_request
+                generated_u_ticket_json: str = (
+                    self.msg_generator._generate_xxx_u_ticket(generated_request)
                 )
                 # simple_log("debug", f"Generated UToken: {generated_u_ticket_json}")
 
@@ -720,7 +720,7 @@ class DeviceController:
                 "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
                 "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
             }
-            generated_r_ticket_json: str = self._generate_xxx_r_ticket(
+            generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 generated_request
             )
             # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
@@ -907,45 +907,6 @@ class DeviceController:
             except:  # pragma: no cover -> Unpredicted Error
                 failure_msg = f"FAILURE: UNPREDICTED ERROR"
                 simple_log("error", failure_msg)
-
-    ######################################################
-    # [STAGE: (G)] Generate Message
-    ######################################################
-    def _generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
-        simple_log(
-            "info",
-            f"+ {self.shared_data.this_device.device_name} is generating u_ticket...",
-        )
-
-        u_ticket_generator = UTicketGenerator(
-            self.shared_data.this_device,
-            self.shared_data.this_person,
-            self.shared_data.device_table,
-        )
-        generated_u_ticket = u_ticket_generator.generate_arbitrary_u_ticket(
-            arbitrary_dict
-        )
-        generated_u_ticket_json = u_ticket_to_jsonstr(generated_u_ticket)
-
-        return generated_u_ticket_json
-
-    def _generate_xxx_r_ticket(self, arbitrary_dict: dict) -> str:
-        simple_log(
-            "info",
-            f"+ {self.shared_data.this_device.device_name} is generating r_ticket...",
-        )
-
-        r_ticket_generator = RTicketGenerator(
-            self.shared_data.this_device,
-            self.shared_data.this_person,
-            self.shared_data.device_table,
-        )
-        generated_r_ticket = r_ticket_generator.generate_arbitrary_r_ticket(
-            arbitrary_dict
-        )
-        generated_r_ticket_json = r_ticket_to_jsonstr(generated_r_ticket)
-
-        return generated_r_ticket_json
 
     ######################################################
     # [STAGE: (S)] Send Message
