@@ -137,7 +137,7 @@ class TestTransferOwnershipDevice:
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
+        result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
@@ -171,7 +171,7 @@ class TestTransferOwnershipDevice:
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
+        result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert type(result) == Failure
