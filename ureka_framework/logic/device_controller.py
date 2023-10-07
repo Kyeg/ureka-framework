@@ -43,6 +43,7 @@ from ureka_framework.logic.msg_verifier import MsgVerifier
 from ureka_framework.logic.executor import Executor
 from ureka_framework.logic.msg_generator import MsgGenerator
 from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
+from ureka_framework.logic.msg_sender import MsgSender
 
 # Threading
 import time
@@ -55,14 +56,21 @@ class DeviceController:
         # [TEST ONLY]
         self.comm_done_flag = False
 
-        # Data Model
-        self.shared_data: SharedData = SharedData()
+        # Data Model (RAM)
+        self.shared_data: SharedData = SharedData(
+            this_device=ThisDevice(),
+            current_session=CurrentSession(),
+            this_person=ThisPerson(),
+            device_table={},
+            state=None,
+        )
 
         # Resource (Storage)
         self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
         # Resource (Communication)
-        self.comm_channel: FakeCommChannel = FakeCommChannel()
-        self.comm_channel.receiver_queue = Queue()
+        self.comm_channel: FakeCommChannel = FakeCommChannel(
+            end=None, receiver_queue=Queue(), sender_queue=None
+        )
 
         # Worker
         self.received_msg_storer = ReceivedMsgStorer(
@@ -75,6 +83,9 @@ class DeviceController:
         self.msg_generator = MsgGenerator(shared_data=self.shared_data)
         self.generated_msg_storer = GeneratedMsgStorer(
             shared_data=self.shared_data, simple_storage=self.simple_storage
+        )
+        self.msg_sender = MsgSender(
+            shared_data=self.shared_data, comm_channel=self.comm_channel
         )
 
         # Always load Storage after Reboot
@@ -169,7 +180,7 @@ class DeviceController:
                 # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
                 # [STAGE: (S)]
-                self._send_xxx_message(generated_u_ticket_json)
+                self.msg_sender._send_xxx_message(generated_u_ticket_json)
 
                 # End Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
@@ -253,7 +264,7 @@ class DeviceController:
                 simple_log("error", "weird ticket type")
 
             # [STAGE: (S)]
-            self._send_xxx_message(stored_u_ticket_json)
+            self.msg_sender._send_xxx_message(stored_u_ticket_json)
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
@@ -359,7 +370,7 @@ class DeviceController:
             # Can optionally _stored_generated_xxx_r_ticket
 
             # [STAGE: (S)]
-            self._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(generated_r_ticket_json)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -453,7 +464,7 @@ class DeviceController:
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(generated_r_ticket_json)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -510,7 +521,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(generated_r_ticket_json)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -564,7 +575,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(generated_r_ticket_json)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -652,7 +663,7 @@ class DeviceController:
                 # simple_log("debug", f"Generated UToken: {generated_u_ticket_json}")
 
                 # [STAGE: (S)]
-                self._send_xxx_message(generated_u_ticket_json)
+                self.msg_sender._send_xxx_message(generated_u_ticket_json)
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
@@ -726,7 +737,7 @@ class DeviceController:
             # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(generated_r_ticket_json)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -907,23 +918,3 @@ class DeviceController:
             except:  # pragma: no cover -> Unpredicted Error
                 failure_msg = f"FAILURE: UNPREDICTED ERROR"
                 simple_log("error", failure_msg)
-
-    ######################################################
-    # [STAGE: (S)] Send Message
-    ######################################################
-    def _send_xxx_message(self, sent_message_json: str) -> None:
-        simple_log(
-            "info",
-            f"+ {self.shared_data.this_device.device_name} is sending message to {self.comm_channel.end.shared_data.this_device.device_name}...",
-        )
-
-        # Simulate Network Delay
-        for i in range(3):
-            for i in range(3):
-                simple_log("info", f"+ network delay")
-            if Environment.DEPLOYMENT_ENV == "PRODUCTION":  # pragma: no cover
-                time.sleep(0.5)
-            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover
-                time.sleep(0.5)
-
-        self.comm_channel.sender_queue.put(sent_message_json)

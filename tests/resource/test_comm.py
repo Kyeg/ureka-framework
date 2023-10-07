@@ -55,7 +55,7 @@ class TestStorage:
         test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
             test_request
         )
-        self.cloud_server_dm._send_xxx_message(test_u_ticket)
+        self.cloud_server_dm.msg_sender._send_xxx_message(test_u_ticket)
 
         self.iot_device._recv_xxx_message()
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
