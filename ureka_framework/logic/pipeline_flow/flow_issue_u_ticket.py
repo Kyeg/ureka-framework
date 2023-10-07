@@ -2,10 +2,7 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
-import ureka_framework.model.message.u_ticket as u_ticket
 from ureka_framework.model.message.u_ticket import UTicket
-import ureka_framework.model.message.r_ticket as r_ticket
-from ureka_framework.model.message.r_ticket import RTicket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log

@@ -3,16 +3,13 @@ from ureka_framework.environment import Environment
 
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
-import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.data_model.current_session import CurrentSession
 from ureka_framework.model.data_model.this_person import ThisPerson
 
 # Data Model (Message)
-import ureka_framework.model.message.u_ticket as u_ticket
 from ureka_framework.model.message.u_ticket import UTicket
-import ureka_framework.model.message.r_ticket as r_ticket
 from ureka_framework.model.message.r_ticket import RTicket
 
 # Resource (Storage)
@@ -20,19 +17,6 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 # Resource (Comm)
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
-
-# Resource (Crypto)
-import ureka_framework.resource.crypto.ecc as ecc
-import ureka_framework.resource.crypto.ecdh as ecdh
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.exceptions import InvalidTag
-from ureka_framework.resource.crypto.serialization_util import (
-    base64str_backto_byte,
-    byte_to_base64str,
-    str_to_key,
-    str_to_byte,
-    byte_backto_str,
-)
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -60,9 +44,6 @@ from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUTok
 
 class DeviceController:
     def __init__(self, device_type: str = None, device_name: str = None) -> None:
-        # # [TEST ONLY]
-        # self.shared_data.comm_done_flag = False
-
         # Data Model (RAM)
         self.shared_data: SharedData = SharedData(
             this_device=ThisDevice(),
@@ -137,7 +118,7 @@ class DeviceController:
         )
 
         # Stage Worker
-        self.received_msg_storer = MsgReceiver(
+        self.msg_receiver = MsgReceiver(
             shared_data=self.shared_data,
             comm_channel=self.comm_channel,
             msg_verifier=self.msg_verifier,
@@ -186,23 +167,3 @@ class DeviceController:
             device_type=self.shared_data.this_device.device_type,
             device_name=self.shared_data.this_device.device_name,
         )
-
-    ######################################################
-    # [STAGE: (R)] Receive Message
-    ######################################################
-    def _connect(self, end: "DeviceController") -> None:
-        # simple_log("info",
-        #     f"+ {self.shared_data.this_device.device_name} is connecting with {end.shared_data.this_device.device_name}..."
-        # )
-        # Set Sender (on Main Thread)
-        self.comm_channel.end = end
-        self.comm_channel.sender_queue = end.comm_channel.receiver_queue
-        # Start Reciever Thread
-        self._start_receiver()
-
-    def _start_receiver(self) -> None:
-        # Create a receiver thread
-        receiver_thread = threading.Thread(
-            target=self.received_msg_storer._recv_xxx_message, daemon=True
-        )
-        receiver_thread.start()

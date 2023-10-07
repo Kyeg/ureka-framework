@@ -71,8 +71,8 @@ def current_teardown_log() -> None:
 # Helper Functions (Reusable Test Data)
 ######################################################
 def create_comm_connection(end1: DeviceController, end2: DeviceController):
-    end1._connect(end2)
-    end2._connect(end1)
+    end1.msg_receiver._connect(end2)
+    end2.msg_receiver._connect(end1)
 
     simple_log(
         "info",

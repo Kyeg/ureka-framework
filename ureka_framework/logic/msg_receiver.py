@@ -8,6 +8,9 @@ from ureka_framework.resource.communication.fake_comm_channel import FakeCommCha
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Threading
+import threading
+
 # Stage Worker
 from ureka_framework.logic.msg_verifier import MsgVerifier
 from ureka_framework.logic.executor import Executor
@@ -17,6 +20,12 @@ from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTi
 from ureka_framework.logic.pipeline_flow.flow_apply_u_ticket import FlowApplyUTicket
 from ureka_framework.logic.pipeline_flow.flow_open_session import FlowOpenSession
 from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUToken
+
+from typing import TYPE_CHECKING
+
+# Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
+if TYPE_CHECKING:  # pragma: no cover
+    from ureka_framework.logic.device_controller import DeviceController
 
 
 class MsgReceiver:
@@ -39,6 +48,20 @@ class MsgReceiver:
         self.flow_apply_u_ticket = flow_apply_u_ticket
         self.flow_open_session = flow_open_session
         self.flow_issue_u_token = flow_issue_u_token
+
+    ######################################################
+    # [STAGE: (R)] Receive Message
+    ######################################################
+    def _connect(self, end: "DeviceController") -> None:
+        # simple_log("info",
+        #     f"+ {self.shared_data.this_device.device_name} is connecting with {end.shared_data.this_device.device_name}..."
+        # )
+        # Set Sender (on Main Thread)
+        self.comm_channel.end = end
+        self.comm_channel.sender_queue = end.comm_channel.receiver_queue
+        # Start Reciever Thread
+        receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
+        receiver_thread.start()
 
     def _recv_xxx_message(self) -> str:
         while True:
