@@ -69,28 +69,29 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
-        json_str = this_device_to_jsonstr(self.cloud_server_dm.this_device)
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.shared_data.this_device}")
+        json_str = this_device_to_jsonstr(self.cloud_server_dm.shared_data.this_device)
         # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_device(json_str)
-        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.shared_data.this_device}")
         # simple_log("debug",f"device-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
         # simple_log("debug",
-        #     f"key-befo.str = {self.cloud_server_dm.this_device.device_pub_key_str}"
+        #     f"key-befo.str = {self.cloud_server_dm.shared_data.this_device.device_pub_key_str}"
         # )
         # simple_log("debug",f"key-aftr.str = {obj.device_pub_key_str}")
         assert (
-            self.cloud_server_dm.this_device.device_pub_key == obj.device_pub_key
+            self.cloud_server_dm.shared_data.this_device.device_pub_key
+            == obj.device_pub_key
         )  # but device_priv_key maybe not the same!?
         assert (
-            self.cloud_server_dm.this_device.device_pub_key_str
+            self.cloud_server_dm.shared_data.this_device.device_pub_key_str
             == obj.device_pub_key_str
         )
         assert (
-            self.cloud_server_dm.this_device.device_priv_key_str
+            self.cloud_server_dm.shared_data.this_device.device_priv_key_str
             == obj.device_priv_key_str
         )
 
@@ -102,28 +103,29 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
-        json_str = this_person_to_jsonstr(self.cloud_server_dm.this_person)
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.shared_data.this_person}")
+        json_str = this_person_to_jsonstr(self.cloud_server_dm.shared_data.this_person)
         # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_person(json_str)
-        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.shared_data.this_person}")
         # simple_log("debug",f"person-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
         # simple_log("debug",
-        #     f"key-befo.str = {self.cloud_server_dm.this_person.person_pub_key_str}"
+        #     f"key-befo.str = {self.cloud_server_dm.shared_data.this_person.person_pub_key_str}"
         # )
         # simple_log("debug",f"key-aftr.str = {obj.person_pub_key_str}")
         assert (
-            self.cloud_server_dm.this_person.person_pub_key == obj.person_pub_key
+            self.cloud_server_dm.shared_data.this_person.person_pub_key
+            == obj.person_pub_key
         )  # but device_priv_key maybe not the same!?
         assert (
-            self.cloud_server_dm.this_person.person_pub_key_str
+            self.cloud_server_dm.shared_data.this_person.person_pub_key_str
             == obj.person_pub_key_str
         )
         assert (
-            self.cloud_server_dm.this_person.person_priv_key_str
+            self.cloud_server_dm.shared_data.this_person.person_priv_key_str
             == obj.person_priv_key_str
         )
 
@@ -262,7 +264,8 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         pub_key_str: str = key_to_str(
-            self.cloud_server_dm.this_device.device_pub_key, "ecc-public-key"
+            self.cloud_server_dm.shared_data.this_device.device_pub_key,
+            "ecc-public-key",
         )
         # simple_log("debug",f"pub_key_str = {pub_key_str}")
         pub_key_obj: ec.EllipticCurvePublicKey = str_to_key(
@@ -271,8 +274,13 @@ class TestSerialization:
         # simple_log("debug",f"pub_key_obj = {pub_key_obj}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert self.cloud_server_dm.this_device.device_pub_key_str == pub_key_str
-        assert self.cloud_server_dm.this_device.device_pub_key == pub_key_obj
+        assert (
+            self.cloud_server_dm.shared_data.this_device.device_pub_key_str
+            == pub_key_str
+        )
+        assert (
+            self.cloud_server_dm.shared_data.this_device.device_pub_key == pub_key_obj
+        )
 
     def test_key_serialization_failed(self) -> None:
         current_test_given_log()
@@ -285,12 +293,14 @@ class TestSerialization:
 
         with pytest.raises(RuntimeError) as key_to_str_error_info:
             pub_key_str: str = key_to_str(
-                self.cloud_server_dm.this_device.device_pub_key, "not-a-key-type"
+                self.cloud_server_dm.shared_data.this_device.device_pub_key,
+                "not-a-key-type",
             )
 
         with pytest.raises(RuntimeError) as str_to_key_error_info:
             pub_key_obj: ec.EllipticCurvePublicKey = str_to_key(
-                self.cloud_server_dm.this_device.device_pub_key_str, "not-a-key-type"
+                self.cloud_server_dm.shared_data.this_device.device_pub_key_str,
+                "not-a-key-type",
             )
 
         # THEN: Failed to serialize/deserialize

@@ -30,7 +30,9 @@ class TestArbitraryInput:
         ) = device_owner_agent_and_her_device_and_attacker()
 
         # GIVEN: A Public Key
-        self.device_pub_key_str = self.iot_device.this_device.device_pub_key_str
+        self.device_pub_key_str = (
+            self.iot_device.shared_data.this_device.device_pub_key_str
+        )
 
         # WHEN+THEN:
         yield
@@ -57,7 +59,7 @@ class TestArbitraryInput:
         # WHEN: Wrong u_ticket schema type
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
             "holder_id": 123,
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
@@ -99,8 +101,8 @@ class TestArbitraryInput:
         # WHEN: All other formats are correct (e.g., a legal ownership u_ticket here), but exist undefined u_ticket field in UTicket
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
             "undefined_u_ticket_field": "UNDEFINED-UTICKET-FIELD",
         }
@@ -142,8 +144,8 @@ class TestArbitraryInput:
         # WHEN: All other formats are correct (e.g., a legal ownership u_ticket here)
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)

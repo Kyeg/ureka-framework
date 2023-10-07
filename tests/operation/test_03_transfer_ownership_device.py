@@ -41,8 +41,8 @@ class TestTransferOwnershipDevice:
         ) = device_manufacturer_server_and_her_device()
 
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.cloud_server_dm.shared_data.this_person.person_pub_key_str
         )
 
         # GIVEN: Initialized DO's UA
@@ -52,10 +52,10 @@ class TestTransferOwnershipDevice:
         current_test_when_and_then_log()
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         create_comm_connection(self.cloud_server_dm, self.user_agent_do)
-        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
-            "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_dm.issuer_issue_u_ticket_to_holder(
@@ -70,8 +70,8 @@ class TestTransferOwnershipDevice:
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
     @pytest.mark.skip(reason="Broken test")
@@ -90,15 +90,15 @@ class TestTransferOwnershipDevice:
         # WHEN: DO's UA do not allow ATK's CS to apply_ownership_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
         # WHEN: Issuer: ATK's CS pretend she own the device (in her device_table)
-        target_device_id = self.iot_device.this_device.device_pub_key_str
-        self.cloud_server_atk.device_table[target_device_id] = OtherDevice(
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
             device_u_ticket="not important",
         )
         # WHEN: Issuer: ATK's CS generate & send the ownership_u_ticket by her person_pub_key
         generated_request: dict = {
             "device_id": f"{target_device_id}",
-            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_atk.issuer_issue_u_ticket_to_herself(
@@ -112,8 +112,8 @@ class TestTransferOwnershipDevice:
 
         # THEN: Fail to transfer ownership (still DO's IoTD)
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
     @pytest.mark.skip(reason="Broken test")
@@ -132,8 +132,8 @@ class TestTransferOwnershipDevice:
         # WHEN: DM's CS allow DO's UA to apply_ownership_u_ticket() on DM's IoTD
         current_test_when_and_then_log()
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.user_agent_do.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
@@ -142,8 +142,8 @@ class TestTransferOwnershipDevice:
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert type(result) == Success
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
     @pytest.mark.skip(reason="Broken test")
@@ -161,11 +161,13 @@ class TestTransferOwnershipDevice:
 
         # WHEN: DO's UA do not allow ATK's CS to apply_ownership_u_ticket() on DO's IoTD
         current_test_when_and_then_log()
-        target_device_id = self.iot_device.this_device.device_pub_key_str
-        self.cloud_server_atk.device_table[target_device_id].ticket_order = 2
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        self.cloud_server_atk.shared_data.device_table[
+            target_device_id
+        ].ticket_order = 2
         test_request: dict = {
             "device_id": f"{target_device_id}",
-            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_atk._generate_xxx_u_ticket(test_request)
@@ -178,8 +180,8 @@ class TestTransferOwnershipDevice:
             == "-> FAILURE: VERIFY_ISSUER_SIGNATURE on OWNERSHIP UTICKET"
         )
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
     @pytest.mark.skip(reason="Broken test")
@@ -198,6 +200,6 @@ class TestTransferOwnershipDevice:
 
         # THEN: Still is successful to transfer ownership (become DO's IoTD)
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )

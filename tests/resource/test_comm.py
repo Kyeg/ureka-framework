@@ -49,7 +49,7 @@ class TestStorage:
         id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
@@ -67,4 +67,4 @@ class TestStorage:
 
         # THEN: The message is verified
         assert type(result) == Success
-        assert self.iot_device.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.is_initialized == True

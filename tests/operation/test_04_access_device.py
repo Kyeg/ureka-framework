@@ -44,8 +44,8 @@ class TestAccessDevice:
         ) = device_owner_agent_and_her_device()
 
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
         # GIVEN: Initialized EP's CS
@@ -56,7 +56,7 @@ class TestAccessDevice:
 
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
-        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         resource_tree = dict_to_jsonstr(
             {
                 "SAY-HELLO": "allow",
@@ -69,7 +69,7 @@ class TestAccessDevice:
         )
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
@@ -87,33 +87,35 @@ class TestAccessDevice:
         # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
         # THEN: EP's CS can share a private session with DO's IoTD
         assert (
-            self.iot_device.current_session.current_holder_id
-            == self.cloud_server_ep.current_session.current_holder_id
+            self.iot_device.shared_data.current_session.current_holder_id
+            == self.cloud_server_ep.shared_data.current_session.current_holder_id
         )
         assert (
-            self.iot_device.current_session.current_task_scope
-            == self.cloud_server_ep.current_session.current_task_scope
+            self.iot_device.shared_data.current_session.current_task_scope
+            == self.cloud_server_ep.shared_data.current_session.current_task_scope
         )
         assert (
-            self.iot_device.current_session.current_session_key_str
-            == self.cloud_server_ep.current_session.current_session_key_str
+            self.iot_device.shared_data.current_session.current_session_key_str
+            == self.cloud_server_ep.shared_data.current_session.current_session_key_str
         )
         assert (
-            self.iot_device.current_session.plaintext_cmd
-            == self.cloud_server_ep.current_session.plaintext_cmd
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
         )
         assert (
-            self.iot_device.current_session.plaintext_data
-            == self.cloud_server_ep.current_session.plaintext_data
+            self.iot_device.shared_data.current_session.plaintext_data
+            == self.cloud_server_ep.shared_data.current_session.plaintext_data
         )
         assert current_session_to_jsonstr(
-            self.iot_device.current_session
-        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+            self.iot_device.shared_data.current_session
+        ) == current_session_to_jsonstr(
+            self.cloud_server_ep.shared_data.current_session
+        )
 
     def test_private_session_in_io_level(self) -> None:
         current_test_given_log()
@@ -129,7 +131,7 @@ class TestAccessDevice:
 
         # WHEN: Holder: EP's CS forward the u_token
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
@@ -138,20 +140,22 @@ class TestAccessDevice:
 
         # THEN: EP's CS can share a private session with DO's IoTD
         assert (
-            self.iot_device.current_session.plaintext_cmd
-            == self.cloud_server_ep.current_session.plaintext_cmd
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
         )
         assert (
-            self.iot_device.current_session.plaintext_data
-            == self.cloud_server_ep.current_session.plaintext_data
+            self.iot_device.shared_data.current_session.plaintext_data
+            == self.cloud_server_ep.shared_data.current_session.plaintext_data
         )
         assert current_session_to_jsonstr(
-            self.iot_device.current_session
-        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+            self.iot_device.shared_data.current_session
+        ) == current_session_to_jsonstr(
+            self.cloud_server_ep.shared_data.current_session
+        )
 
         # WHEN: Holder: EP's CS forward the u_token
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.this_device.device_pub_key_str
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
         self.cloud_server_ep.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
@@ -160,22 +164,24 @@ class TestAccessDevice:
 
         # THEN: EP's CS can share a private session with DO's IoTD
         assert (
-            self.iot_device.current_session.plaintext_cmd
-            == self.cloud_server_ep.current_session.plaintext_cmd
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
         )
         assert (
-            self.iot_device.current_session.plaintext_data
-            == self.cloud_server_ep.current_session.plaintext_data
+            self.iot_device.shared_data.current_session.plaintext_data
+            == self.cloud_server_ep.shared_data.current_session.plaintext_data
         )
         assert current_session_to_jsonstr(
-            self.iot_device.current_session
-        ) == current_session_to_jsonstr(self.cloud_server_ep.current_session)
+            self.iot_device.shared_data.current_session
+        ) == current_session_to_jsonstr(
+            self.cloud_server_ep.shared_data.current_session
+        )
 
         # WHEN: Holder: EP's CS forward the u_token (TX_END)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.this_device.device_pub_key_str
-        original_device_order = self.iot_device.this_device.ticket_order
-        original_agent_order = self.cloud_server_ep.device_table[
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        original_device_order = self.iot_device.shared_data.this_device.ticket_order
+        original_agent_order = self.cloud_server_ep.shared_data.device_table[
             owned_device_id
         ].ticket_order
         generated_command = "TX_END"
@@ -185,9 +191,12 @@ class TestAccessDevice:
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
-        assert self.iot_device.this_device.ticket_order == original_device_order + 1
         assert (
-            self.cloud_server_ep.device_table[owned_device_id].ticket_order
+            self.iot_device.shared_data.this_device.ticket_order
+            == original_device_order + 1
+        )
+        assert (
+            self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
             == original_agent_order + 1
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
@@ -201,8 +210,13 @@ class TestAccessDevice:
             self.user_agent_do,
             self.iot_device,
         ) = device_owner_agent_and_her_device()
-        assert self.iot_device.this_device.current_holder_pub_key_str == None
-        assert self.iot_device.this_device.current_session_key_byte == None
+        assert (
+            self.iot_device.shared_data.current_session.current_holder_pub_key_str
+            == None
+        )
+        assert (
+            self.iot_device.shared_data.current_session.current_session_key_byte == None
+        )
 
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
@@ -223,8 +237,8 @@ class TestAccessDevice:
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -237,8 +251,8 @@ class TestAccessDevice:
         #     - (<-) Challenge UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
@@ -250,8 +264,8 @@ class TestAccessDevice:
         #     - (->) Repsonse UTicket (->)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
@@ -263,8 +277,8 @@ class TestAccessDevice:
         #     - (<-) Key-exchange UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
@@ -276,17 +290,17 @@ class TestAccessDevice:
         assert type(result) == Success
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
         # THEN: EP's CS can open a session with DO's IoTD
         assert (
-            self.iot_device.this_device.current_holder_pub_key_str
-            == self.cloud_server_ep.this_person.person_pub_key_str
+            self.iot_device.shared_data.current_session.current_holder_pub_key_str
+            == self.cloud_server_ep.shared_data.this_person.person_pub_key_str
         )
         assert (
-            self.iot_device.this_device.current_session_key_byte
-            == self.cloud_server_ep.this_device.current_session_key_byte
+            self.iot_device.shared_data.current_session.current_session_key_byte
+            == self.cloud_server_ep.shared_data.this_device.current_session_key_byte
         )
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
@@ -318,8 +332,8 @@ class TestAccessDevice:
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -330,11 +344,13 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
-        assert self.iot_device.this_device.current_session_key_byte == None
+        assert (
+            self.iot_device.shared_data.current_session.current_session_key_byte == None
+        )
 
     @pytest.mark.skip(reason="Remove old version of CR-KE")
     def test_apply_access_u_ticket_unauthorized_holder_failed(self) -> None:
@@ -369,8 +385,8 @@ class TestAccessDevice:
             {u_ticket.TASK_SCOPE_RESOURCE_TREE: permission_resource_tree}
         )
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_ep.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{task_scope}",
         }
@@ -381,8 +397,8 @@ class TestAccessDevice:
         #     - (<-) Challenge UTicket (<-)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
@@ -392,8 +408,8 @@ class TestAccessDevice:
         #     - (->) Repsonse UTicket (->)
         # -----------------------------------------------------
         test_request: dict = {
-            "device_id": f"{self.iot_device.this_device.device_pub_key_str}",
-            "holder_id": f"{self.cloud_server_atk.this_person.person_pub_key_str}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
@@ -403,11 +419,13 @@ class TestAccessDevice:
         assert type(result) == Failure
         # THEN: Still DO's IoTD
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.user_agent_do.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
         # THEN: ATK's CS cannot open a session with DO's IoTD
-        assert self.iot_device.this_device.current_session_key_byte == None
+        assert (
+            self.iot_device.shared_data.current_session.current_session_key_byte == None
+        )
 
     @pytest.mark.skip(reason="Implemented but not tested yet")
     def test_apply_access_u_ticket_with_reboot(self) -> None:

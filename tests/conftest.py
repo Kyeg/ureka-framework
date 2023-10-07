@@ -76,7 +76,7 @@ def create_comm_connection(end1: DeviceController, end2: DeviceController):
 
     simple_log(
         "info",
-        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is started...",
+        f"+ Connection between {end1.shared_data.this_device.device_name} and {end2.shared_data.this_device.device_name} is started...",
     )
 
 
@@ -90,7 +90,7 @@ def wait_comm_completed(end1: DeviceController, end2: DeviceController):
 
     simple_log(
         "info",
-        f"+ Connection between {end1.this_device.device_name} and {end2.this_device.device_name} is completed...",
+        f"+ Connection between {end1.shared_data.this_device.device_name} and {end2.shared_data.this_device.device_name} is completed...",
     )
     simple_log("info", "")
     simple_log("info", "")
@@ -103,7 +103,7 @@ def device_manufacturer_server() -> DeviceController:
         device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_dm",
     )
-    cloud_server_dm._execute_one_time_intialize_agent_or_server()
+    cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_dm
 
@@ -114,7 +114,7 @@ def device_owner_agent() -> DeviceController:
         device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="user_agent_do",
     )
-    user_agent_do._execute_one_time_intialize_agent_or_server()
+    user_agent_do.executor._execute_one_time_intialize_agent_or_server()
 
     return user_agent_do
 
@@ -136,7 +136,7 @@ def device_manufacturer_server_and_her_device() -> (
     id_for_initialization_u_ticket = "no_id"
     generated_request: dict = {
         "device_id": f"{id_for_initialization_u_ticket}",
-        "holder_id": f"{cloud_server_dm.this_person.person_pub_key_str}",
+        "holder_id": f"{cloud_server_dm.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
     }
     cloud_server_dm.issuer_issue_u_ticket_to_herself(
@@ -160,10 +160,10 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 
     # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
     create_comm_connection(cloud_server_dm, user_agent_do)
-    owned_device_id = iot_device.this_device.device_pub_key_str
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
-        "holder_id": f"{user_agent_do.this_person.person_pub_key_str}",
+        "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
     }
     cloud_server_dm.issuer_issue_u_ticket_to_holder(
@@ -185,7 +185,7 @@ def enterprise_provider_server() -> DeviceController:
         device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_ep",
     )
-    cloud_server_ep._execute_one_time_intialize_agent_or_server()
+    cloud_server_ep.executor._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_ep
 
@@ -200,8 +200,8 @@ def enterprise_provider_server_and_her_session() -> (
     ) = device_owner_agent_and_her_device()
 
     assert (
-        iot_device.this_device.owner_pub_key_str
-        == user_agent_do.this_person.person_pub_key_str
+        iot_device.shared_data.this_device.owner_pub_key_str
+        == user_agent_do.shared_data.this_person.person_pub_key_str
     )
 
     # GIVEN: Initialized EP's CS
@@ -209,7 +209,7 @@ def enterprise_provider_server_and_her_session() -> (
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     create_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.this_device.device_pub_key_str
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     resource_tree = dict_to_jsonstr(
         {
             "SAY-HELLO": "allow",
@@ -222,7 +222,7 @@ def enterprise_provider_server_and_her_session() -> (
     )
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
-        "holder_id": f"{cloud_server_ep.this_person.person_pub_key_str}",
+        "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
@@ -246,7 +246,7 @@ def attacker_server() -> DeviceController:
         device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
         device_name="cloud_server_atk",
     )
-    cloud_server_atk._execute_one_time_intialize_agent_or_server()
+    cloud_server_atk.executor._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_atk
 
