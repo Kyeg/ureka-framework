@@ -23,6 +23,8 @@ from ureka_framework.model.message.r_ticket import (
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
+
+# Resource (Comm)
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 
 # Resource (Crypto)
@@ -42,11 +44,14 @@ from ureka_framework.resource.crypto.serialization_util import (
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Worker
-from ureka_framework.logic.r_ticket_generator import RTicketGenerator
-from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
-from ureka_framework.logic.u_ticket_generator import UTicketGenerator
+from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
+from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
 from ureka_framework.logic.executor import Executor
+from ureka_framework.logic.u_ticket_generator import UTicketGenerator
+from ureka_framework.logic.r_ticket_generator import RTicketGenerator
+from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
+
 
 # Threading
 import time
@@ -69,7 +74,15 @@ class DeviceController:
         self.comm_channel.receiver_queue = Queue()
 
         # Worker
+        self.received_msg_storer = ReceivedMsgStorer(
+            shared_data=self.shared_data,
+            simple_storage=self.simple_storage,
+        )
         self.executor = Executor(
+            shared_data=self.shared_data,
+            simple_storage=self.simple_storage,
+        )
+        self.generated_msg_storer = GeneratedMsgStorer(
             shared_data=self.shared_data,
             simple_storage=self.simple_storage,
         )
@@ -137,7 +150,9 @@ class DeviceController:
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
                 # [STAGE: (SG)]
-                self._store_generated_xxx_u_ticket(generated_u_ticket_json)
+                self.generated_msg_storer._store_generated_xxx_u_ticket(
+                    generated_u_ticket_json
+                )
 
         except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
@@ -161,7 +176,7 @@ class DeviceController:
 
                 # [STAGE: (SG)]
                 # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-                # self._store_generated_xxx_u_ticket(generated_u_ticket_json)
+                # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
                 # [STAGE: (S)]
                 self._send_xxx_message(generated_u_ticket_json)
@@ -188,7 +203,7 @@ class DeviceController:
             # But the actual ticket order in device is still unknown -> TODO: Attack
 
             # [STAGE: (SR)]
-            self._store_received_xxx_u_ticket(received_u_ticket)
+            self.received_msg_storer._store_received_xxx_u_ticket(received_u_ticket)
 
             # [STAGE: (O)]
             self.executor._execute_update_ticket_order(
@@ -363,7 +378,7 @@ class DeviceController:
             # [STAGE: (R)(VR)]
 
             # [STAGE: (SR)]
-            self._store_received_xxx_r_ticket(received_r_ticket)
+            self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
 
             # Query Corresponding UTicket(s)
             #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
@@ -1027,93 +1042,6 @@ class DeviceController:
             simple_log("error", failure_msg)
 
     ######################################################
-    # [STAGE: (SR)] Store Received Message
-    ######################################################
-    def _store_received_xxx_u_ticket(self, received_u_ticket: UTicket) -> None:
-        try:
-            received_u_ticket_json = u_ticket_to_jsonstr(received_u_ticket)
-
-            # We store this UTicket in device_table["device_id"]
-            if (
-                received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
-            ):
-                self.shared_data.device_table[
-                    received_u_ticket.device_id
-                ] = OtherDevice(
-                    device_id=received_u_ticket.device_id,
-                    device_u_ticket=received_u_ticket_json,
-                )
-            # Normally, we do not forward Initialization UTicket
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
-
-            ######################################################
-            # Storage
-            ######################################################
-            self.simple_storage.store_storage(
-                self.shared_data.this_device,
-                self.shared_data.device_table,
-                self.shared_data.this_person,
-                self.shared_data.current_session,
-            )
-
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
-
-    def _store_received_xxx_r_ticket(self, received_r_ticket: RTicket) -> None:
-        try:
-            received_r_ticket_json = r_ticket_to_jsonstr(received_r_ticket)
-
-            # We store this RTicket (but not verified) in device_table["device_id"]
-            if received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-                # Create new table by newly-created device public key
-                created_device_id = received_r_ticket.device_id
-                # Put u_ticket (temporary in device_table["no_id"]) & r_ticket in device_table["created_device_id"]
-                self.shared_data.device_table[created_device_id] = OtherDevice(
-                    device_id=created_device_id,
-                    device_u_ticket=self.shared_data.device_table[
-                        "no_id"
-                    ].device_u_ticket,
-                    device_r_ticket=received_r_ticket_json,
-                )
-            elif received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
-                # Not create new table, just add r_ticket to existing table
-                self.shared_data.device_table[
-                    received_r_ticket.device_id
-                ].device_r_ticket = received_r_ticket_json
-            elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                # Not create new table, just add r_ticket to existing table
-                self.shared_data.device_table[
-                    received_r_ticket.device_id
-                ].device_r_ticket = received_r_ticket_json
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
-
-            ######################################################
-            # Storage
-            ######################################################
-            self.simple_storage.store_storage(
-                self.shared_data.this_device,
-                self.shared_data.device_table,
-                self.shared_data.this_person,
-                self.shared_data.current_session,
-            )
-
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
-
-    ######################################################
     # [STAGE: (G)] Generate Message
     ######################################################
     def _generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
@@ -1151,40 +1079,6 @@ class DeviceController:
         generated_r_ticket_json = r_ticket_to_jsonstr(generated_r_ticket)
 
         return generated_r_ticket_json
-
-    ######################################################
-    # [STAGE: (SG)] Store Generated Message
-    ######################################################
-    def _store_generated_xxx_u_ticket(self, generated_u_ticket_json: str) -> None:
-        try:
-            # [STAGE: (VR)]
-            generated_u_ticket = self._classify_message_is_defined_type(
-                generated_u_ticket_json
-            )
-
-            # Because device hasn't created the id yet,
-            #   we temporary store Initialization UTicket in device_table["no_id"]
-            #   and the device_table will be updated by its RTicket with newly-created device_id
-            if generated_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-                id_for_initialization_u_ticket = "no_id"
-                self.shared_data.device_table[
-                    id_for_initialization_u_ticket
-                ] = OtherDevice(
-                    device_id=id_for_initialization_u_ticket,
-                    device_u_ticket=generated_u_ticket_json,
-                )
-            # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                failure_msg = f"Not implemented yet"
-                simple_log("error", failure_msg)
-
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
 
     ######################################################
     # [STAGE: (S)] Send Message

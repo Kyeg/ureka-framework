@@ -243,7 +243,9 @@ class TestAccessDevice:
             "task_scope": f"{task_scope}",
         }
         test_u_ticket: str = self.user_agent_do._generate_xxx_u_ticket(test_request)
-        self.user_agent_do._store_generated_xxx_u_ticket(test_u_ticket)
+        self.user_agent_do.generated_msg_storer._store_generated_xxx_u_ticket(
+            test_u_ticket
+        )
         simple_log("debug", f"ACCESS_UTICKET: {test_u_ticket}")
         self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
@@ -256,7 +258,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_CHALLENGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
-        self.iot_device._store_generated_xxx_u_ticket(test_u_ticket)
+        self.iot_device.generated_msg_storer._store_generated_xxx_u_ticket(
+            test_u_ticket
+        )
         simple_log("debug", f"CHALLENGE_UTICKET: {test_u_ticket}")
         self.cloud_server_ep.verify_u_ticket_can_execute(test_u_ticket)
 
@@ -269,7 +273,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_RESPONSE_UTICKET}",
         }
         test_u_ticket: str = self.cloud_server_ep._generate_xxx_u_ticket(test_request)
-        self.cloud_server_ep._store_generated_xxx_u_ticket(test_u_ticket)
+        self.cloud_server_ep.generated_msg_storer._store_generated_xxx_u_ticket(
+            test_u_ticket
+        )
         simple_log("debug", f"RESPONSE_UTICKET: {test_u_ticket}")
         self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
 
@@ -282,7 +288,9 @@ class TestAccessDevice:
             "u_ticket_type": f"{u_ticket.TYPE_KEY_EXCHANGE_UTICKET}",
         }
         test_u_ticket: str = self.iot_device._generate_xxx_u_ticket(test_request)
-        self.iot_device._store_generated_xxx_u_ticket(test_u_ticket)
+        self.iot_device.generated_msg_storer._store_generated_xxx_u_ticket(
+            test_u_ticket
+        )
         simple_log("debug", f"KEY_EXCHANGE_UTICKET: {test_u_ticket}")
         result = self.cloud_server_ep.verify_u_ticket_can_execute(test_u_ticket)
 
