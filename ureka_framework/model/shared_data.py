@@ -15,3 +15,6 @@ class SharedData:
     device_table: None | dict[str, OtherDevice] = field(default_factory=dict)
     # Data Model (RAM-only)
     state: None | str = None
+
+    # [TEST ONLY]
+    comm_done_flag: None | bool = None

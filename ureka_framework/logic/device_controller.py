@@ -37,6 +37,11 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Threading
+import time
+from queue import Queue
+import threading
+
 # Worker
 from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.msg_verifier import MsgVerifier
@@ -45,16 +50,25 @@ from ureka_framework.logic.msg_generator import MsgGenerator
 from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
 from ureka_framework.logic.msg_sender import MsgSender
 
-# Threading
-import time
-from queue import Queue
-import threading
+
+# Stage Worker
+from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
+from ureka_framework.logic.msg_verifier import MsgVerifier
+from ureka_framework.logic.executor import Executor
+from ureka_framework.logic.msg_generator import MsgGenerator
+from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
+from ureka_framework.logic.msg_sender import MsgSender
+
+# Pipeline Flow
+from ureka_framework.logic.pipeline_flow.issuer_issue_u_ticket import (
+    FlowIssuerIssueUTicket,
+)
 
 
 class DeviceController:
     def __init__(self, device_type: str = None, device_name: str = None) -> None:
-        # [TEST ONLY]
-        self.comm_done_flag = False
+        # # [TEST ONLY]
+        # self.shared_data.comm_done_flag = False
 
         # Data Model (RAM)
         self.shared_data: SharedData = SharedData(
@@ -63,6 +77,7 @@ class DeviceController:
             this_person=ThisPerson(),
             device_table={},
             state=None,
+            comm_done_flag=False,
         )
 
         # Resource (Storage)
@@ -72,7 +87,7 @@ class DeviceController:
             end=None, receiver_queue=Queue(), sender_queue=None
         )
 
-        # Worker
+        # Stage Worker
         self.received_msg_storer = ReceivedMsgStorer(
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
@@ -86,6 +101,17 @@ class DeviceController:
         )
         self.msg_sender = MsgSender(
             shared_data=self.shared_data, comm_channel=self.comm_channel
+        )
+
+        # Flow
+        self.flow_issuer_issue_u_ticket = FlowIssuerIssueUTicket(
+            share_data=self.shared_data,
+            received_msg_storer=self.received_msg_storer,
+            msg_verifier=self.msg_verifier,
+            executor=self.executor,
+            msg_generator=self.msg_generator,
+            generated_msg_storer=self.generated_msg_storer,
+            msg_sender=self.msg_sender,
         )
 
         # Always load Storage after Reboot
@@ -111,12 +137,12 @@ class DeviceController:
     #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
     ######################################################
     def wait_comm_completed(self) -> None:
-        while not self.comm_done_flag:
+        while not self.shared_data.comm_done_flag:
             time.sleep(0.01)
         # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
 
-    def complete_comm(self) -> None:
-        self.comm_done_flag = True
+    # def complete_comm(self) -> None:
+    #     self.shared_data.comm_done_flag = True
 
     ######################################################
     # Device Activity Cycle
@@ -126,104 +152,6 @@ class DeviceController:
             device_type=self.shared_data.this_device.device_type,
             device_name=self.shared_data.this_device.device_name,
         )
-
-    ######################################################
-    # [PIPELINE FLOW]
-    #
-    # CST: issuer_issue_u_ticket_to_herself()
-    # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
-    # CST: issuer_issue_u_ticket_to_holder() -> _holder_recv_u_ticket()
-    #
-    # TODO: More complete Tx (with DID, etc.))
-    # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
-    #         execution only change state after success, but need pay attention to (SR)
-    ######################################################
-    def issuer_issue_u_ticket_to_herself(
-        self, device_id: str, arbitrary_dict: dict
-    ) -> None:
-        try:
-            # [STAGE: (VL)]
-            if device_id in self.shared_data.device_table or device_id == "no_id":
-                # [STAGE: (G)]
-                generated_u_ticket_json: str = (
-                    self.msg_generator._generate_xxx_u_ticket(arbitrary_dict)
-                )
-                # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
-
-                # [STAGE: (SG)]
-                self.generated_msg_storer._store_generated_xxx_u_ticket(
-                    generated_u_ticket_json
-                )
-
-        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
-            failure_msg = f"FAILURE: (VUREQ)"
-            simple_log("error", failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
-
-    def issuer_issue_u_ticket_to_holder(
-        self, device_id: str, arbitrary_dict: dict
-    ) -> None:
-        try:
-            # [STAGE: (VL)]
-            if device_id in self.shared_data.device_table:
-                # [STAGE: (G)]
-                generated_u_ticket_json: str = (
-                    self.msg_generator._generate_xxx_u_ticket(arbitrary_dict)
-                )
-                # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
-
-                # [STAGE: (SG)]
-                # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-                # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
-
-                # [STAGE: (S)]
-                self.msg_sender._send_xxx_message(generated_u_ticket_json)
-
-                # End Comm
-                simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
-                self.complete_comm()
-
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
-
-        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
-            failure_msg = f"FAILURE: (VUREQ)"
-            simple_log("error", failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
-
-    def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
-        try:
-            # [STAGE: (R)(VR)]
-            # But the actual ticket order in device is still unknown -> TODO: Attack
-
-            # [STAGE: (SR)]
-            self.received_msg_storer._store_received_xxx_u_ticket(received_u_ticket)
-
-            # [STAGE: (O)]
-            self.executor._execute_update_ticket_order(
-                "holder-receive-uticket", received_u_ticket
-            )
-
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
-
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
-
-        finally:
-            # [STAGE: (G)(S)]
-            # Can optionally _generate_xxx_r_ticket & _send_xxx_message
-            pass
 
     ######################################################
     # [PIPELINE FLOW]
@@ -832,7 +760,7 @@ class DeviceController:
                     self._device_recv_u_ticket(received_message)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     self._device_recv_cr_ke_2(received_message)
                     # End Comm
@@ -845,7 +773,7 @@ class DeviceController:
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     self._device_recv_cmd(received_message)
                     # End Comm
@@ -858,22 +786,24 @@ class DeviceController:
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (device)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
 
                 # USER_AGENT_OR_CLOUD_SERVER
                 elif (
                     self.shared_data.state
                     == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 ):
-                    self._holder_recv_u_ticket(received_message)
+                    self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
+                        received_message
+                    )
                     # End Comm
                     simple_log("debug", f"+ Finish UT-UT~~ (holder)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     self._holder_recv_r_ticket(received_message)
                     # End Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     self._holder_recv_cr_ke_1(received_message)
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
@@ -892,7 +822,7 @@ class DeviceController:
                         f"\n+++Session is Constucted+++",
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     self._holder_recv_data(received_message)
                     # End Comm
@@ -905,7 +835,7 @@ class DeviceController:
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
-                    self.complete_comm()
+                    self.executor.complete_comm()
                 else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                     simple_log("error", "weird ticket type")
 

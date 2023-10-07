@@ -73,7 +73,7 @@ def test_script():
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
-    user_agent_do.issuer_issue_u_ticket_to_holder(
+    user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
     wait_comm_completed(cloud_server_ep, user_agent_do)

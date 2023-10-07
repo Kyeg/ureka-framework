@@ -61,7 +61,7 @@ class TestIntializeDevice:
             "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        self.cloud_server_dm.issuer_issue_u_ticket_to_herself(
+        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
@@ -100,7 +100,7 @@ class TestIntializeDevice:
             "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        self.cloud_server_dm.issuer_issue_u_ticket_to_herself(
+        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
         self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)

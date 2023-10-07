@@ -8,7 +8,7 @@ from ureka_framework.model.message.r_ticket import r_ticket_to_jsonstr
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
-# Worker
+# Stage Worker
 from ureka_framework.logic.u_ticket_generator import UTicketGenerator
 from ureka_framework.logic.r_ticket_generator import RTicketGenerator
 

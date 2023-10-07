@@ -58,7 +58,7 @@ class TestTransferOwnershipDevice:
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        self.cloud_server_dm.issuer_issue_u_ticket_to_holder(
+        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
         wait_comm_completed(self.user_agent_do, self.cloud_server_dm)
@@ -101,7 +101,7 @@ class TestTransferOwnershipDevice:
             "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        self.cloud_server_atk.issuer_issue_u_ticket_to_herself(
+        self.cloud_server_atk.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
 

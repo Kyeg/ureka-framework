@@ -8,7 +8,7 @@ from ureka_framework.model.message.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
-# Worker
+# Stage Worker
 from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
 from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
 
