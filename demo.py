@@ -96,7 +96,9 @@ def test_script():
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-2"
     generated_command = input("\nEP's CS enter 2nd command to DO's IoTD: ")
-    cloud_server_ep.holder_send_cmd(device_id=owned_device_id, cmd=generated_command)
+    cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+        device_id=owned_device_id, cmd=generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
     # WHEN: Holder: EP's CS forward the u_token
@@ -104,7 +106,9 @@ def test_script():
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-3"
     generated_command = input("\nEP's CS enter 3rd command to DO's IoTD: ")
-    cloud_server_ep.holder_send_cmd(device_id=owned_device_id, cmd=generated_command)
+    cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+        device_id=owned_device_id, cmd=generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
 

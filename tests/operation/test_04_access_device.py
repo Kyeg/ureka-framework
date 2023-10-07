@@ -135,7 +135,7 @@ class TestAccessDevice:
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
-        self.cloud_server_ep.holder_send_cmd(
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
@@ -159,7 +159,7 @@ class TestAccessDevice:
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
-        self.cloud_server_ep.holder_send_cmd(
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
@@ -187,7 +187,7 @@ class TestAccessDevice:
             owned_device_id
         ].ticket_order
         generated_command = "TX_END"
-        self.cloud_server_ep.holder_send_cmd(
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command, tx_end=True
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
