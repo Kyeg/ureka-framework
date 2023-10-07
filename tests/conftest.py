@@ -142,7 +142,9 @@ def device_manufacturer_server_and_her_device() -> (
     cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
         device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
     )
-    cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
+    cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+        id_for_initialization_u_ticket
+    )
     wait_comm_completed(cloud_server_dm, iot_device)
 
     return (cloud_server_dm, iot_device)
@@ -173,7 +175,7 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 
     # WHEN: Holder: DO's UA forward the ownership_u_ticket
     create_comm_connection(user_agent_do, iot_device)
-    user_agent_do.holder_apply_u_ticket(owned_device_id)
+    user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
     wait_comm_completed(user_agent_do, iot_device)
 
     return (user_agent_do, iot_device)
@@ -234,7 +236,9 @@ def enterprise_provider_server_and_her_session() -> (
     # WHEN: Holder: EP's CS forward the access_u_ticket
     create_comm_connection(cloud_server_ep, iot_device)
     generated_command = "HELLO"
-    cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
+    cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
+        owned_device_id, generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
     return (cloud_server_ep, iot_device)

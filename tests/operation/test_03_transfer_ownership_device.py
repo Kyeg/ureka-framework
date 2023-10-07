@@ -65,7 +65,7 @@ class TestTransferOwnershipDevice:
 
         # WHEN: Holder: DO's UA forward the ownership_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
-        self.user_agent_do.holder_apply_u_ticket(owned_device_id)
+        self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
         wait_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
@@ -107,7 +107,9 @@ class TestTransferOwnershipDevice:
 
         # WHEN: Holder: ATK's CS forward the ownership_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        self.cloud_server_atk.holder_apply_u_ticket(target_device_id)
+        self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
+            target_device_id
+        )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Fail to transfer ownership (still DO's IoTD)

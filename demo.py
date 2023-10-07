@@ -83,7 +83,9 @@ def test_script():
     create_comm_connection(cloud_server_ep, iot_device)
     # generated_command = "HELLO"
     generated_command = input("\nEP's CS enter 1st command to DO's IoTD: ")
-    cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
+    cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
+        owned_device_id, generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
     # WHEN:

@@ -64,7 +64,9 @@ class TestIntializeDevice:
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
+        self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+            id_for_initialization_u_ticket
+        )
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
@@ -103,7 +105,9 @@ class TestIntializeDevice:
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
+        self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+            id_for_initialization_u_ticket
+        )
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Failed to re-initialize DM's IoTD

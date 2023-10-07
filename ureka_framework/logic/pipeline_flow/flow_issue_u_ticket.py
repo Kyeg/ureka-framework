@@ -19,7 +19,7 @@ from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
 from ureka_framework.logic.msg_sender import MsgSender
 
 
-class FlowIssuerIssueUTicket:
+class FlowIssueUTicket:
     def __init__(
         self,
         share_data: SharedData,
