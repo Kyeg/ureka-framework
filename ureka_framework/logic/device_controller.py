@@ -9,8 +9,8 @@ from ureka_framework.model.data_model.current_session import CurrentSession
 from ureka_framework.model.data_model.this_person import ThisPerson
 
 # Data Model (Message)
-from ureka_framework.model.message.u_ticket import UTicket
-from ureka_framework.model.message.r_ticket import RTicket
+from ureka_framework.model.message_model.u_ticket import UTicket
+from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -27,13 +27,13 @@ from queue import Queue
 import threading
 
 # Stage Worker
-from ureka_framework.logic.msg_receiver import MsgReceiver
-from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
-from ureka_framework.logic.msg_verifier import MsgVerifier
-from ureka_framework.logic.executor import Executor
-from ureka_framework.logic.msg_generator import MsgGenerator
-from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
-from ureka_framework.logic.msg_sender import MsgSender
+from ureka_framework.logic.stage_worker.msg_receiver import MsgReceiver
+from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
+from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+from ureka_framework.logic.stage_worker.executor import Executor
+from ureka_framework.logic.stage_worker.msg_generator import MsgGenerator
+from ureka_framework.logic.stage_worker.generated_msg_storer import GeneratedMsgStorer
+from ureka_framework.logic.stage_worker.msg_sender import MsgSender
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTicket

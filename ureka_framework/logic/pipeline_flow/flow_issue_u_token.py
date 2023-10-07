@@ -3,10 +3,10 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
-import ureka_framework.model.message.u_ticket as u_ticket
-from ureka_framework.model.message.u_ticket import UTicket
-import ureka_framework.model.message.r_ticket as r_ticket
-from ureka_framework.model.message.r_ticket import RTicket
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import UTicket
+import ureka_framework.model.message_model.r_ticket as r_ticket
+from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Crypto)
 from ureka_framework.resource.crypto.serialization_util import base64str_backto_byte
@@ -15,12 +15,12 @@ from ureka_framework.resource.crypto.serialization_util import base64str_backto_
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Stage Worker
-from ureka_framework.logic.received_msg_storer import ReceivedMsgStorer
-from ureka_framework.logic.msg_verifier import MsgVerifier
-from ureka_framework.logic.executor import Executor
-from ureka_framework.logic.msg_generator import MsgGenerator
-from ureka_framework.logic.generated_msg_storer import GeneratedMsgStorer
-from ureka_framework.logic.msg_sender import MsgSender
+from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
+from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+from ureka_framework.logic.stage_worker.executor import Executor
+from ureka_framework.logic.stage_worker.msg_generator import MsgGenerator
+from ureka_framework.logic.stage_worker.generated_msg_storer import GeneratedMsgStorer
+from ureka_framework.logic.stage_worker.msg_sender import MsgSender
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_apply_u_ticket import FlowApplyUTicket

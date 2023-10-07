@@ -2,15 +2,15 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
-from ureka_framework.model.message.u_ticket import u_ticket_to_jsonstr
-from ureka_framework.model.message.r_ticket import r_ticket_to_jsonstr
+from ureka_framework.model.message_model.u_ticket import u_ticket_to_jsonstr
+from ureka_framework.model.message_model.r_ticket import r_ticket_to_jsonstr
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Stage Worker
-from ureka_framework.logic.u_ticket_generator import UTicketGenerator
-from ureka_framework.logic.r_ticket_generator import RTicketGenerator
+from ureka_framework.logic.stage_worker.msg_generator_u_ticket import UTicketGenerator
+from ureka_framework.logic.stage_worker.msg_generator_r_ticket import RTicketGenerator
 
 
 class MsgGenerator:

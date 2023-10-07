@@ -9,13 +9,13 @@ from tests.conftest import (
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
-from ureka_framework.model.message import u_ticket
-from ureka_framework.model.message.r_ticket import (
+from ureka_framework.model.message_model import u_ticket
+from ureka_framework.model.message_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
-from ureka_framework.model.message.u_ticket import (
+from ureka_framework.model.message_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,

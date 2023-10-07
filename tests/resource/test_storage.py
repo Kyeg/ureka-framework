@@ -7,7 +7,7 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
-from ureka_framework.model.message import u_ticket
+from ureka_framework.model.message_model import u_ticket
 from ureka_framework.model.data_model.other_device import (
     OtherDevice,
     device_table_to_jsonstr,

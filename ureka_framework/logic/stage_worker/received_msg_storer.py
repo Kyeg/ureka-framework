@@ -3,13 +3,13 @@ from ureka_framework.model.shared_data import SharedData
 from ureka_framework.model.data_model.other_device import OtherDevice
 
 # Data Model (Message)
-import ureka_framework.model.message.u_ticket as u_ticket
-from ureka_framework.model.message.u_ticket import (
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import (
     UTicket,
     u_ticket_to_jsonstr,
 )
-import ureka_framework.model.message.r_ticket as r_ticket
-from ureka_framework.model.message.r_ticket import (
+import ureka_framework.model.message_model.r_ticket as r_ticket
+from ureka_framework.model.message_model.r_ticket import (
     RTicket,
     r_ticket_to_jsonstr,
 )

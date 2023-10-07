@@ -1,6 +1,6 @@
 from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
-import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
 
 ######################################################
 # Message Type

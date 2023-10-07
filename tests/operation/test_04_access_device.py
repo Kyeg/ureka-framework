@@ -13,7 +13,7 @@ from tests.conftest import (
 )
 from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.resource.logger.simple_logger import simple_log
-import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
 )

@@ -12,7 +12,7 @@ from tests.conftest import (
     attacker_server,
 )
 from ureka_framework.model.data_model.other_device import OtherDevice
-import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 

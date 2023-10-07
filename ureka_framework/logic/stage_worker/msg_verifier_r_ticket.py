@@ -2,12 +2,12 @@ import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 from ureka_framework.model.data_model.current_session import CurrentSession
-import ureka_framework.model.message.u_ticket as u_ticket
-from ureka_framework.model.message.u_ticket import UTicket
-import ureka_framework.model.message.r_ticket as r_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import UTicket
+import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.other_device import OtherDevice
-from ureka_framework.model.message.r_ticket import (
+from ureka_framework.model.message_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,

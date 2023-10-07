@@ -3,8 +3,8 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import uuid
 
 from pydantic import ValidationError
-from ureka_framework.model.message.u_ticket import UTicket, u_ticket_to_jsonstr
-import ureka_framework.model.message.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import UTicket, u_ticket_to_jsonstr
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     byte_to_base64str,
     str_to_byte,

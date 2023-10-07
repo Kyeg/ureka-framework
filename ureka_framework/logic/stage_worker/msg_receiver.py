@@ -12,8 +12,8 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import threading
 
 # Stage Worker
-from ureka_framework.logic.msg_verifier import MsgVerifier
-from ureka_framework.logic.executor import Executor
+from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+from ureka_framework.logic.stage_worker.executor import Executor
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTicket

@@ -3,8 +3,8 @@ from ureka_framework.model.shared_data import SharedData
 from ureka_framework.model.data_model.other_device import OtherDevice
 
 # Data Model (Message)
-import ureka_framework.model.message.u_ticket as u_ticket
-from ureka_framework.model.message.u_ticket import jsonstr_to_u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import jsonstr_to_u_ticket
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage

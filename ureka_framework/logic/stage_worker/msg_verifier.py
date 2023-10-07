@@ -2,15 +2,15 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
-from ureka_framework.model.message.u_ticket import UTicket
-from ureka_framework.model.message.r_ticket import RTicket
+from ureka_framework.model.message_model.u_ticket import UTicket
+from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Stage Worker
-from ureka_framework.logic.u_ticket_verifier import UTicketVerifier
-from ureka_framework.logic.r_ticket_verifier import RTicketVerifier
+from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
+from ureka_framework.logic.stage_worker.msg_verifier_r_ticket import RTicketVerifier
 
 
 class MsgVerifier:
