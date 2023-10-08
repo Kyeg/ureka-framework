@@ -20,7 +20,7 @@ from ureka_framework.resource.crypto.serialization_util import (
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 
-class TestAccessDevice:
+class TestAccessDeviceByOthers:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self):
         # RE-GIVEN: Reset the test environment
@@ -34,7 +34,7 @@ class TestAccessDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_access_u_ticket_in_io_level(self) -> None:
+    def test_success_when_apply_access_u_ticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -119,7 +119,7 @@ class TestAccessDevice:
             self.cloud_server_ep.shared_data.current_session
         )
 
-    def test_private_session_in_io_level(self) -> None:
+    def test_success_when_open_private_session(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized EP's CS has Limitedly Access DO's IoTD
@@ -202,3 +202,6 @@ class TestAccessDevice:
             == original_agent_order + 1
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
+
+    # def test_success_when_reboot(self) -> None:
+    #     current_test_given_log()

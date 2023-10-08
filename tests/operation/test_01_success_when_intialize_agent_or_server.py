@@ -29,7 +29,7 @@ class TestIntializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_intialize_agent_or_server(self) -> None:
+    def test_success_when_intialize_agent_or_server(self) -> None:
         current_test_given_log()
 
         # GIVEN: Uninitialized CS
@@ -57,3 +57,6 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_pub_key_str != None
+
+    # def test_success_when_reboot(self) -> None:
+    #     current_test_given_log()

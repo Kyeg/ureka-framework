@@ -191,6 +191,6 @@ def jsonstr_to_this_device(json_str: str) -> ThisDevice:
     try:
         return json.loads(json_str, object_hook=_dict_to_this_device)
     except json.JSONDecodeError as error:
-        failure_msg = "NOT VALID JSON"
-        simple_log("error", f"{failure_msg}: {error}")
+        failure_msg = "NOT VALID JSON or VALID SCHEMA"
+        # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)

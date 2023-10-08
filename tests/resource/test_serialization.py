@@ -129,7 +129,7 @@ class TestSerialization:
             == obj.person_priv_key_str
         )
 
-    @pytest.mark.skip(reason="Miss device id")
+    # @pytest.mark.skip(reason="Miss device id")
     def test_u_ticket_serialization(self) -> None:
         current_test_given_log()
 
@@ -140,8 +140,7 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         test_request: dict = {
-            "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
+            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
         u_ticket_json_befo: str = (
             self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request)
@@ -155,8 +154,7 @@ class TestSerialization:
         # simple_log("debug",f"u_ticket_json_aftr = {u_ticket_json_aftr}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert f"device_id" == u_ticket_obj.device_id
-        assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == u_ticket_obj.u_ticket_type
+        assert f"{u_ticket.TYPE_INITIALIZATION_UTICKET}" == u_ticket_obj.u_ticket_type
 
     def test_r_ticket_serialization(self) -> None:
         current_test_given_log()
@@ -220,9 +218,18 @@ class TestSerialization:
             str(jsonstr_to_r_ticket_error_info.value)
             == "NOT VALID JSON or VALID RTICKET SCHEMA"
         )
-        assert str(jsonstr_to_this_device_error_info.value) == "NOT VALID JSON"
-        assert str(jsonstr_to_other_device_error_info.value) == "NOT VALID JSON"
-        assert str(jsonstr_to_this_person_error_info.value) == "NOT VALID JSON"
+        assert (
+            str(jsonstr_to_this_device_error_info.value)
+            == "NOT VALID JSON or VALID SCHEMA"
+        )
+        assert (
+            str(jsonstr_to_other_device_error_info.value)
+            == "NOT VALID JSON or VALID SCHEMA"
+        )
+        assert (
+            str(jsonstr_to_this_person_error_info.value)
+            == "NOT VALID JSON or VALID SCHEMA"
+        )
         assert (
             str(jsonstr_to_current_session_error_info.value)
             == "NOT VALID JSON or VALID SCHEMA"

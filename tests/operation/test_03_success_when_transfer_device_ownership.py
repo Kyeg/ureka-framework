@@ -17,7 +17,7 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
 
-class TestTransferOwnershipDevice:
+class TestTransferDeviceOwnership:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
@@ -31,7 +31,7 @@ class TestTransferOwnershipDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_apply_ownership_u_ticket_in_io_level(self) -> None:
+    def test_success_when_apply_ownership_u_ticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS and DM's IoTD
@@ -73,3 +73,6 @@ class TestTransferOwnershipDevice:
             self.iot_device.shared_data.this_device.owner_pub_key_str
             == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
+
+    # def test_success_when_reboot(self) -> None:
+    #     current_test_given_log()

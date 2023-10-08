@@ -61,5 +61,5 @@ def jsonstr_to_current_session(json_str: str) -> CurrentSession:
         return CurrentSession.model_validate_json(json_str)
     except ValidationError as error:
         failure_msg = "NOT VALID JSON or VALID SCHEMA"
-        simple_log("error", f"{failure_msg}: {error}")
+        # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)
