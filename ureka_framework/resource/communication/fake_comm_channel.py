@@ -12,5 +12,5 @@ class FakeCommChannel:
     # "Mutable default values" are problematic in Python because they are shared among all instances of the class.
     end: "DeviceController" = None
     # put/get str in Queue
-    sender_queue: None | Queue = None
     receiver_queue: None | Queue = None
+    sender_queue: None | Queue = None

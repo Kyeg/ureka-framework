@@ -7,7 +7,7 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
-from ureka_framework.model.message import u_ticket
+from ureka_framework.model.message_model import u_ticket
 from ureka_framework.model.data_model.other_device import (
     OtherDevice,
     device_table_to_jsonstr,
@@ -39,23 +39,25 @@ class TestStorage:
         # GIVEN: An initialized DM's CS as test data
         self.cloud_server_dm = device_manufacturer_server()
         # simple_log("debug",
-        #     f"Original Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
+        #     f"Original Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.shared_data.this_device)}"
         # )
 
         # WHEN: Variables are modified in the RAM
         current_test_when_and_then_log()
 
-        self.cloud_server_dm.this_device.device_name = "another_new_device_name"
+        self.cloud_server_dm.shared_data.this_device.device_name = (
+            "another_new_device_name"
+        )
         # simple_log("debug",
-        #     f"Modified Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.this_device)}"
+        #     f"Modified Device in RAM = {this_device_to_jsonstr(self.cloud_server_dm.shared_data.this_device)}"
         # )
 
         # WHEN: Variables are stored in the Storage
         self.simple_storage.store_storage(
-            self.cloud_server_dm.this_device,
-            self.cloud_server_dm.device_table,
-            self.cloud_server_dm.this_person,
-            self.cloud_server_dm.current_session,
+            self.cloud_server_dm.shared_data.this_device,
+            self.cloud_server_dm.shared_data.device_table,
+            self.cloud_server_dm.shared_data.this_person,
+            self.cloud_server_dm.shared_data.current_session,
         )
 
         # WHEN: Variables are loaded from the Storage
@@ -74,7 +76,7 @@ class TestStorage:
         # THEN: The variables loaded from the Storage should be the same with the variables modified in the RAM
         assert (
             updated_this_device.device_name
-            == self.cloud_server_dm.this_device.device_name
+            == self.cloud_server_dm.shared_data.this_device.device_name
         )
 
     def test_store_and_load_device_table(self) -> None:
@@ -87,18 +89,20 @@ class TestStorage:
         self.cloud_server_dm = device_manufacturer_server()
         simple_log(
             "debug",
-            f"Original Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}",
+            f"Original Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.shared_data.device_table)}",
         )
 
         # WHEN: Variables are modified in the RAM
         current_test_when_and_then_log()
-        self.cloud_server_dm.this_device.device_name = "another_new_device_name"
+        self.cloud_server_dm.shared_data.this_device.device_name = (
+            "another_new_device_name"
+        )
 
         test_request_1: dict = {
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        # u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        # u_ticket_json_1: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
         #     test_request_1
         # )
 
@@ -106,29 +110,29 @@ class TestStorage:
             "device_id": f"device_id_1",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        # u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
+        # u_ticket_json_2: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
         #     test_request_2
         # )
 
-        self.cloud_server_dm.device_table["device_id_1"] = OtherDevice(
+        self.cloud_server_dm.shared_data.device_table["device_id_1"] = OtherDevice(
             device_id="device_id_1",
             device_u_ticket="u_ticket_json_1",
         )
-        self.cloud_server_dm.device_table["device_id_2"] = OtherDevice(
+        self.cloud_server_dm.shared_data.device_table["device_id_2"] = OtherDevice(
             device_id="device_id_2",
             device_u_ticket="u_ticket_json_2",
         )
         simple_log(
             "debug",
-            f"Modified Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.device_table)}",
+            f"Modified Other Devices in RAM = {device_table_to_jsonstr(self.cloud_server_dm.shared_data.device_table)}",
         )
 
         # WHEN: Variables are stored in the Storage
         self.simple_storage.store_storage(
-            self.cloud_server_dm.this_device,
-            self.cloud_server_dm.device_table,
-            self.cloud_server_dm.this_person,
-            self.cloud_server_dm.current_session,
+            self.cloud_server_dm.shared_data.this_device,
+            self.cloud_server_dm.shared_data.device_table,
+            self.cloud_server_dm.shared_data.this_person,
+            self.cloud_server_dm.shared_data.current_session,
         )
 
         # WHEN: Variables are loaded from the Storage
@@ -149,11 +153,11 @@ class TestStorage:
         assert updated_device_table["device_id_1"].device_id == "device_id_1"
         assert updated_device_table["device_id_2"].device_id == "device_id_2"
         assert (
-            self.cloud_server_dm.device_table["device_id_1"].device_u_ticket
+            self.cloud_server_dm.shared_data.device_table["device_id_1"].device_u_ticket
             == "u_ticket_json_1"
         )
         assert (
-            self.cloud_server_dm.device_table["device_id_2"].device_u_ticket
+            self.cloud_server_dm.shared_data.device_table["device_id_2"].device_u_ticket
             == "u_ticket_json_2"
         )
 

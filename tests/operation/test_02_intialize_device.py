@@ -12,7 +12,7 @@ from tests.conftest import (
 from ureka_framework.logic.device_controller import (
     DeviceController,
 )
-import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
 import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -44,12 +44,12 @@ class TestIntializeDevice:
             device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
-        assert self.iot_device.this_device.is_initialized == False
-        assert self.iot_device.this_device.device_priv_key_str == None
-        assert self.iot_device.this_device.device_pub_key_str == None
-        assert self.iot_device.this_device.owner_pub_key_str == None
-        assert self.iot_device.this_person.person_priv_key_str == None
-        assert self.iot_device.this_person.person_pub_key_str == None
+        assert self.iot_device.shared_data.this_device.is_initialized == False
+        assert self.iot_device.shared_data.this_device.device_priv_key_str == None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str == None
+        assert self.iot_device.shared_data.this_device.owner_pub_key_str == None
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
         # WHEN:
         current_test_when_and_then_log()
@@ -58,25 +58,27 @@ class TestIntializeDevice:
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        self.cloud_server_dm.issuer_issue_u_ticket_to_herself(
+        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
+        self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+            id_for_initialization_u_ticket
+        )
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
-        assert self.iot_device.this_device.is_initialized == True
-        assert self.iot_device.this_device.device_priv_key_str != None
-        assert self.iot_device.this_device.device_pub_key_str != None
+        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.device_priv_key_str != None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str != None
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.cloud_server_dm.shared_data.this_person.person_pub_key_str
         )
-        assert self.iot_device.this_person.person_priv_key_str == None
-        assert self.iot_device.this_person.person_pub_key_str == None
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
     @pytest.mark.skip(reason="Not implemented Error Ticket")
     def test_apply_initialization_u_ticket_reintialized_failed_in_io_level(
@@ -97,13 +99,15 @@ class TestIntializeDevice:
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        self.cloud_server_dm.issuer_issue_u_ticket_to_herself(
+        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
-        self.cloud_server_dm.holder_apply_u_ticket(id_for_initialization_u_ticket)
+        self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+            id_for_initialization_u_ticket
+        )
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Failed to re-initialize DM's IoTD
@@ -120,12 +124,12 @@ class TestIntializeDevice:
             device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
-        assert self.iot_device.this_device.is_initialized == False
-        assert self.iot_device.this_device.device_priv_key_str == None
-        assert self.iot_device.this_device.device_pub_key_str == None
-        assert self.iot_device.this_device.owner_pub_key_str == None
-        assert self.iot_device.this_person.person_priv_key_str == None
-        assert self.iot_device.this_person.person_pub_key_str == None
+        assert self.iot_device.shared_data.this_device.is_initialized == False
+        assert self.iot_device.shared_data.this_device.device_priv_key_str == None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str == None
+        assert self.iot_device.shared_data.this_device.owner_pub_key_str == None
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
         # WHEN: DM's CS apply_initialization_u_ticket() on Uninitialized IoTD
         current_test_when_and_then_log()
@@ -133,23 +137,25 @@ class TestIntializeDevice:
         id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
+        result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Succeed to initialize DM's IoTD
         assert type(result) == Success
-        assert self.iot_device.this_device.is_initialized == True
-        assert self.iot_device.this_device.device_priv_key_str != None
-        assert self.iot_device.this_device.device_pub_key_str != None
+        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.device_priv_key_str != None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str != None
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.cloud_server_dm.shared_data.this_person.person_pub_key_str
         )
-        assert self.iot_device.this_person.person_priv_key_str == None
-        assert self.iot_device.this_person.person_pub_key_str == None
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
     @pytest.mark.skip(reason="Broken test")
     def test_apply_initialization_u_ticket_reintialized_failed(self) -> None:
@@ -166,12 +172,14 @@ class TestIntializeDevice:
         id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
         simple_log("debug", f"test_u_ticket = {test_u_ticket}")
-        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
+        result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Failed to re-initialize DM's IoTD
         assert type(result) == Failure
@@ -196,11 +204,13 @@ class TestIntializeDevice:
         id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        result = self.user_agent.verify_u_ticket_can_execute(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
+        result = self.user_agent.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: Failed to initialize UA
         assert type(result) == Failure
@@ -220,12 +230,12 @@ class TestIntializeDevice:
         self.iot_device.reboot_device()
 
         # THEN: Still is initialized IoTD
-        assert self.iot_device.this_device.is_initialized == True
-        assert self.iot_device.this_device.device_priv_key_str != None
-        assert self.iot_device.this_device.device_pub_key_str != None
+        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.device_priv_key_str != None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str != None
         assert (
-            self.iot_device.this_device.owner_pub_key_str
-            == self.cloud_server_dm.this_person.person_pub_key_str
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.cloud_server_dm.shared_data.this_person.person_pub_key_str
         )
-        assert self.iot_device.this_person.person_priv_key_str == None
-        assert self.iot_device.this_person.person_pub_key_str == None
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None

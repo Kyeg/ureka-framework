@@ -9,13 +9,13 @@ from tests.conftest import (
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
-from ureka_framework.model.message import u_ticket
-from ureka_framework.model.message.r_ticket import (
+from ureka_framework.model.message_model import u_ticket
+from ureka_framework.model.message_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
-from ureka_framework.model.message.u_ticket import (
+from ureka_framework.model.message_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
@@ -69,28 +69,29 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
-        json_str = this_device_to_jsonstr(self.cloud_server_dm.this_device)
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.shared_data.this_device}")
+        json_str = this_device_to_jsonstr(self.cloud_server_dm.shared_data.this_device)
         # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_device(json_str)
-        # simple_log("debug",f"device-befo = {self.cloud_server_dm.this_device}")
+        # simple_log("debug",f"device-befo = {self.cloud_server_dm.shared_data.this_device}")
         # simple_log("debug",f"device-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
         # simple_log("debug",
-        #     f"key-befo.str = {self.cloud_server_dm.this_device.device_pub_key_str}"
+        #     f"key-befo.str = {self.cloud_server_dm.shared_data.this_device.device_pub_key_str}"
         # )
         # simple_log("debug",f"key-aftr.str = {obj.device_pub_key_str}")
         assert (
-            self.cloud_server_dm.this_device.device_pub_key == obj.device_pub_key
+            self.cloud_server_dm.shared_data.this_device.device_pub_key
+            == obj.device_pub_key
         )  # but device_priv_key maybe not the same!?
         assert (
-            self.cloud_server_dm.this_device.device_pub_key_str
+            self.cloud_server_dm.shared_data.this_device.device_pub_key_str
             == obj.device_pub_key_str
         )
         assert (
-            self.cloud_server_dm.this_device.device_priv_key_str
+            self.cloud_server_dm.shared_data.this_device.device_priv_key_str
             == obj.device_priv_key_str
         )
 
@@ -102,28 +103,29 @@ class TestSerialization:
 
         # WHEN: Do some serialization/deserialization
         current_test_when_and_then_log()
-        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
-        json_str = this_person_to_jsonstr(self.cloud_server_dm.this_person)
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.shared_data.this_person}")
+        json_str = this_person_to_jsonstr(self.cloud_server_dm.shared_data.this_person)
         # simple_log("debug",f"json_str = {json_str}")
 
         obj = jsonstr_to_this_person(json_str)
-        # simple_log("debug",f"person-befo = {self.cloud_server_dm.this_person}")
+        # simple_log("debug",f"person-befo = {self.cloud_server_dm.shared_data.this_person}")
         # simple_log("debug",f"person-aftr = {obj}")
 
         # THEN: The result of serialization/deserialization should be the same
         # simple_log("debug",
-        #     f"key-befo.str = {self.cloud_server_dm.this_person.person_pub_key_str}"
+        #     f"key-befo.str = {self.cloud_server_dm.shared_data.this_person.person_pub_key_str}"
         # )
         # simple_log("debug",f"key-aftr.str = {obj.person_pub_key_str}")
         assert (
-            self.cloud_server_dm.this_person.person_pub_key == obj.person_pub_key
+            self.cloud_server_dm.shared_data.this_person.person_pub_key
+            == obj.person_pub_key
         )  # but device_priv_key maybe not the same!?
         assert (
-            self.cloud_server_dm.this_person.person_pub_key_str
+            self.cloud_server_dm.shared_data.this_person.person_pub_key_str
             == obj.person_pub_key_str
         )
         assert (
-            self.cloud_server_dm.this_person.person_priv_key_str
+            self.cloud_server_dm.shared_data.this_person.person_priv_key_str
             == obj.person_priv_key_str
         )
 
@@ -141,8 +143,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
-        u_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request
+        u_ticket_json_befo: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request)
         )
         # simple_log("debug",f"u_ticket_json_befo = {u_ticket_json_befo}")
 
@@ -169,8 +171,8 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_befo: str = self.cloud_server_dm._generate_xxx_r_ticket(
-            test_request
+        r_ticket_json_befo: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_r_ticket(test_request)
         )
         simple_log("debug", f"r_ticket_json_befo = {r_ticket_json_befo}")
 
@@ -262,7 +264,8 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         pub_key_str: str = key_to_str(
-            self.cloud_server_dm.this_device.device_pub_key, "ecc-public-key"
+            self.cloud_server_dm.shared_data.this_device.device_pub_key,
+            "ecc-public-key",
         )
         # simple_log("debug",f"pub_key_str = {pub_key_str}")
         pub_key_obj: ec.EllipticCurvePublicKey = str_to_key(
@@ -271,8 +274,13 @@ class TestSerialization:
         # simple_log("debug",f"pub_key_obj = {pub_key_obj}")
 
         # THEN: The result of serialization/deserialization should be the same
-        assert self.cloud_server_dm.this_device.device_pub_key_str == pub_key_str
-        assert self.cloud_server_dm.this_device.device_pub_key == pub_key_obj
+        assert (
+            self.cloud_server_dm.shared_data.this_device.device_pub_key_str
+            == pub_key_str
+        )
+        assert (
+            self.cloud_server_dm.shared_data.this_device.device_pub_key == pub_key_obj
+        )
 
     def test_key_serialization_failed(self) -> None:
         current_test_given_log()
@@ -285,12 +293,14 @@ class TestSerialization:
 
         with pytest.raises(RuntimeError) as key_to_str_error_info:
             pub_key_str: str = key_to_str(
-                self.cloud_server_dm.this_device.device_pub_key, "not-a-key-type"
+                self.cloud_server_dm.shared_data.this_device.device_pub_key,
+                "not-a-key-type",
             )
 
         with pytest.raises(RuntimeError) as str_to_key_error_info:
             pub_key_obj: ec.EllipticCurvePublicKey = str_to_key(
-                self.cloud_server_dm.this_device.device_pub_key_str, "not-a-key-type"
+                self.cloud_server_dm.shared_data.this_device.device_pub_key_str,
+                "not-a-key-type",
             )
 
         # THEN: Failed to serialize/deserialize
@@ -316,8 +326,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        u_ticket_json_1: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_1
+        u_ticket_json_1: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_1)
         )
         simple_log("debug", f"u_ticket_json_1 = {u_ticket_json_1}")
         u_ticket_obj_1: UTicket = jsonstr_to_u_ticket(u_ticket_json_1)
@@ -332,8 +342,8 @@ class TestSerialization:
             "device_id": f"device_id",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        u_ticket_json_2: str = self.cloud_server_dm._generate_xxx_u_ticket(
-            test_request_2
+        u_ticket_json_2: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_2)
         )
         simple_log("debug", f"u_ticket_json_2 = {u_ticket_json_2}")
         u_ticket_obj_2: UTicket = jsonstr_to_u_ticket(u_ticket_json_2)
@@ -363,7 +373,9 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_1: str = self.iot_device._generate_xxx_r_ticket(test_request_1)
+        r_ticket_json_1: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+            test_request_1
+        )
         simple_log("debug", f"r_ticket_json_1 = {r_ticket_json_1}")
         r_ticket_obj_1: RTicket = jsonstr_to_r_ticket(r_ticket_json_1)
         simple_log("debug", f"r_ticket_obj_1 = {r_ticket_obj_1}")
@@ -378,7 +390,9 @@ class TestSerialization:
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_2: str = self.iot_device._generate_xxx_r_ticket(test_request_2)
+        r_ticket_json_2: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
+            test_request_2
+        )
         simple_log("debug", f"r_ticket_json_2 = {r_ticket_json_2}")
         r_ticket_obj_2: RTicket = jsonstr_to_r_ticket(r_ticket_json_2)
         simple_log("debug", f"r_ticket_obj_2 = {r_ticket_obj_2}")

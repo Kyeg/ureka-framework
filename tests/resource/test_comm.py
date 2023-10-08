@@ -8,7 +8,7 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.logic.device_controller import DeviceController
-from ureka_framework.model.message import u_ticket
+from ureka_framework.model.message_model import u_ticket
 import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -49,14 +49,16 @@ class TestStorage:
         id_for_initialization_u_ticket = "no_id"
         test_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.this_person.person_pub_key_str}",
+            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        test_u_ticket: str = self.cloud_server_dm._generate_xxx_u_ticket(test_request)
-        self.cloud_server_dm._send_xxx_message(test_u_ticket)
+        test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
+            test_request
+        )
+        self.cloud_server_dm.msg_sender._send_xxx_message(test_u_ticket)
 
-        self.iot_device._recv_xxx_message()
-        result = self.iot_device.verify_u_ticket_can_execute(test_u_ticket)
+        self.iot_device.msg_receiver._recv_xxx_message()
+        result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)
 
         # THEN: The messages sent and received are the same
         assert (
@@ -67,4 +69,4 @@ class TestStorage:
 
         # THEN: The message is verified
         assert type(result) == Success
-        assert self.iot_device.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.is_initialized == True

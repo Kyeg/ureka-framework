@@ -12,7 +12,7 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
-import ureka_framework.model.message.u_ticket as u_ticket
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
 )
@@ -56,7 +56,7 @@ def test_script():
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     create_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.this_device.device_pub_key_str
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     resource_tree = dict_to_jsonstr(
         {
             "SAY-HELLO": "allow",
@@ -69,11 +69,11 @@ def test_script():
     )
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
-        "holder_id": f"{cloud_server_ep.this_person.person_pub_key_str}",
+        "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
-    user_agent_do.issuer_issue_u_ticket_to_holder(
+    user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
     wait_comm_completed(cloud_server_ep, user_agent_do)
@@ -83,7 +83,9 @@ def test_script():
     create_comm_connection(cloud_server_ep, iot_device)
     # generated_command = "HELLO"
     generated_command = input("\nEP's CS enter 1st command to DO's IoTD: ")
-    cloud_server_ep.holder_apply_u_ticket(owned_device_id, generated_command)
+    cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
+        owned_device_id, generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
     # WHEN:
@@ -91,18 +93,22 @@ def test_script():
 
     # WHEN: Holder: EP's CS forward the u_token
     create_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.this_device.device_pub_key_str
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-2"
     generated_command = input("\nEP's CS enter 2nd command to DO's IoTD: ")
-    cloud_server_ep.holder_send_cmd(device_id=owned_device_id, cmd=generated_command)
+    cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+        device_id=owned_device_id, cmd=generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
     # WHEN: Holder: EP's CS forward the u_token
     create_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.this_device.device_pub_key_str
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-3"
     generated_command = input("\nEP's CS enter 3rd command to DO's IoTD: ")
-    cloud_server_ep.holder_send_cmd(device_id=owned_device_id, cmd=generated_command)
+    cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+        device_id=owned_device_id, cmd=generated_command
+    )
     wait_comm_completed(cloud_server_ep, iot_device)
 
 
