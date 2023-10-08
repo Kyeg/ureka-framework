@@ -129,7 +129,7 @@ class TestSerialization:
             == obj.person_priv_key_str
         )
 
-    @pytest.mark.skip(reason="Broken test")
+    @pytest.mark.skip(reason="Miss device id")
     def test_u_ticket_serialization(self) -> None:
         current_test_given_log()
 
