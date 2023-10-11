@@ -68,7 +68,7 @@ def current_teardown_log() -> None:
 
 
 ######################################################
-# Helper Functions (Reusable Test Data)
+# Helper Functions
 ######################################################
 def create_comm_connection(end1: DeviceController, end2: DeviceController):
     end1.msg_receiver._connect(end2)
@@ -97,6 +97,9 @@ def wait_comm_completed(end1: DeviceController, end2: DeviceController):
     simple_log("info", "")
 
 
+######################################################
+# Helper Functions (Reusable Test Data)
+######################################################
 def device_manufacturer_server() -> DeviceController:
     # GIVEN: Initialized DM's CS
     cloud_server_dm = DeviceController(
@@ -106,17 +109,6 @@ def device_manufacturer_server() -> DeviceController:
     cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
 
     return cloud_server_dm
-
-
-def device_owner_agent() -> DeviceController:
-    # GIVEN: Initialized DM's CS
-    user_agent_do = DeviceController(
-        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
-        device_name="user_agent_do",
-    )
-    user_agent_do.executor._execute_one_time_intialize_agent_or_server()
-
-    return user_agent_do
 
 
 def device_manufacturer_server_and_her_device() -> (
@@ -148,6 +140,17 @@ def device_manufacturer_server_and_her_device() -> (
     wait_comm_completed(cloud_server_dm, iot_device)
 
     return (cloud_server_dm, iot_device)
+
+
+def device_owner_agent() -> DeviceController:
+    # GIVEN: Initialized DM's CS
+    user_agent_do = DeviceController(
+        device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
+        device_name="user_agent_do",
+    )
+    user_agent_do.executor._execute_one_time_intialize_agent_or_server()
+
+    return user_agent_do
 
 
 def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceController]:

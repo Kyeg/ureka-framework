@@ -129,7 +129,6 @@ class TestSerialization:
             == obj.person_priv_key_str
         )
 
-    # @pytest.mark.skip(reason="Miss device id")
     def test_u_ticket_serialization(self) -> None:
         current_test_given_log()
 
@@ -183,7 +182,7 @@ class TestSerialization:
         # THEN: The result of serialization/deserialization should be the same
         assert f"{u_ticket.TYPE_OWNERSHIP_UTICKET}" == r_ticket_obj.r_ticket_type
 
-    def test_json_serialization_failed(self) -> None:
+    def test_json_serialization_should_fail(self) -> None:
         current_test_given_log()
 
         # GIVEN: Not a valid json
@@ -235,7 +234,7 @@ class TestSerialization:
             == "NOT VALID JSON or VALID SCHEMA"
         )
 
-    def test_byte_serialization_failed(self) -> None:
+    def test_byte_serialization_should_fail(self) -> None:
         current_test_given_log()
 
         # GIVEN: Not some byte or string
@@ -289,7 +288,7 @@ class TestSerialization:
             self.cloud_server_dm.shared_data.this_device.device_pub_key == pub_key_obj
         )
 
-    def test_key_serialization_failed(self) -> None:
+    def test_key_serialization_should_fail(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS

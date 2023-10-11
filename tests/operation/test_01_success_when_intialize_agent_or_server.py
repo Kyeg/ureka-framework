@@ -1,21 +1,38 @@
+######################################################
+# Test Fixtures
+######################################################
 import pytest
 from tests.conftest import (
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+)
+from tests.conftest import (
+    create_comm_connection,
+    wait_comm_completed,
+)
+from tests.conftest import (
     device_manufacturer_server,
+    device_manufacturer_server_and_her_device,
+    device_owner_agent,
+    device_owner_agent_and_her_device,
+    enterprise_provider_server,
+    enterprise_provider_server_and_her_session,
+    attacker_server,
+    device_owner_agent_and_her_device_and_attacker,
 )
-from ureka_framework.logic.device_controller import (
-    DeviceController,
-)
-import ureka_framework.model.message_model.u_ticket as u_ticket
-import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
+######################################################
+# Import
+######################################################
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
 
-class TestIntializeAgentOrServer:
+
+class TestSuccessWhenIntializeAgentOrServer:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
@@ -58,5 +75,6 @@ class TestIntializeAgentOrServer:
         assert self.cloud_server_dm.shared_data.this_person.person_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_pub_key_str != None
 
-    # def test_success_when_reboot(self) -> None:
-    #     current_test_given_log()
+    @pytest.mark.skip(reason="Implemented but not tested")
+    def test_success_when_reboot(self) -> None:
+        current_test_given_log()

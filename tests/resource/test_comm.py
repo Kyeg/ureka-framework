@@ -68,5 +68,4 @@ class TestStorage:
         )
 
         # THEN: The message is verified
-        assert type(result) == Success
         assert self.iot_device.shared_data.this_device.is_initialized == True

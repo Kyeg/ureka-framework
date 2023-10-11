@@ -48,7 +48,7 @@ class TestCrypto:
         # THEN: The message can be verified
         assert result == True
 
-    def test_ecc_signature_failed(self) -> None:
+    def test_ecc_signature_should_fail(self) -> None:
         current_test_given_log()
 
         # GIVEN: Two pair of ECC keys
