@@ -99,7 +99,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: Succeed to allow EP's CS Limitedly Access DO's IoTD
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         # THEN: Still DO's IoTD
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
@@ -135,7 +135,7 @@ class TestSuccessWhenAccessDeviceByOthers:
     def test_success_when_open_private_session(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized EP's CS has Limitedly Access DO's IoTD
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
         (
             self.cloud_server_ep,
             self.iot_device,
@@ -216,6 +216,32 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
 
-    @pytest.mark.skip(reason="Implemented but not tested")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        (
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_session()
+
+        assert current_session_to_jsonstr(
+            self.iot_device.shared_data.current_session
+        ) == current_session_to_jsonstr(
+            self.cloud_server_ep.shared_data.current_session
+        )
+
+        # WHEN: Reboot DO's IoTD
+        current_test_when_and_then_log()
+        self.cloud_server_ep.reboot_device()
+        self.iot_device.reboot_device()
+
+        # THEN: The session is deleted (RAM-only)
+        assert (
+            current_session_to_jsonstr(self.cloud_server_ep.shared_data.current_session)
+            == "{}"
+        )
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == "{}"
+        )

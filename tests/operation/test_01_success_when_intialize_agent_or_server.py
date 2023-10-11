@@ -66,8 +66,6 @@ class TestSuccessWhenIntializeAgentOrServer:
         self.cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
-        # simple_log("debug",f"Successful result = {result.unwrap()}")
-        # assert type(result) == Success
         assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
@@ -75,6 +73,20 @@ class TestSuccessWhenIntializeAgentOrServer:
         assert self.cloud_server_dm.shared_data.this_person.person_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_pub_key_str != None
 
-    @pytest.mark.skip(reason="Implemented but not tested")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        self.cloud_server_dm = device_manufacturer_server()
+
+        # WHEN: Reboot DM's CS
+        current_test_when_and_then_log()
+        self.cloud_server_dm.reboot_device()
+
+        # THEN: Still be Initialized DM's CS
+        assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
+        assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
+        assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
+        assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None
+        assert self.cloud_server_dm.shared_data.this_person.person_priv_key_str != None
+        assert self.cloud_server_dm.shared_data.this_person.person_pub_key_str != None

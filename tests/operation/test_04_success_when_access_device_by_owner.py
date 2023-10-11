@@ -51,3 +51,4 @@ class TestSuccessWhenAccessDeviceByOwner:
     @pytest.mark.skip(reason="Implemented but not tested")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
+        current_test_when_and_then_log()

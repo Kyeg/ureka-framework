@@ -94,6 +94,26 @@ class TestSuccessWhenIntializeDevice:
         assert self.iot_device.shared_data.this_person.person_priv_key_str == None
         assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
-    @pytest.mark.skip(reason="Implemented but not tested")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DM's CS and DM's IoTD
+        (
+            self.cloud_server_dm,
+            self.iot_device,
+        ) = device_manufacturer_server_and_her_device()
+
+        # WHEN: Reboot DM's IoTD
+        current_test_when_and_then_log()
+        self.iot_device.reboot_device()
+
+        # THEN: Still be Initialized DM's IoTD
+        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.device_priv_key_str != None
+        assert self.iot_device.shared_data.this_device.device_pub_key_str != None
+        assert (
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.cloud_server_dm.shared_data.this_person.person_pub_key_str
+        )
+        assert self.iot_device.shared_data.this_person.person_priv_key_str == None
+        assert self.iot_device.shared_data.this_person.person_pub_key_str == None
