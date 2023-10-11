@@ -68,4 +68,4 @@ class TestStorage:
         )
 
         # THEN: The message is verified
-        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 1

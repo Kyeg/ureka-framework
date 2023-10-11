@@ -45,7 +45,6 @@ class ThisDevice:
 
     # Ticket Order
     ticket_order: None | int = None
-    is_initialized: None | bool = False
 
     # Generate Device Key after Intialization
     device_priv_key: None | ec.EllipticCurvePrivateKey = None
@@ -105,7 +104,6 @@ def _this_device_to_dict(this_device_obj: ThisDevice) -> Dict[str, str]:
     this_device_dict["device_name"] = this_device_obj.device_name
     this_device_dict["has_device_type"] = this_device_obj.has_device_type
     this_device_dict["ticket_order"] = this_device_obj.ticket_order
-    this_device_dict["is_initialized"] = this_device_obj.is_initialized
 
     # Not JSON Serializable
     if this_device_obj.device_priv_key == None:

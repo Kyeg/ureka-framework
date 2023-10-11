@@ -54,7 +54,7 @@ class TestSuccessWhenIntializeAgentOrServer:
             device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
         )
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == False
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 0
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str == None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str == None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str == None
@@ -66,7 +66,7 @@ class TestSuccessWhenIntializeAgentOrServer:
         self.cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 1
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None
@@ -84,7 +84,7 @@ class TestSuccessWhenIntializeAgentOrServer:
         self.cloud_server_dm.reboot_device()
 
         # THEN: Still be Initialized DM's CS
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 1
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None

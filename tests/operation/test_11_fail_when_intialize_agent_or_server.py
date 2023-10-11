@@ -44,9 +44,23 @@ class TestFailWhenInitializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Implemented but not tested")
+    # @pytest.mark.skip(reason="Implemented but not tested")
     def test_fail_when_re_initialize_agent_or_server(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DM's CS
+        self.cloud_server_dm = device_manufacturer_server()
+
+        # WHEN: DM re-apply execute_one_time_intialize_agent_or_server() on Initialized CS
+        current_test_when_and_then_log()
+        with pytest.raises(RuntimeError) as error_info:
+            self.cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
+
+        # THEN: Fail to re-initialize CS
+        assert (
+            str(error_info.value)
+            == "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+        )
 
     @pytest.mark.skip(reason="Implemented but not tested")
     def test_fail_when_initialize_agent_or_server_by_intializing_device(self) -> None:

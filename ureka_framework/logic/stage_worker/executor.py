@@ -54,7 +54,6 @@ class Executor:
         ######################################################
         # [STAGE: (O)]
         self._execute_update_ticket_order("has-type")
-        self.shared_data.this_device.is_initialized = False
 
         ######################################################
         # Initial State
@@ -107,13 +106,6 @@ class Executor:
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
-        if (
-            self.shared_data.this_device.is_initialized
-        ):  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
-
         ######################################################
         # Initialize Device Id
         ######################################################
@@ -121,7 +113,6 @@ class Executor:
         (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
-        self.shared_data.this_device.is_initialized = True
         self.shared_data.this_device.device_priv_key = device_priv_key
         self.shared_data.this_device.device_pub_key = device_pub_key
 
@@ -227,13 +218,6 @@ class Executor:
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
-        if (
-            self.shared_data.this_device.is_initialized
-        ):  # pragma: no cover -> Never reach here: FAILURE: (VR), because of verify_ticket_order()
-            failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
-
         ######################################################
         # Initialize Device Id
         ######################################################
@@ -241,7 +225,6 @@ class Executor:
         (device_priv_key, device_pub_key) = ecc.generate_key_pair()
 
         # RAM
-        self.shared_data.this_device.is_initialized = True
         self.shared_data.this_device.device_priv_key = device_priv_key
         self.shared_data.this_device.device_pub_key = device_pub_key
 

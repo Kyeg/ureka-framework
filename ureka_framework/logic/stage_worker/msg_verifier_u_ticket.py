@@ -131,6 +131,7 @@ class UTicketVerifier:
                 simple_log("info", success_msg)
                 return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
+                failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         else:

@@ -58,7 +58,7 @@ class TestSuccessWhenIntializeDevice:
             device_type=this_device.IOT_DEVICE,
             device_name="iot_device",
         )
-        assert self.iot_device.shared_data.this_device.is_initialized == False
+        assert self.iot_device.shared_data.this_device.ticket_order == 0
         assert self.iot_device.shared_data.this_device.device_priv_key_str == None
         assert self.iot_device.shared_data.this_device.device_pub_key_str == None
         assert self.iot_device.shared_data.this_device.owner_pub_key_str == None
@@ -84,7 +84,7 @@ class TestSuccessWhenIntializeDevice:
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
-        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.ticket_order == 1
         assert self.iot_device.shared_data.this_device.device_priv_key_str != None
         assert self.iot_device.shared_data.this_device.device_pub_key_str != None
         assert (
@@ -108,7 +108,7 @@ class TestSuccessWhenIntializeDevice:
         self.iot_device.reboot_device()
 
         # THEN: Still be Initialized DM's IoTD
-        assert self.iot_device.shared_data.this_device.is_initialized == True
+        assert self.iot_device.shared_data.this_device.ticket_order == 1
         assert self.iot_device.shared_data.this_device.device_priv_key_str != None
         assert self.iot_device.shared_data.this_device.device_pub_key_str != None
         assert (
