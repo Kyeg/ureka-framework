@@ -67,7 +67,7 @@ class TestSuccessWhenIntializeDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
+        # WHEN: DM's CS apply the intialization_u_ticket to Uninitialized IoTD
         create_comm_connection(self.cloud_server_dm, self.iot_device)
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {

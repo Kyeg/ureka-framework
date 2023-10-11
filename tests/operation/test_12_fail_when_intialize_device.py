@@ -32,6 +32,8 @@ from typing import Iterator
 # Import
 ######################################################
 import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
 
 
 class TestFailWhenInitializeDevice:
@@ -60,7 +62,7 @@ class TestFailWhenInitializeDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: DM's CS re-generate & re-send the intialization_u_ticket to Initialized IoTD
+        # WHEN: DM's CS re-apply the intialization_u_ticket to Initialized IoTD
         create_comm_connection(self.cloud_server_dm, self.iot_device)
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
@@ -84,6 +86,27 @@ class TestFailWhenInitializeDevice:
                     == "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
                 )
 
-    @pytest.mark.skip(reason="Implemented but not tested")
+    # @pytest.mark.skip(reason="Implemented but not tested")
     def test_fail_when_initialize_device_by_intializing_agent_or_server(self) -> None:
         current_test_given_log()
+
+        current_test_when_and_then_log()
+
+        # GIVEN: Uninitialized IoTD
+        self.iot_device = DeviceController(
+            device_type=this_device.IOT_DEVICE,
+            device_name="iot_device",
+        )
+        assert self.iot_device.shared_data.this_device.ticket_order == 0
+
+        # WHEN:
+        current_test_when_and_then_log()
+        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Uninitialized IoTD
+        with pytest.raises(RuntimeError) as error_info:
+            self.iot_device.executor._execute_one_time_intialize_agent_or_server()
+
+        # THEN: Fail to initialize IoTD
+        assert (
+            str(error_info.value)
+            == "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+        )

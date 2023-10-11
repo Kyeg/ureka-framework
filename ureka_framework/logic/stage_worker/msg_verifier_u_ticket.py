@@ -127,11 +127,18 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            if u_ticket_in.ticket_order == 0 and self.this_device.ticket_order == 0:
-                simple_log("info", success_msg)
-                return u_ticket_in
-            else:  # pragma: no cover -> Weird U-Ticket
+            if self.this_device.ticket_order == 0:
+                if u_ticket_in.ticket_order == 0:
+                    simple_log("info", success_msg)
+                    return u_ticket_in
+                else:  # pragma: no cover -> Weird U-Ticket
+                    simple_log("error", failure_msg)
+                    raise RuntimeError(f"{failure_msg}")
+            elif self.this_device.ticket_order > 0:
                 failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                simple_log("error", failure_msg)
+                raise RuntimeError(f"{failure_msg}")
+            else:  # pragma: no cover -> Order should never be negative
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         else:
