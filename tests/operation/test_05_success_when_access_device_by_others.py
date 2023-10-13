@@ -123,7 +123,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
+            == generated_command
             != None
         )
         assert (
@@ -161,7 +161,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         # THEN: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
+            == generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
@@ -185,7 +185,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         # THEN: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
+            == generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data

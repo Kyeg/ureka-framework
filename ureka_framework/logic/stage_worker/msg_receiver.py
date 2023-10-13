@@ -14,6 +14,7 @@ import threading
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 from ureka_framework.logic.stage_worker.executor import Executor
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTicket

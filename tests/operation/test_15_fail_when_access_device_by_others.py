@@ -65,7 +65,7 @@ class TestFailWhenAccessDeviceByOthers:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: Issuer: ATK's CS forge an access_u_ticket to herself
+        # WHEN: Issuer: ATK's CS forge an access_u_ticket to herself without issuer's signature
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
@@ -100,7 +100,7 @@ class TestFailWhenAccessDeviceByOthers:
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            != self.cloud_server_atk.shared_data.current_session.plaintext_cmd
+            != generated_command
         )
 
     def test_fail_when_apply_wrong_holder_signature(self) -> None:
@@ -159,9 +159,46 @@ class TestFailWhenAccessDeviceByOthers:
             != self.cloud_server_atk.shared_data.current_session.plaintext_cmd
         )
 
-    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_hmac(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        (
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_session()
+
+        # GIVEN: Initialized ATK's CS
+        self.cloud_server_atk = attacker_server()
+
+        # WHEN:
+        current_test_when_and_then_log()
+
+        # WHEN: Holder: ATK's CS attempt to forward an u_token without sessoion_key
+        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
+            device_id=target_device_id,
+            device_u_ticket="no legal u_token",
+            ticket_order=2,
+        )
+        self.cloud_server_atk.shared_data.current_session.current_device_id = (
+            target_device_id
+        )
+        self.cloud_server_atk.shared_data.current_session.current_session_key_str = (
+            "KWOie9Ki5majRVnurJzrd7V4cT0S71Wu_jp8ih27gXk="
+        )
+        generated_command = "HELLO-2"
+        self.cloud_server_atk.flow_issue_u_token.holder_send_cmd(
+            device_id=target_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+
+        # THEN: ATK's CS cannot share a private session with DO's IoTD
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            != generated_command
+        )
 
     @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_reuse_the_same_uticket(self) -> None:

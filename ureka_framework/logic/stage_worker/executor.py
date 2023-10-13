@@ -578,10 +578,10 @@ class Executor:
 
             simple_log("info", "-> SUCCESS: verify_token_through_hmac")
 
-        except (
-            InvalidTag
-        ):  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_hmac, test_fail_when_reuse_the_same_utoken
-            simple_log("info", "-> FAILURE: verify_token_through_hmac")
+        except InvalidTag:  # TO-DO: test_fail_when_reuse_the_same_utoken
+            failure_msg = f"-> FAILURE: VERIFY_IV_AND_HMAC"
+            simple_log("error", failure_msg)
+            raise RuntimeError(failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

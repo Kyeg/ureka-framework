@@ -10,6 +10,7 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Crypto)
 from ureka_framework.resource.crypto.serialization_util import base64str_backto_byte
+from cryptography.exceptions import InvalidTag
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
