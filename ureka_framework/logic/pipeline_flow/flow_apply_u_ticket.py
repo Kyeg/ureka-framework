@@ -126,8 +126,11 @@ class FlowApplyUTicket:
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
+        except RuntimeError as error:
             result_message = f"{error}"
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (device)")
+            self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

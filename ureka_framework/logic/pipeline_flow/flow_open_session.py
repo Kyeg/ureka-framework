@@ -86,17 +86,19 @@ class FlowOpenSession:
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+            # [STAGE: (G)(S)]
+            simple_log("debug", f"result_message = {result_message}")
+            self._holder_send_cr_ke_2(result_message)
+
+        except RuntimeError as error:
             result_message = f"{error}"
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+            self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
-
-        finally:
-            # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._holder_send_cr_ke_2(result_message)
 
     def _holder_send_cr_ke_2(self, result_message: str) -> None:
         try:
@@ -142,17 +144,16 @@ class FlowOpenSession:
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
+            # [STAGE: (G)(S)]
+            simple_log("debug", f"result_message = {result_message}")
+            self._device_send_cr_ke_3(result_message)
+
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
             result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
-
-        finally:
-            # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._device_send_cr_ke_3(result_message)
 
     def _device_send_cr_ke_3(self, result_message: str) -> None:
         try:

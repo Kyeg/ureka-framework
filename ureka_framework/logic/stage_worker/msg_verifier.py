@@ -102,7 +102,7 @@ class MsgVerifier:
             u_ticket_in = u_ticket_verifier.verify_task_scope(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_ps(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
+        except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -128,6 +128,8 @@ class MsgVerifier:
                 current_session=self.shared_data.current_session,
             )
 
+            r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
+
             # r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
             # r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
@@ -138,7 +140,7 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_ticket_order(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_audit_start(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_audit_end(r_ticket_in)
-            r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
+            # r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)

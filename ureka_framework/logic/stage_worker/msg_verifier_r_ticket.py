@@ -250,7 +250,7 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RESULT"
         failure_msg = f"-> FAILURE: VERIFY_RESULT"
 
-        if r_ticket_in.result != None:
+        if "Success" in r_ticket_in.result:
             simple_log("info", success_msg)
             return r_ticket_in
         else:  # pragma: no cover -> Weird R-Ticket
