@@ -63,7 +63,7 @@ class MsgReceiver:
         receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
         receiver_thread.start()
 
-    def _recv_xxx_message(self) -> str:
+    def _recv_xxx_message(self):
         while True:
             try:
                 # [STAGE: (R)]
