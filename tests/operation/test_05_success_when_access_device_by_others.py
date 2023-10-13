@@ -109,22 +109,27 @@ class TestSuccessWhenAccessDeviceByOthers:
         assert (
             self.iot_device.shared_data.current_session.current_holder_id
             == self.cloud_server_ep.shared_data.current_session.current_holder_id
+            != None
         )
         assert (
             self.iot_device.shared_data.current_session.current_task_scope
             == self.cloud_server_ep.shared_data.current_session.current_task_scope
+            != None
         )
         assert (
             self.iot_device.shared_data.current_session.current_session_key_str
             == self.cloud_server_ep.shared_data.current_session.current_session_key_str
+            != None
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == self.cloud_server_ep.shared_data.current_session.plaintext_cmd
+            != None
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
             == self.cloud_server_ep.shared_data.current_session.plaintext_data
+            != None
         )
         assert current_session_to_jsonstr(
             self.iot_device.shared_data.current_session

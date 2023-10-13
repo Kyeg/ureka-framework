@@ -144,7 +144,7 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+        except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

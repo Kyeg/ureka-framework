@@ -386,7 +386,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_holder_signature
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:

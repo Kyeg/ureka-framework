@@ -255,7 +255,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_issuer_signature
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()

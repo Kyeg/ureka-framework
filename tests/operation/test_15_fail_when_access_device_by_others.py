@@ -29,6 +29,7 @@ from typing import Iterator
 # Import
 ######################################################
 import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
 
@@ -87,7 +88,7 @@ class TestFailWhenAccessDeviceByOthers:
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: Fail to allow ATK's CS to limitedly access DO's IoTD
+        # THEN: Fail to allow ATK's CS to limitedly access DO's IoTD (wrong issuer signature)
         # THEN: Still DO's IoTD
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
@@ -95,13 +96,68 @@ class TestFailWhenAccessDeviceByOthers:
         )
         # THEN: ATK's CS cannot share a private session with DO's IoTD
         assert (
-            self.iot_device.shared_data.current_session.current_holder_id
-            != self.cloud_server_atk.shared_data.current_session.current_holder_id
+            self.iot_device.shared_data.current_session.current_session_key_str == None
+        )
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            != self.cloud_server_atk.shared_data.current_session.plaintext_cmd
         )
 
-    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_holder_signature(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # GIVEN: Initialized EP's CS
+        self.cloud_server_ep = enterprise_provider_server()
+
+        # GIVEN: Initialized ATK's CS
+        self.cloud_server_atk = attacker_server()
+
+        # WHEN:
+        current_test_when_and_then_log()
+
+        # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS,
+        #       but ATK's CS intercept the u_ticket & pretend to be EP's CS
+        create_comm_connection(self.user_agent_do, self.cloud_server_atk)
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        generated_request: dict = {
+            "device_id": f"{owned_device_id}",
+            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
+            "task_scope": f"not important",
+        }
+        self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
+            device_id=owned_device_id, arbitrary_dict=generated_request
+        )
+        wait_comm_completed(self.cloud_server_atk, self.user_agent_do)
+
+        # WHEN: Holder: ATK's CS forward the access_u_ticket
+        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        generated_command = "HELLO"
+        self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
+            owned_device_id, generated_command
+        )
+        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+
+        # THEN: Fail to allow ATK's CS to limitedly access DO's IoTD (wrong holder signature)
+        # THEN: Still DO's IoTD
+        assert (
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
+        )
+        # THEN: ATK's CS cannot share a private session with DO's IoTD
+        assert (
+            self.iot_device.shared_data.current_session.current_session_key_str == None
+        )
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            != self.cloud_server_atk.shared_data.current_session.plaintext_cmd
+        )
 
     @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_hmac(self) -> None:
