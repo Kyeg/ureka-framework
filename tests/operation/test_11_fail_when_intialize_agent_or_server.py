@@ -65,37 +65,7 @@ class TestFailWhenInitializeAgentOrServer:
             == "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
         )
 
-    @pytest.mark.skip(
-        reason="Not Implemented: Agent not only can receive U-Ticket, but also can execute U-Ticket"
-    )  # TODO
+    @pytest.mark.skip(reason="TODO: Access Agent")
     def test_fail_when_initialize_agent_or_server_by_intializing_device(self) -> None:
         current_test_given_log()
-
-        # GIVEN: Initialized DM's CS
-        self.cloud_server_dm = device_manufacturer_server()
-
-        # GIVEN: Uninitialized CS
-        self.cloud_server_ep = DeviceController(
-            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="cloud_server_ep",
-        )
-
-        # WHEN:
         current_test_when_and_then_log()
-        # WHEN: DM apply the intialization_u_ticket to Uninitialized CS
-        create_comm_connection(self.cloud_server_dm, self.cloud_server_ep)
-        id_for_initialization_u_ticket = "no_id"
-        generated_request: dict = {
-            "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{self.cloud_server_dm.shared_data.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-        }
-        self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-            device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
-        )
-        self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
-            id_for_initialization_u_ticket
-        )
-        wait_comm_completed(self.cloud_server_dm, self.cloud_server_ep)
-
-        # THEN: Fail to initialize CS

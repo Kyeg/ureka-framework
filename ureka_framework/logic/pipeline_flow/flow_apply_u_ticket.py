@@ -236,7 +236,7 @@ class FlowApplyUTicket:
 
                 simple_log("debug", f"result_message = {result_message}")
 
-            else:  # pragma: no cover -> TODO: Auditted by Revocation UTicket
+            else:  # pragma: no cover -> TODO: Revocation UTicket
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 

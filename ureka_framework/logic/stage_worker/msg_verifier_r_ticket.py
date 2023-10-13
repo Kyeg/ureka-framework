@@ -231,10 +231,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_AUDIT_END"
         failure_msg = f"-> FAILURE: VERIFY_AUDIT_END"
 
-        # TODO: Auditted by:
+        # Auditted by:
         #   Per-Use
         #   TXend UToken
-        #   Revocation UTicket
+        #   TODO: Revocation UTicket
         if r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
             if r_ticket_in.audit_end == "TX_END":
                 simple_log("info", success_msg)
@@ -386,7 +386,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_holder_signature
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:

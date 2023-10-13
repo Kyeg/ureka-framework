@@ -578,7 +578,9 @@ class Executor:
 
             simple_log("info", "-> SUCCESS: verify_token_through_hmac")
 
-        except InvalidTag:  # pragma: no cover -> TODO: Attack
+        except (
+            InvalidTag
+        ):  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_hmac, test_fail_when_reuse_the_same_utoken
             simple_log("info", "-> FAILURE: verify_token_through_hmac")
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -651,7 +653,6 @@ class Executor:
         if updating_case == "has-type":
             self.shared_data.this_device.ticket_order = 0
         elif updating_case == "agent-initialization":
-            # TODO: New way for _execute_one_time_intialize_agent_or_server()
             self.shared_data.this_device.ticket_order = (
                 self.shared_data.this_device.ticket_order + 1
             )

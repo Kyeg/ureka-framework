@@ -61,43 +61,43 @@ class TestFailWhenAccessDeviceByOthers:
     ######################################################
     # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
     ######################################################
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_issuer_signature(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_holder_signature(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_apply_wrong_hmac(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_reuse_the_same_uticket(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_reuse_the_same_utoken(self) -> None:
         current_test_given_log()
 
     ######################################################
     # (R) Repudiation
     ######################################################
-    @pytest.mark.skip(reason="Should be tested")
+    @pytest.mark.skip(reason="TODO: More complete Tx")
     def test_fail_when_double_issuing_or_double_spending(self) -> None:
         current_test_given_log()
 
     ######################################################
     # (I) Information Disclosure
     ######################################################
-    @pytest.mark.skip(reason="Not sure how to tested")
+    @pytest.mark.skip(reason="TODO: Not sure how to test")
     def test_fail_when_eavesdropping(self) -> None:
         current_test_given_log()
 
     ######################################################
     # (D) Denial of Service
     ######################################################
-    @pytest.mark.skip(reason="Not implemented yet")
+    @pytest.mark.skip(reason="TODO: Not implement yet")
     def test_fail_when_flooding(self) -> None:
         current_test_given_log()

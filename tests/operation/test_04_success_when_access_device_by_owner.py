@@ -44,11 +44,12 @@ class TestSuccessWhenAccessDeviceByOwner:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Not implemented yet")
+    @pytest.mark.skip(reason="TODO: Self-Access")
     def test_success_when_apply_self_access_u_ticket(self) -> None:
         current_test_given_log()
+        current_test_when_and_then_log()
 
-    @pytest.mark.skip(reason="Implemented but not tested")
+    @pytest.mark.skip(reason="TODO: Self-Access")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
         current_test_when_and_then_log()

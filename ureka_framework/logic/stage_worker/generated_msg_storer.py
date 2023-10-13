@@ -37,7 +37,8 @@ class GeneratedMsgStorer:
                     device_id=id_for_initialization_u_ticket,
                     device_u_ticket=generated_u_ticket_json,
                 )
-            # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
+            # TODO: RTN
+            # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)

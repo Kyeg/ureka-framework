@@ -47,7 +47,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_success_when_apply_access_u_ticket(self) -> None:
+    def test_success_when_apply_access_u_ticket_on_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -132,7 +132,7 @@ class TestSuccessWhenAccessDeviceByOthers:
             self.cloud_server_ep.shared_data.current_session
         )
 
-    def test_success_when_open_private_session(self) -> None:
+    def test_success_when_open_private_session_on_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
@@ -216,7 +216,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
 
-    def test_success_when_reboot(self) -> None:
+    def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
@@ -245,3 +245,18 @@ class TestSuccessWhenAccessDeviceByOthers:
             current_session_to_jsonstr(self.iot_device.shared_data.current_session)
             == "{}"
         )
+
+    @pytest.mark.skip(reason="TODO: Access Agent")
+    def test_success_when_apply_access_u_ticket_on_agent(self) -> None:
+        current_test_given_log()
+        current_test_when_and_then_log()
+
+    @pytest.mark.skip(reason="TODO: Access Agent")
+    def test_success_when_open_private_session_on_agent(self) -> None:
+        current_test_given_log()
+        current_test_when_and_then_log()
+
+    @pytest.mark.skip(reason="TODO: Access Agent")
+    def test_success_when_reboot_agent(self) -> None:
+        current_test_given_log()
+        current_test_when_and_then_log()

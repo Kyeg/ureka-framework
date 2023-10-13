@@ -145,7 +145,7 @@ class UTicketVerifier:
             if u_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> Weird U-Ticket
+            else:  # pragma: no cover -> TO-DO: test_fail_when_reuse_the_same_uticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
 
@@ -246,22 +246,16 @@ class UTicketVerifier:
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)
             return u_ticket_in
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TODO: Attack
-                simple_log("error", f"{failure_msg}")
-                raise RuntimeError(f"{failure_msg}")
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            if self._verify_issuer_signature_on_u_ticket(
-                u_ticket_in, self.this_device.owner_pub_key
-            ):
-                simple_log("info", success_msg)
-                return u_ticket_in
-            else:  # pragma: no cover -> TODO: Attack
+            else:  # pragma: no cover -> TO-DO: test_fail_when_apply_wrong_issuer_signature
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
