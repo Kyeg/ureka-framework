@@ -196,7 +196,7 @@ def enterprise_provider_server() -> DeviceController:
 
 
 def enterprise_provider_server_and_her_session() -> (
-    Tuple[DeviceController, DeviceController]
+    Tuple[DeviceController, DeviceController, DeviceController]
 ):
     # GIVEN: Initialized DO's UA and DO's IoTD
     (
@@ -244,7 +244,7 @@ def enterprise_provider_server_and_her_session() -> (
     )
     wait_comm_completed(cloud_server_ep, iot_device)
 
-    return (cloud_server_ep, iot_device)
+    return (user_agent_do, cloud_server_ep, iot_device)
 
 
 def attacker_server() -> DeviceController:

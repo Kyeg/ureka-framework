@@ -132,7 +132,8 @@ class FlowIssueUToken:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                pass
+                # [STAGE: (C)]
+                self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
