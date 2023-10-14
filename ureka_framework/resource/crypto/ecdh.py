@@ -123,12 +123,15 @@ def cbc_decrypt(ciphertext: bytes, key: bytes, iv: bytes) -> bytes:
 #       In ureka protocol, we assume all command & data are authenticated & encrypted,
 #           so associated_plaintext can be set as None.
 ######################################################
-def gcm_encrypt(
-    plaintext: bytes, associated_plaintext: bytes, key: bytes
-) -> Tuple[bytes, bytes, bytes]:
+def gcm_gen_iv() -> bytes:
     # Generate a random 96-bit IV.
     iv = generate_random_byte(12)
+    return iv
 
+
+def gcm_encrypt(
+    plaintext: bytes, associated_plaintext: bytes, key: bytes, iv: bytes = None
+) -> Tuple[bytes, bytes, bytes]:
     # Construct an AES-GCM Cipher object with the given key and a
     # randomly generated IV.
     encryptor = Cipher(
@@ -143,7 +146,7 @@ def gcm_encrypt(
     # GCM does not require padding.
     ciphertext = encryptor.update(plaintext) + encryptor.finalize()
 
-    return (ciphertext, encryptor.tag, iv)
+    return (ciphertext, encryptor.tag)
 
 
 ######################################################

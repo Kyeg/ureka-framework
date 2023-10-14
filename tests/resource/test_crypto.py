@@ -148,8 +148,10 @@ class TestCrypto:
             "debug",
             "associated_plaintext: " + byte_backto_str(associated_plaintext),
         )
-        (ciphertext, gcm_authentication_tag, shared_iv) = ecdh.gcm_encrypt(
-            plaintext, associated_plaintext, session_key1
+
+        shared_iv = ecdh.gcm_gen_iv()
+        (ciphertext, gcm_authentication_tag) = ecdh.gcm_encrypt(
+            plaintext, associated_plaintext, session_key1, shared_iv
         )
         simple_log("debug", "ciphertext: " + byte_to_base64str(ciphertext))
         simple_log(
@@ -199,8 +201,9 @@ class TestCrypto:
         simple_log("debug", with_wrong_tag)
 
         # WHEN: Message Encryption (with the same plaintext)
-        (ciphertext2, gcm_authentication_tag2, shared_iv2) = ecdh.gcm_encrypt(
-            plaintext, associated_plaintext, session_key1
+        shared_iv2 = ecdh.gcm_gen_iv()
+        (ciphertext2, gcm_authentication_tag2) = ecdh.gcm_encrypt(
+            plaintext, associated_plaintext, session_key1, shared_iv2
         )
         simple_log("debug", "ciphertext2: " + byte_to_base64str(ciphertext2))
         simple_log(
