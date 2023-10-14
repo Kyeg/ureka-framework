@@ -173,8 +173,12 @@ class TestFailWhenAccessDeviceByOthers:
             target_device_id
         )
         self.cloud_server_atk.shared_data.current_session.current_session_key_str = (
-            "KWOie9Ki5majRVnurJzrd7V4cT0S71Wu_jp8ih27gXk="
+            "TkVqlRZLmNoBwaso0I04jwMFPEIT0kQu1hJZWK9S90E="
         )
+        self.cloud_server_atk.shared_data.current_session.iv_cmd = (
+            self.cloud_server_ep.shared_data.current_session.iv_cmd
+        )
+
         generated_command = "HELLO-2"
         self.cloud_server_atk.flow_issue_u_token.holder_send_cmd(
             device_id=target_device_id, cmd=generated_command
@@ -273,7 +277,8 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS can reuse the generated_command with DO's IoTD (attack success)
-        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "FAILURE" in self.iot_device.shared_data.result_message
 
     ######################################################
     # (R) Repudiation

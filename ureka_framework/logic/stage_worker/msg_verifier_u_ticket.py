@@ -216,10 +216,10 @@ class UTicketVerifier:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             if (
-                u_ticket_in.associated_plaintext != None
-                and u_ticket_in.iv != None
-                and u_ticket_in.ciphertext != None
-                and u_ticket_in.gcm_authentication_tag != None
+                u_ticket_in.associated_plaintext_cmd != None
+                and u_ticket_in.ciphertext_cmd != None
+                and u_ticket_in.iv_data != None
+                and u_ticket_in.gcm_authentication_tag_cmd != None
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in

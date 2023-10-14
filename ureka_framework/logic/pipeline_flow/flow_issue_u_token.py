@@ -65,12 +65,12 @@ class FlowIssueUToken:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
-                # Update Session: PS
+                # Update Session: PS-Cmd
                 self.shared_data.current_session.plaintext_cmd = cmd
                 self.shared_data.current_session.associated_plaintext_cmd = (
                     "additional unencrypted cmd"
                 )
-                # Message Encryption (str + key byte)
+                # Message Encryption
                 self.executor._execute_cmd_encryption_and_gen_next_iv(
                     base64str_backto_byte(
                         self.shared_data.current_session.current_session_key_str
@@ -92,10 +92,10 @@ class FlowIssueUToken:
                 generated_request: dict = {
                     "device_id": f"{self.shared_data.current_session.current_device_id}",
                     "u_ticket_type": f"{u_ticket_type}",
-                    "associated_plaintext": f"{self.shared_data.current_session.associated_plaintext_cmd}",
-                    "iv": f"{self.shared_data.current_session.iv_cmd}",
-                    "ciphertext": f"{self.shared_data.current_session.ciphertext_cmd}",
-                    "gcm_authentication_tag": f"{self.shared_data.current_session.gcm_authentication_tag_cmd}",
+                    "associated_plaintext_cmd": f"{self.shared_data.current_session.associated_plaintext_cmd}",
+                    "ciphertext_cmd": f"{self.shared_data.current_session.ciphertext_cmd}",
+                    "gcm_authentication_tag_cmd": f"{self.shared_data.current_session.gcm_authentication_tag_cmd}",
+                    "iv_data": f"{self.shared_data.current_session.iv_data}",
                 }
                 generated_u_ticket_json: str = (
                     self.msg_generator._generate_xxx_u_ticket(generated_request)
@@ -170,9 +170,9 @@ class FlowIssueUToken:
                 "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                 "result": f"{result_message}",
                 "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
-                "iv_data": f"{self.shared_data.current_session.iv_data}",
                 "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
                 "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
+                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
             }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 generated_request

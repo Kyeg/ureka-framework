@@ -174,17 +174,18 @@ class Executor:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # [STAGE: (E)]
-            # Update Session: PS
+            # Update Session: PS-Cmd
             self._execute_cmd_decryption(
-                associated_plaintext=u_ticket_in.associated_plaintext,
-                iv=u_ticket_in.iv,
-                ciphertext=u_ticket_in.ciphertext,
-                gcm_authentication_tag=u_ticket_in.gcm_authentication_tag,
+                associated_plaintext=u_ticket_in.associated_plaintext_cmd,
+                iv=self.shared_data.current_session.iv_cmd,
+                ciphertext=u_ticket_in.ciphertext_cmd,
+                gcm_authentication_tag=u_ticket_in.gcm_authentication_tag_cmd,
                 session_key=base64str_backto_byte(
                     self.shared_data.current_session.current_session_key_str
                 ),
             )
-            # Update Session: PS
+            # Update Session: PS-Data
+            self.shared_data.current_session.iv_data = u_ticket_in.iv_data
             self._execute_data_processing_and_encryption(
                 base64str_backto_byte(
                     self.shared_data.current_session.current_session_key_str
@@ -633,14 +634,16 @@ class Executor:
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
-            # Update Session: PS
+            # Update Session: PS-Data
             self._execute_data_decryption(
                 associated_plaintext=r_ticket_in.associated_plaintext_data,
-                iv=r_ticket_in.iv_data,
+                iv=self.shared_data.current_session.iv_data,
                 ciphertext=r_ticket_in.ciphertext_data,
                 gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
             )
+            # Update Session: PS-Cmd
+            self.shared_data.current_session.iv_cmd = r_ticket_in.iv_cmd
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
 

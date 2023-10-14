@@ -59,11 +59,13 @@ class UTicket(BaseModel):
 
     issuer_signature: None | str = None
 
-    # PS
-    associated_plaintext: None | str = None
-    iv: None | str = None
-    ciphertext: None | str = None
-    gcm_authentication_tag: None | str = None
+    # PS-Cmd
+    associated_plaintext_cmd: None | str = None
+    ciphertext_cmd: None | str = None
+    gcm_authentication_tag_cmd: None | str = None
+
+    # PS-Data
+    iv_data: None | str = None
 
     def __eq__(self, other):
         if isinstance(other, UTicket):

@@ -347,9 +347,9 @@ class RTicketVerifier:
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             if (
-                r_ticket_in.iv_data != None
-                and r_ticket_in.associated_plaintext_data != None
+                r_ticket_in.associated_plaintext_data != None
                 and r_ticket_in.ciphertext_data != None
+                and r_ticket_in.iv_cmd != None
                 and r_ticket_in.gcm_authentication_tag_data != None
             ):
                 simple_log("info", success_msg)
