@@ -70,6 +70,8 @@ class MsgReceiver:
                 # [STAGE: (R)]
                 # This will block until message is received
                 received_message_json = self.comm_channel.receiver_queue.get()
+                self.shared_data.received_message_json = received_message_json
+
                 simple_log(
                     "info",
                     f"+ {self.shared_data.this_device.device_name} is receiving message from {self.comm_channel.end.shared_data.this_device.device_name}...",

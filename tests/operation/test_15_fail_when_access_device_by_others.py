@@ -28,10 +28,12 @@ from typing import Iterator
 ######################################################
 # Import
 ######################################################
+from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
+import ureka_framework.model.data_model.this_device as this_device
 
 
 class TestFailWhenAccessDeviceByOthers:
@@ -166,7 +168,7 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN:
         current_test_when_and_then_log()
 
-        # WHEN: Holder: ATK's CS attempt to forward an u_token without sessoion_key
+        # WHEN: Holder: ATK's CS attempt to forward an u_token without session_key
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
@@ -205,9 +207,14 @@ class TestFailWhenAccessDeviceByOthers:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
+        # GIVEN: ATK's CS intercept the DO's u_ticket
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
+            owned_device_id
+        ].device_u_ticket
+
         # GIVEN: Holder: EP's CS forward the u_token (TX_END)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "TX_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command, tx_end=True
@@ -217,36 +224,14 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN:
         current_test_when_and_then_log()
 
-        # WHEN: ATK's CS intercept the DO's u_ticket
-        create_comm_connection(self.user_agent_do, self.cloud_server_atk)
-        resource_tree = dict_to_jsonstr(
-            {
-                "SAY-HELLO": "allow",
-                "SAY-GOOD-MORNING": "allow",
-                "SAY-GOOD-NIGHT": "forbid",
-            }
-        )
-        generated_task_scope = dict_to_jsonstr(
-            {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
-        )
-        generated_request: dict = {
-            "device_id": f"{owned_device_id}",
-            "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"{generated_task_scope}",
-        }
-        self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-            device_id=owned_device_id, arbitrary_dict=generated_request
-        )
-        wait_comm_completed(self.cloud_server_atk, self.user_agent_do)
-
-        # WHEN: ATK's CS reuse the access_u_ticket on IoTD
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
-        target_device_id = owned_device_id
+        # WHEN: ATK's CS reuse the intercepted u_ticket on IoTD
+        simple_log("debug", f"Intercepted UTicket: {intercepted_uticket_json}")
+        create_comm_connection(self.iot_device, self.cloud_server_atk)
         generated_command = "HELLO"
-        self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
-            target_device_id, generated_command
+        self.cloud_server_atk.executor._change_state(
+            this_device.STATE_AGENT_WAIT_FOR_CRKE1
         )
+        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_uticket_json)
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong ticket order)
@@ -255,9 +240,48 @@ class TestFailWhenAccessDeviceByOthers:
             != generated_command
         )
 
-    @pytest.mark.skip(reason="TO-DO: Should be tested")
     def test_fail_when_reuse_the_same_utoken(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        (
+            self.user_agent_do,
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_session()
+
+        # GIVEN: Initialized ATK's CS
+        self.cloud_server_atk = attacker_server()
+
+        # GIVEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        generated_command = "HELLO-2"
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # WHEN:
+        current_test_when_and_then_log()
+
+        # WHEN: ATK's CS intercept the DO's u_token
+        intercepted_utoken_json = self.iot_device.shared_data.received_message_json
+        simple_log("debug", f"Intercepted UToken: {intercepted_utoken_json}")
+
+        # WHEN: ATK's CS reuse the u_token on IoTD
+        create_comm_connection(self.iot_device, self.cloud_server_atk)
+        self.cloud_server_atk.executor._change_state(
+            this_device.STATE_AGENT_WAIT_FOR_DATA
+        )
+        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_utoken_json)
+        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+
+        # THEN: ATK's CS can reuse the generated_command with DO's IoTD (attack success)
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == generated_command
+        )
 
     ######################################################
     # (R) Repudiation
