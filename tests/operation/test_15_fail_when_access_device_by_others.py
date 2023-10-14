@@ -91,6 +91,7 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong issuer signature)
+        #       (because no legal issuer private key, legal authorization (issuer signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
@@ -138,7 +139,8 @@ class TestFailWhenAccessDeviceByOthers:
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong holder signature)
+        # THEN: ATK's CS cannot share a private session with DO's IoTD
+        #       (because no legal holder private key, legal challenge-response (holder signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
@@ -185,7 +187,8 @@ class TestFailWhenAccessDeviceByOthers:
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong hmac)
+        # THEN: ATK's CS cannot share a private session with DO's IoTD
+        #       (because no legal session key, legal u-token (& its hmac) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
@@ -232,7 +235,8 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_uticket_json)
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong ticket order)
+        # THEN: ATK's CS cannot share a private session with DO's IoTD
+        #       (because ticket order is different after the u-ticket is used, the same u-ticket cannot be reused)
         assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
@@ -270,14 +274,17 @@ class TestFailWhenAccessDeviceByOthers:
 
         # WHEN: ATK's CS reuse the u_token on IoTD
         create_comm_connection(self.iot_device, self.cloud_server_atk)
+        self.cloud_server_atk.shared_data.current_session.iv_cmd = (
+            self.cloud_server_ep.shared_data.current_session.iv_cmd
+        )
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_DATA
         )
         self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_utoken_json)
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS can reuse the generated_command with DO's IoTD (attack success)
-        # assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: ATK's CS cannot reuse the generated_command with DO's IoTD
+        #       (because iv is different after the u-token is used, the same u-token (& its hmac) cannot be reused)
         assert "FAILURE" in self.iot_device.shared_data.result_message
 
     ######################################################

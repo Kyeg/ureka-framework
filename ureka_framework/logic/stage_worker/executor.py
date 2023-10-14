@@ -598,7 +598,7 @@ class Executor:
             simple_log("info", result_message)
             self.shared_data.result_message = result_message
 
-        except InvalidTag:  # TO-DO: test_fail_when_reuse_the_same_utoken
+        except InvalidTag:
             result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
             simple_log("error", result_message)
             self.shared_data.result_message = result_message

@@ -145,7 +145,7 @@ class UTicketVerifier:
             if u_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TO-DO: test_fail_when_reuse_the_same_uticket
+            else:
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
 
