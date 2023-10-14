@@ -71,7 +71,7 @@ class FlowIssueUToken:
                     "additional unencrypted cmd"
                 )
                 # Message Encryption (str + key byte)
-                self.executor._execute_cmd_encryption(
+                self.executor._execute_cmd_encryption_and_gen_next_iv(
                     base64str_backto_byte(
                         self.shared_data.current_session.current_session_key_str
                     )
