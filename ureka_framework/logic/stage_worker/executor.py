@@ -576,12 +576,15 @@ class Executor:
 
             plaintext: str = byte_backto_str(plaintext_byte)
 
-            simple_log("info", "-> SUCCESS: verify_token_through_hmac")
+            result_message = f"-> SUCCESS: VERIFY_IV_AND_HMAC"
+            simple_log("info", result_message)
+            self.shared_data.result_message = result_message
 
         except InvalidTag:  # TO-DO: test_fail_when_reuse_the_same_utoken
-            failure_msg = f"-> FAILURE: VERIFY_IV_AND_HMAC"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
+            result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
+            simple_log("error", result_message)
+            self.shared_data.result_message = result_message
+            raise RuntimeError(result_message)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

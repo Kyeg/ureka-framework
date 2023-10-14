@@ -123,7 +123,8 @@ class FlowIssueUToken:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_token)
-            result_message = f"Success (verify_u_ticket_can_execute)"
+            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
+            self.shared_data.result_message = result_message
 
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
@@ -139,6 +140,7 @@ class FlowIssueUToken:
 
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
             result_message = f"{error}"
+            self.shared_data.result_message = result_message
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -207,7 +209,7 @@ class FlowIssueUToken:
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
-                result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
+                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_token)
                 # [STAGE: (C)]

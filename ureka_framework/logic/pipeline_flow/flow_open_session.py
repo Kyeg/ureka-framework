@@ -78,9 +78,7 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = (
-                f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
-            )
+            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
             # [STAGE: (C)]
@@ -136,9 +134,8 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = (
-                f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
-            )
+            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            self.shared_data.result_message = result_message
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
             # [STAGE: (C)]
@@ -146,8 +143,9 @@ class FlowOpenSession:
 
         except RuntimeError as error:
             result_message = f"{error}"
+            self.shared_data.result_message = result_message
             # End Comm
-            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+            simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -196,7 +194,7 @@ class FlowOpenSession:
                     audit_start_ticket=None,
                     audit_end_ticket=None,
                 )
-                result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
+                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_ticket)
                 # [STAGE: (C)]
@@ -205,6 +203,9 @@ class FlowOpenSession:
                 )
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
                 result_message = f"{error}"
+                # End Comm
+                simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+                self.executor.complete_comm()
 
             simple_log("debug", f"result_message = {result_message}")
 

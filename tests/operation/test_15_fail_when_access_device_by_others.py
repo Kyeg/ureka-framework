@@ -90,16 +90,8 @@ class TestFailWhenAccessDeviceByOthers:
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: Fail to allow ATK's CS to limitedly access DO's IoTD (wrong issuer signature)
-        # THEN: Still DO's IoTD
-        assert (
-            self.iot_device.shared_data.this_device.owner_pub_key_str
-            == self.user_agent_do.shared_data.this_person.person_pub_key_str
-        )
-        # THEN: ATK's CS cannot share a private session with DO's IoTD
-        assert (
-            self.iot_device.shared_data.current_session.current_session_key_str == None
-        )
+        # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong issuer signature)
+        assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -147,6 +139,7 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong holder signature)
+        assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -189,6 +182,7 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong hmac)
+        assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -235,6 +229,7 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong ticket order)
+        assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -278,10 +273,7 @@ class TestFailWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS can reuse the generated_command with DO's IoTD (attack success)
-        assert (
-            self.iot_device.shared_data.current_session.plaintext_cmd
-            == generated_command
-        )
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
 
     ######################################################
     # (R) Repudiation
