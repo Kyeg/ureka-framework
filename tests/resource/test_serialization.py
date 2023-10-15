@@ -322,15 +322,18 @@ class TestSerialization:
     def test_u_ticket_comparison(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized DM's CS
-        self.cloud_server_dm = device_manufacturer_server()
+        # GIVEN: Initialized DM's CS and DM's IoTD
+        (
+            self.cloud_server_dm,
+            self.iot_device,
+        ) = device_manufacturer_server_and_her_device()
 
         # WHEN: Generate two u_tickets and compare
         current_test_when_and_then_log()
 
         test_request_1: dict = {
-            "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_1: str = (
             self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_1)
@@ -345,8 +348,8 @@ class TestSerialization:
         simple_log("debug", f"u_ticket_obj_copy_1 = {u_ticket_obj_copy_1}")
 
         test_request_2: dict = {
-            "device_id": f"device_id",
-            "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
+            "device_id": f"{self.iot_device.shared_data.this_device.device_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         u_ticket_json_2: str = (
             self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(test_request_2)
@@ -355,12 +358,13 @@ class TestSerialization:
         u_ticket_obj_2: UTicket = jsonstr_to_u_ticket(u_ticket_json_2)
         simple_log("debug", f"u_ticket_obj_2 = {u_ticket_obj_2}")
 
-        # THEN: Every u_ticket will have different unique u_ticket_id
+        # THEN: Two u_tickets which have the same content will have the same u_ticket_id (Hash-based)
+        # THEN: But the signature will be always different
         assert u_ticket_obj_1 != "!@#"
         assert u_ticket_json_1 == u_ticket_json_copy_1
         assert u_ticket_obj_1 == u_ticket_obj_copy_1
         assert u_ticket_json_1 != u_ticket_json_2
-        assert u_ticket_obj_1 != u_ticket_obj_2
+        assert u_ticket_obj_1 == u_ticket_obj_2
 
     def test_r_ticket_comparison(self) -> None:
         current_test_given_log()
@@ -375,12 +379,12 @@ class TestSerialization:
         current_test_when_and_then_log()
 
         test_request_1: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_1: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
-            test_request_1
+        r_ticket_json_1: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_r_ticket(test_request_1)
         )
         simple_log("debug", f"r_ticket_json_1 = {r_ticket_json_1}")
         r_ticket_obj_1: RTicket = jsonstr_to_r_ticket(r_ticket_json_1)
@@ -392,20 +396,21 @@ class TestSerialization:
         simple_log("debug", f"r_ticket_obj_copy_1 = {r_ticket_obj_copy_1}")
 
         test_request_2: dict = {
-            "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
+            "r_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
             "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
-        r_ticket_json_2: str = self.iot_device.msg_generator._generate_xxx_r_ticket(
-            test_request_2
+        r_ticket_json_2: str = (
+            self.cloud_server_dm.msg_generator._generate_xxx_r_ticket(test_request_2)
         )
         simple_log("debug", f"r_ticket_json_2 = {r_ticket_json_2}")
         r_ticket_obj_2: RTicket = jsonstr_to_r_ticket(r_ticket_json_2)
         simple_log("debug", f"r_ticket_obj_2 = {r_ticket_obj_2}")
 
-        # THEN: Every u_ticket will have different unique u_ticket_id
+        # THEN: Two r_tickets which have the same content will have the same r_ticket_id (Hash-based)
+        # THEN: But the signature will be always different
         assert r_ticket_obj_1 != "!@#"
         assert r_ticket_json_1 == r_ticket_json_copy_1
         assert r_ticket_obj_1 == r_ticket_obj_copy_1
         assert r_ticket_json_1 != r_ticket_json_2
-        assert r_ticket_obj_1 != r_ticket_obj_2
+        assert r_ticket_obj_1 == r_ticket_obj_2

@@ -39,10 +39,20 @@ class TestCrypto:
         # GIVEN: A pair of ECC keys
         (priv_key, pub_key) = ecc.generate_key_pair()
 
-        # WHEN: Sign & Verify a message
+        # WHEN: Sign & Verify some messages
         current_test_when_and_then_log()
+
         message = str_to_byte("Hello World")
         signature_byte = ecc.sign_signature(message, priv_key)
+        simple_log("debug", f"signature_byte: {signature_byte}")
+        result = ecc.verify_signature(signature_byte, message, pub_key)
+
+        # Notice that even the signature is different every time, the verification can still pass
+        #   Verification of ECC signatures takes into account the use of a nonce,
+        #   and it does not require knowledge of the nonce itself (!?).
+        message = str_to_byte("Hello World")
+        signature_byte = ecc.sign_signature(message, priv_key)
+        simple_log("debug", f"signature_byte: {signature_byte}")
         result = ecc.verify_signature(signature_byte, message, pub_key)
 
         # THEN: The message can be verified

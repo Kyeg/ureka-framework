@@ -1,19 +1,21 @@
-import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
-import uuid
 
 from pydantic import ValidationError
+
+from ureka_framework.model.data_model.this_device import ThisDevice
+from ureka_framework.model.data_model.this_person import ThisPerson
+from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.message_model.u_ticket import UTicket, u_ticket_to_jsonstr
 import ureka_framework.model.message_model.u_ticket as u_ticket
+
 from ureka_framework.resource.crypto.serialization_util import (
     byte_to_base64str,
     str_to_byte,
 )
-import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.model.data_model.this_device import ThisDevice
-from ureka_framework.model.data_model.this_person import ThisPerson
-from ureka_framework.model.data_model.other_device import OtherDevice
+import ureka_framework.resource.crypto.ecc as ecc
+from ureka_framework.resource.crypto import ecdh
+import copy
 
 
 class UTicketGenerator:
@@ -53,8 +55,10 @@ class UTicketGenerator:
                 new_u_ticket.device_id
             ].ticket_order
 
-        # Generate UTicket Id (UUID-4: Random, Unique, and Unpredictable)
-        new_u_ticket.u_ticket_id = str(uuid.uuid4())
+        # Generate UTicket Id (Hash-based)
+        new_u_ticket.u_ticket_id = ecdh.generate_sha256_hash_str(
+            u_ticket_to_jsonstr(new_u_ticket)
+        )
 
         ######################################################
         # Signed UTicket

@@ -1,18 +1,21 @@
-import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.message_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
 import ureka_framework.model.message_model.u_ticket as u_ticket
+
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
 )
-import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.model.data_model.this_device import ThisDevice
+import ureka_framework.resource.crypto.ecc as ecc
+from ureka_framework.resource.crypto import ecdh
+import copy
 
 
 class UTicketVerifier:
@@ -64,7 +67,14 @@ class UTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
 
-        if u_ticket_in.u_ticket_id != None:
+        # Verify UTicket Id (Hash-based)
+        ticket_without_id_and_sig = copy.deepcopy(u_ticket_in)
+        ticket_without_id_and_sig.u_ticket_id = None
+        ticket_without_id_and_sig.issuer_signature = None
+        generated_hash = ecdh.generate_sha256_hash_str(
+            u_ticket_to_jsonstr(ticket_without_id_and_sig)
+        )
+        if generated_hash == u_ticket_in.u_ticket_id:
             simple_log("info", success_msg)
             return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
