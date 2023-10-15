@@ -48,7 +48,6 @@ class TestFailWhenInitializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    # @pytest.mark.skip(reason="Implemented but not tested")
     def test_fail_when_re_initialize_agent_or_server(self) -> None:
         current_test_given_log()
 
