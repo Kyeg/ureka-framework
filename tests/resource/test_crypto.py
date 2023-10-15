@@ -243,3 +243,37 @@ class TestCrypto:
         simple_log("debug", "gcm_authentication_tag != gcm_authentication_tag2")
         assert shared_iv != shared_iv2
         simple_log("debug", "shared_iv != shared_iv2")
+
+    def test_hash(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: str to hash
+        message_str_1: str = "Hello World_1"
+        message_str_2: str = "Hello World_1"
+        message_str_3: str = "Hello World_1"
+        message_str_4: str = "Hello World_4"
+
+        # WHEN: Hash the str
+        current_test_when_and_then_log()
+
+        message_bytes_1: bytes = str_to_byte(message_str_1)
+        generated_hash_bytes_1: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_1)
+        generated_hash_str_1: str = byte_to_base64str(generated_hash_bytes_1)
+        simple_log("debug", f"Digest_1 str: {generated_hash_str_1}")
+
+        message_bytes_2: bytes = str_to_byte(message_str_2)
+        generated_hash_bytes_2: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_2)
+        generated_hash_str_2: str = byte_to_base64str(generated_hash_bytes_2)
+        simple_log("debug", f"Digest_2 str: {generated_hash_str_2}")
+
+        generated_hash_str_3 = ecdh.generate_sha256_hash_str(message_str_3)
+        simple_log("debug", f"Digest_3 str: {generated_hash_str_3}")
+
+        message_bytes_4: bytes = str_to_byte(message_str_4)
+        generated_hash_bytes_4: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_4)
+        generated_hash_str_4: str = byte_to_base64str(generated_hash_bytes_4)
+        simple_log("debug", f"Digest_4 str: {generated_hash_str_4}")
+
+        # THEN: The hash of the same message will be the same, and the other will be extremely different
+        assert generated_hash_str_1 == generated_hash_str_2 == generated_hash_str_3
+        assert generated_hash_str_1 != generated_hash_str_4

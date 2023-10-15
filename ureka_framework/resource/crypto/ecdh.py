@@ -1,3 +1,10 @@
+# Random
+import os
+from typing import Tuple
+
+# Hash
+from cryptography.hazmat.primitives import hashes
+
 # ECDH
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -8,11 +15,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 
-# Random
-import os
-from typing import Tuple
-
-from ureka_framework.resource.crypto.serialization_util import byte_to_base64str
+# Serialization
+from ureka_framework.resource.crypto.serialization_util import (
+    byte_to_base64str,
+    str_to_byte,
+)
 
 
 ######################################################
@@ -25,6 +32,25 @@ def generate_random_byte(bytes_num: int) -> bytes:
 
 def generate_random_str(bytes_num: int) -> str:
     return byte_to_base64str(os.urandom(bytes_num))
+
+
+######################################################
+# Hash Function
+######################################################
+def generate_sha256_hash_bytes(message: bytes) -> bytes:
+    digest = hashes.Hash(hashes.SHA256())
+    digest.update(message)
+    generated_hash: bytes = digest.finalize()
+
+    return generated_hash
+
+
+def generate_sha256_hash_str(message_str: str) -> str:
+    message_bytes: bytes = str_to_byte(message_str)
+    generated_hash_bytes: bytes = generate_sha256_hash_bytes(message_bytes)
+    generated_hash_str: str = byte_to_base64str(generated_hash_bytes)
+
+    return generated_hash_str
 
 
 ######################################################
