@@ -39,16 +39,26 @@ class TestCrypto:
         # GIVEN: A pair of ECC keys
         (priv_key, pub_key) = ecc.generate_key_pair()
 
-        # WHEN: Sign & Verify a message
+        # WHEN: Sign & Verify some messages
         current_test_when_and_then_log()
+
         message = str_to_byte("Hello World")
         signature_byte = ecc.sign_signature(message, priv_key)
+        simple_log("debug", f"signature_byte: {signature_byte}")
+        result = ecc.verify_signature(signature_byte, message, pub_key)
+
+        # Notice that even the signature is different every time, the verification can still pass
+        #   Verification of ECC signatures takes into account the use of a nonce,
+        #   and it does not require knowledge of the nonce itself (!?).
+        message = str_to_byte("Hello World")
+        signature_byte = ecc.sign_signature(message, priv_key)
+        simple_log("debug", f"signature_byte: {signature_byte}")
         result = ecc.verify_signature(signature_byte, message, pub_key)
 
         # THEN: The message can be verified
         assert result == True
 
-    def test_ecc_signature_failed(self) -> None:
+    def test_ecc_signature_should_fail(self) -> None:
         current_test_given_log()
 
         # GIVEN: Two pair of ECC keys
@@ -148,8 +158,10 @@ class TestCrypto:
             "debug",
             "associated_plaintext: " + byte_backto_str(associated_plaintext),
         )
-        (ciphertext, gcm_authentication_tag, shared_iv) = ecdh.gcm_encrypt(
-            plaintext, associated_plaintext, session_key1
+
+        shared_iv = ecdh.gcm_gen_iv()
+        (ciphertext, gcm_authentication_tag) = ecdh.gcm_encrypt(
+            plaintext, associated_plaintext, session_key1, shared_iv
         )
         simple_log("debug", "ciphertext: " + byte_to_base64str(ciphertext))
         simple_log(
@@ -199,8 +211,9 @@ class TestCrypto:
         simple_log("debug", with_wrong_tag)
 
         # WHEN: Message Encryption (with the same plaintext)
-        (ciphertext2, gcm_authentication_tag2, shared_iv2) = ecdh.gcm_encrypt(
-            plaintext, associated_plaintext, session_key1
+        shared_iv2 = ecdh.gcm_gen_iv()
+        (ciphertext2, gcm_authentication_tag2) = ecdh.gcm_encrypt(
+            plaintext, associated_plaintext, session_key1, shared_iv2
         )
         simple_log("debug", "ciphertext2: " + byte_to_base64str(ciphertext2))
         simple_log(
@@ -240,3 +253,37 @@ class TestCrypto:
         simple_log("debug", "gcm_authentication_tag != gcm_authentication_tag2")
         assert shared_iv != shared_iv2
         simple_log("debug", "shared_iv != shared_iv2")
+
+    def test_hash(self) -> None:
+        current_test_given_log()
+
+        # GIVEN: str to hash
+        message_str_1: str = "Hello World_1"
+        message_str_2: str = "Hello World_1"
+        message_str_3: str = "Hello World_1"
+        message_str_4: str = "Hello World_4"
+
+        # WHEN: Hash the str
+        current_test_when_and_then_log()
+
+        message_bytes_1: bytes = str_to_byte(message_str_1)
+        generated_hash_bytes_1: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_1)
+        generated_hash_str_1: str = byte_to_base64str(generated_hash_bytes_1)
+        simple_log("debug", f"Digest_1 str: {generated_hash_str_1}")
+
+        message_bytes_2: bytes = str_to_byte(message_str_2)
+        generated_hash_bytes_2: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_2)
+        generated_hash_str_2: str = byte_to_base64str(generated_hash_bytes_2)
+        simple_log("debug", f"Digest_2 str: {generated_hash_str_2}")
+
+        generated_hash_str_3 = ecdh.generate_sha256_hash_str(message_str_3)
+        simple_log("debug", f"Digest_3 str: {generated_hash_str_3}")
+
+        message_bytes_4: bytes = str_to_byte(message_str_4)
+        generated_hash_bytes_4: bytes = ecdh.generate_sha256_hash_bytes(message_bytes_4)
+        generated_hash_str_4: str = byte_to_base64str(generated_hash_bytes_4)
+        simple_log("debug", f"Digest_4 str: {generated_hash_str_4}")
+
+        # THEN: The hash of the same message will be the same, and the other will be extremely different
+        assert generated_hash_str_1 == generated_hash_str_2 == generated_hash_str_3
+        assert generated_hash_str_1 != generated_hash_str_4

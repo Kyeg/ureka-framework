@@ -14,6 +14,7 @@ import threading
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 from ureka_framework.logic.stage_worker.executor import Executor
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTicket
@@ -63,12 +64,14 @@ class MsgReceiver:
         receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
         receiver_thread.start()
 
-    def _recv_xxx_message(self) -> str:
+    def _recv_xxx_message(self):
         while True:
             try:
                 # [STAGE: (R)]
                 # This will block until message is received
                 received_message_json = self.comm_channel.receiver_queue.get()
+                self.shared_data.received_message_json = received_message_json
+
                 simple_log(
                     "info",
                     f"+ {self.shared_data.this_device.device_name} is receiving message from {self.comm_channel.end.shared_data.this_device.device_name}...",

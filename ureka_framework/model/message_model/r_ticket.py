@@ -61,15 +61,16 @@ class RTicket(BaseModel):
     key_exchange_salt_1: None | str = None
     key_exchange_salt_2: None | str = None
 
-    # PS
+    # PS-Cmd
     associated_plaintext_cmd: None | str = None
-    iv_cmd: None | str = None
     ciphertext_cmd: None | str = None
+    iv_cmd: None | str = None
     gcm_authentication_tag_cmd: None | str = None
 
+    # PS-Data
     associated_plaintext_data: None | str = None
-    iv_data: None | str = None
     ciphertext_data: None | str = None
+    iv_data: None | str = None
     gcm_authentication_tag_data: None | str = None
 
     # RT

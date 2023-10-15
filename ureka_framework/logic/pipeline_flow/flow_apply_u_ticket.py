@@ -105,7 +105,8 @@ class FlowApplyUTicket:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_ticket)
-            result_message = f"Success (verify_u_ticket_can_execute)"
+            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
+            self.shared_data.result_message = result_message
 
             # After TX End
             if (
@@ -126,8 +127,12 @@ class FlowApplyUTicket:
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
+        except RuntimeError as error:
             result_message = f"{error}"
+            self.shared_data.result_message = result_message
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (device)")
+            self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -224,7 +229,7 @@ class FlowApplyUTicket:
                         audit_start_ticket=stored_u_ticket,
                         audit_end_ticket=None,
                     )
-                    result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
+                    result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
                     # [STAGE: (E)(O)]
                     self.executor._execute_xxx_r_ticket(received_r_ticket)
                     # [STAGE: (C)]
@@ -236,7 +241,7 @@ class FlowApplyUTicket:
 
                 simple_log("debug", f"result_message = {result_message}")
 
-            else:  # pragma: no cover -> TODO: Auditted by Revocation UTicket
+            else:  # pragma: no cover -> TODO: Revocation UTicket
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 

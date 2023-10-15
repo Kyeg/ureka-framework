@@ -2,7 +2,7 @@ import logging
 from ureka_framework.environment import Environment
 
 
-def simple_log(log_level: str, log_info: str):  # pragma: no cover
+def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover
     if Environment.DEPLOYMENT_ENV == "TEST":
         if log_level == "demo":
             logging.debug(log_info)

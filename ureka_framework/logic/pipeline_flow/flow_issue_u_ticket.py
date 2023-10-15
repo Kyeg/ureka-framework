@@ -41,6 +41,7 @@ class FlowIssueUTicket:
     # CST: issuer_issue_u_ticket_to_herself()
     # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
     # CST: issuer_issue_u_ticket_to_holder() -> _holder_recv_u_ticket()
+    # TODO: RTN: _issuer_recv_r_ticket() <- _holder_send_r_ticket()
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
@@ -84,7 +85,8 @@ class FlowIssueUTicket:
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
                 # [STAGE: (SG)]
-                # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
+                # TODO: RTN
+                # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
                 # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
                 # [STAGE: (S)]
@@ -109,7 +111,8 @@ class FlowIssueUTicket:
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
             # [STAGE: (R)(VR)]
-            # But the actual ticket order in device is still unknown -> TODO: Attack
+            # But the actual device id & ticket order in device is still unknown
+            # -> TODO: test_fail_when_double_issuing_or_double_spending
 
             # [STAGE: (SR)]
             self.received_msg_storer._store_received_xxx_u_ticket(received_u_ticket)

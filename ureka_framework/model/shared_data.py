@@ -18,3 +18,5 @@ class SharedData:
 
     # [TEST ONLY]
     comm_done_flag: None | bool = None
+    received_message_json: None | str = None
+    result_message: None | str = None

@@ -63,6 +63,6 @@ def jsonstr_to_device_table(json_str: str) -> Dict[str, OtherDevice]:
     try:
         return json.loads(json_str, object_hook=_dict_to_other_device)
     except json.JSONDecodeError:
-        failure_msg = "NOT VALID JSON"
+        failure_msg = "NOT VALID JSON or VALID SCHEMA"
         # simple_log("error",failure_msg)
         raise RuntimeError(failure_msg)

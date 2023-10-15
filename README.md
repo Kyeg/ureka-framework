@@ -48,11 +48,17 @@ pip3 freeze > requirements.txt
 ## Optional Tools
 
 Apply MonkeyType to add type hints to the source code
-
+Manually:
 ```
 monkeytype run run_tests.py
 monkeytype list-modules
 monkeytype apply ureka_framework.module_name...
 monkeytype apply tests.testxxx...
+```
+Automatically:
+```
+monkeytype run run_tests.py
+monkeytype list-modules >> list-monkeytype.txt
+python3 auto-monkeytype.py
 ```
 

@@ -30,14 +30,24 @@ class GeneratedMsgStorer:
             #   we temporary store Initialization UTicket in device_table["no_id"]
             #   and the device_table will be updated by its RTicket with newly-created device_id
             if generated_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-                id_for_initialization_u_ticket = "no_id"
+                device_id_for_initialization_u_ticket = "no_id"
                 self.shared_data.device_table[
-                    id_for_initialization_u_ticket
+                    device_id_for_initialization_u_ticket
                 ] = OtherDevice(
-                    device_id=id_for_initialization_u_ticket,
+                    device_id=device_id_for_initialization_u_ticket,
                     device_u_ticket=generated_u_ticket_json,
                 )
-            # TODO: Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
+            # TODO: RTN
+            # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
+            elif (
+                generated_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            ):
+                device_id_for_u_ticket = generated_u_ticket.device_id
+                self.shared_data.device_table[device_id_for_u_ticket] = OtherDevice(
+                    device_id=device_id_for_u_ticket,
+                    device_u_ticket=generated_u_ticket_json,
+                )
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)

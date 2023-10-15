@@ -56,6 +56,7 @@ class FlowOpenSession:
                 "result": f"{result_message}",
                 "challenge_1": f"{self.shared_data.current_session.challenge_1}",
                 "key_exchange_salt_1": f"{self.shared_data.current_session.key_exchange_salt_1}",
+                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
             }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
@@ -78,25 +79,25 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = (
-                f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
-            )
+            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+            # [STAGE: (G)(S)]
+            simple_log("debug", f"result_message = {result_message}")
+            self._holder_send_cr_ke_2(result_message)
+
+        except RuntimeError as error:
             result_message = f"{error}"
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+            self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
-
-        finally:
-            # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._holder_send_cr_ke_2(result_message)
 
     def _holder_send_cr_ke_2(self, result_message: str) -> None:
         try:
@@ -109,10 +110,10 @@ class FlowOpenSession:
                 "challenge_1": f"{self.shared_data.current_session.challenge_1}",
                 "challenge_2": f"{self.shared_data.current_session.challenge_2}",
                 "key_exchange_salt_2": f"{self.shared_data.current_session.key_exchange_salt_2}",
-                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
                 "associated_plaintext_cmd": f"{self.shared_data.current_session.associated_plaintext_cmd}",
                 "ciphertext_cmd": f"{self.shared_data.current_session.ciphertext_cmd}",
                 "gcm_authentication_tag_cmd": f"{self.shared_data.current_session.gcm_authentication_tag_cmd}",
+                "iv_data": f"{self.shared_data.current_session.iv_data}",
             }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
@@ -134,16 +135,19 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = (
-                f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
-            )
+            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            self.shared_data.result_message = result_message
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+        except RuntimeError as error:
             result_message = f"{error}"
+            self.shared_data.result_message = result_message
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (device)")
+            self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -163,10 +167,10 @@ class FlowOpenSession:
                 "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                 "result": f"{result_message}",
                 "challenge_2": f"{self.shared_data.current_session.challenge_2}",
-                "iv_data": f"{self.shared_data.current_session.iv_data}",
                 "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
                 "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
                 "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
+                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
             }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
@@ -191,7 +195,7 @@ class FlowOpenSession:
                     audit_start_ticket=None,
                     audit_end_ticket=None,
                 )
-                result_message = f"Success (verify_u_ticket_has_successfully_executed_through_r_ticket)"
+                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_ticket)
                 # [STAGE: (C)]
@@ -200,6 +204,9 @@ class FlowOpenSession:
                 )
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
                 result_message = f"{error}"
+                # End Comm
+                simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+                self.executor.complete_comm()
 
             simple_log("debug", f"result_message = {result_message}")
 

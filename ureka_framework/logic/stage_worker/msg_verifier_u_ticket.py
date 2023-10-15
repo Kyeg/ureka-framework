@@ -1,18 +1,21 @@
-import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.message_model.u_ticket import (
     UTicket,
     jsonstr_to_u_ticket,
     u_ticket_to_jsonstr,
 )
 import ureka_framework.model.message_model.u_ticket as u_ticket
+
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
 )
-import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.model.data_model.this_device import ThisDevice
+import ureka_framework.resource.crypto.ecc as ecc
+from ureka_framework.resource.crypto import ecdh
+import copy
 
 
 class UTicketVerifier:
@@ -64,7 +67,14 @@ class UTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"
 
-        if u_ticket_in.u_ticket_id != None:
+        # Verify UTicket Id (Hash-based)
+        ticket_without_id_and_sig = copy.deepcopy(u_ticket_in)
+        ticket_without_id_and_sig.u_ticket_id = None
+        ticket_without_id_and_sig.issuer_signature = None
+        generated_hash = ecdh.generate_sha256_hash_str(
+            u_ticket_to_jsonstr(ticket_without_id_and_sig)
+        )
+        if generated_hash == u_ticket_in.u_ticket_id:
             simple_log("info", success_msg)
             return u_ticket_in
         else:  # pragma: no cover -> Weird U-Ticket
@@ -127,17 +137,25 @@ class UTicketVerifier:
         failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
 
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
-            if u_ticket_in.ticket_order == 0 and self.this_device.ticket_order == 0:
-                simple_log("info", success_msg)
-                return u_ticket_in
-            else:  # pragma: no cover -> Weird U-Ticket
+            if self.this_device.ticket_order == 0:
+                if u_ticket_in.ticket_order == 0:
+                    simple_log("info", success_msg)
+                    return u_ticket_in
+                else:  # pragma: no cover -> Weird U-Ticket
+                    simple_log("error", failure_msg)
+                    raise RuntimeError(f"{failure_msg}")
+            elif self.this_device.ticket_order > 0:
+                failure_msg = "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                simple_log("error", failure_msg)
+                raise RuntimeError(f"{failure_msg}")
+            else:  # pragma: no cover -> Order should never be negative
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         else:
             if u_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> Weird U-Ticket
+            else:
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
 
@@ -208,10 +226,10 @@ class UTicketVerifier:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             if (
-                u_ticket_in.associated_plaintext != None
-                and u_ticket_in.iv != None
-                and u_ticket_in.ciphertext != None
-                and u_ticket_in.gcm_authentication_tag != None
+                u_ticket_in.associated_plaintext_cmd != None
+                and u_ticket_in.ciphertext_cmd != None
+                and u_ticket_in.iv_data != None
+                and u_ticket_in.gcm_authentication_tag_cmd != None
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
@@ -238,22 +256,16 @@ class UTicketVerifier:
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)
             return u_ticket_in
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ):
             if self._verify_issuer_signature_on_u_ticket(
                 u_ticket_in, self.this_device.owner_pub_key
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TODO: Attack
-                simple_log("error", f"{failure_msg}")
-                raise RuntimeError(f"{failure_msg}")
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            if self._verify_issuer_signature_on_u_ticket(
-                u_ticket_in, self.this_device.owner_pub_key
-            ):
-                simple_log("info", success_msg)
-                return u_ticket_in
-            else:  # pragma: no cover -> TODO: Attack
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()

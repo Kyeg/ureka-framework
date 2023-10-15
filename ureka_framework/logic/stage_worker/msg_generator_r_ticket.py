@@ -1,22 +1,22 @@
-import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
-import uuid
 
 from pydantic import ValidationError
+
+from ureka_framework.model.data_model.this_device import ThisDevice
+from ureka_framework.model.data_model.this_person import ThisPerson
+from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.message_model.r_ticket import RTicket, r_ticket_to_jsonstr
 import ureka_framework.model.message_model.r_ticket as r_ticket
 import ureka_framework.model.message_model.u_ticket as u_ticket
 
-# import ureka_framework.resource.crypto.serialization_util as serialization_util
 from ureka_framework.resource.crypto.serialization_util import (
     str_to_byte,
     byte_to_base64str,
 )
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.model.data_model.this_device import ThisDevice
-from ureka_framework.model.data_model.this_person import ThisPerson
-from ureka_framework.model.data_model.other_device import OtherDevice
+from ureka_framework.resource.crypto import ecdh
+import copy
 
 
 class RTicketGenerator:
@@ -64,8 +64,10 @@ class RTicketGenerator:
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", failure_msg)
 
-        # Generate RTicket Id (UUID-4: Random, Unique, and Unpredictable)
-        new_r_ticket.r_ticket_id = str(uuid.uuid4())
+        # Generate UTicket Id (Hash-based)
+        new_r_ticket.r_ticket_id = ecdh.generate_sha256_hash_str(
+            r_ticket_to_jsonstr(new_r_ticket)
+        )
 
         ######################################################
         # Signed RTicket

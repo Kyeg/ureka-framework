@@ -1,24 +1,26 @@
-import copy
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+from ureka_framework.model.data_model.this_device import ThisDevice
+from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.data_model.current_session import CurrentSession
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
-from ureka_framework.model.data_model.this_device import ThisDevice
-from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.message_model.r_ticket import (
     RTicket,
     jsonstr_to_r_ticket,
     r_ticket_to_jsonstr,
 )
+
 from ureka_framework.resource.crypto.serialization_util import (
     str_to_key,
     base64str_backto_byte,
     str_to_byte,
 )
-import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
+import ureka_framework.resource.crypto.ecc as ecc
+from ureka_framework.resource.crypto import ecdh
+import copy
 
 
 class RTicketVerifier:
@@ -81,7 +83,14 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
 
-        if r_ticket_in.r_ticket_id != None:
+        # Verify UTicket Id (Hash-based)
+        ticket_without_id_and_sig = copy.deepcopy(r_ticket_in)
+        ticket_without_id_and_sig.r_ticket_id = None
+        ticket_without_id_and_sig.device_signature = None
+        generated_hash = ecdh.generate_sha256_hash_str(
+            r_ticket_to_jsonstr(ticket_without_id_and_sig)
+        )
+        if generated_hash == r_ticket_in.r_ticket_id:
             simple_log("info", success_msg)
             return r_ticket_in
         else:  # pragma: no cover -> Weird R-Ticket
@@ -231,10 +240,10 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_AUDIT_END"
         failure_msg = f"-> FAILURE: VERIFY_AUDIT_END"
 
-        # TODO: Auditted by:
+        # Auditted by:
         #   Per-Use
         #   TXend UToken
-        #   Revocation UTicket
+        #   TODO: Revocation UTicket
         if r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
             if r_ticket_in.audit_end == "TX_END":
                 simple_log("info", success_msg)
@@ -250,7 +259,7 @@ class RTicketVerifier:
         success_msg = f"-> SUCCESS: VERIFY_RESULT"
         failure_msg = f"-> FAILURE: VERIFY_RESULT"
 
-        if r_ticket_in.result != None:
+        if "SUCCESS" in r_ticket_in.result:
             simple_log("info", success_msg)
             return r_ticket_in
         else:  # pragma: no cover -> Weird R-Ticket
@@ -309,17 +318,23 @@ class RTicketVerifier:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # NO PS
             simple_log("info", success_msg)
             return r_ticket_in
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            if r_ticket_in.iv_cmd != None:
+                simple_log("info", success_msg)
+                return r_ticket_in
+            else:  # pragma: no cover -> Weird R-Ticket
+                simple_log("error", failure_msg)
+                raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
             if (
-                r_ticket_in.iv_cmd != None
-                and r_ticket_in.associated_plaintext_cmd != None
+                r_ticket_in.associated_plaintext_cmd != None
                 and r_ticket_in.ciphertext_cmd != None
+                and r_ticket_in.iv_data != None
                 and r_ticket_in.gcm_authentication_tag_cmd != None
             ):
                 simple_log("info", success_msg)
@@ -329,9 +344,9 @@ class RTicketVerifier:
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
             if (
-                r_ticket_in.iv_data != None
-                and r_ticket_in.associated_plaintext_data != None
+                r_ticket_in.associated_plaintext_data != None
                 and r_ticket_in.ciphertext_data != None
+                and r_ticket_in.iv_cmd != None
                 and r_ticket_in.gcm_authentication_tag_data != None
             ):
                 simple_log("info", success_msg)
@@ -341,9 +356,9 @@ class RTicketVerifier:
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             if (
-                r_ticket_in.iv_data != None
-                and r_ticket_in.associated_plaintext_data != None
+                r_ticket_in.associated_plaintext_data != None
                 and r_ticket_in.ciphertext_data != None
+                and r_ticket_in.iv_cmd != None
                 and r_ticket_in.gcm_authentication_tag_data != None
             ):
                 simple_log("info", success_msg)
@@ -386,7 +401,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:

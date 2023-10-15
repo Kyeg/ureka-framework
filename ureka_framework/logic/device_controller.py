@@ -163,6 +163,7 @@ class DeviceController:
     # Device Activity Cycle
     ######################################################
     def reboot_device(self) -> None:
+        simple_log("info", f"+ Reboot {self.shared_data.this_device.device_name}...")
         self.__init__(
             device_type=self.shared_data.this_device.device_type,
             device_name=self.shared_data.this_device.device_name,

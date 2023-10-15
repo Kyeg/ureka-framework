@@ -1,21 +1,38 @@
+######################################################
+# Test Fixtures
+######################################################
 import pytest
 from tests.conftest import (
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+)
+from tests.conftest import (
+    create_comm_connection,
+    wait_comm_completed,
+)
+from tests.conftest import (
     device_manufacturer_server,
+    device_manufacturer_server_and_her_device,
+    device_owner_agent,
+    device_owner_agent_and_her_device,
+    enterprise_provider_server,
+    enterprise_provider_server_and_her_session,
+    attacker_server,
+    device_owner_agent_and_her_device_and_attacker,
 )
-from ureka_framework.logic.device_controller import (
-    DeviceController,
-)
-import ureka_framework.model.message_model.u_ticket as u_ticket
-import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
 
+######################################################
+# Import
+######################################################
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
 
-class TestIntializeAgentOrServer:
+
+class TestSuccessWhenIntializeAgentOrServer:
     @pytest.fixture(scope="function", autouse=True)
     def setup_teardown(self) -> Iterator[None]:
         # RE-GIVEN: Reset the test environment
@@ -29,11 +46,7 @@ class TestIntializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Implemented but not tested yet")
-    def test_intialize_agent_or_server_in_io_level(self) -> None:
-        current_test_given_log()
-
-    def test_intialize_agent_or_server(self) -> None:
+    def test_success_when_intialize_agent_or_server(self) -> None:
         current_test_given_log()
 
         # GIVEN: Uninitialized CS
@@ -41,7 +54,7 @@ class TestIntializeAgentOrServer:
             device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
             device_name="cloud_server_dm",
         )
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == False
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 0
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str == None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str == None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str == None
@@ -53,65 +66,25 @@ class TestIntializeAgentOrServer:
         self.cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
 
         # THEN: Succeed to initialized DM's CS
-        # simple_log("debug",f"Successful result = {result.unwrap()}")
-        # assert type(result) == Success
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 1
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_person.person_pub_key_str != None
 
-    @pytest.mark.skip(reason="Broken test")
-    def test_intialize_agent_or_server_reintialized_failed(self) -> None:
+    def test_success_when_reboot(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
         self.cloud_server_dm = device_manufacturer_server()
 
-        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on Initialized CS
-        current_test_when_and_then_log()
-        result = (
-            self.cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
-        )
-
-        # THEN: Failed to re-initialize DM's CS
-        assert type(result) == Failure
-        assert (
-            result.failure().args[0]
-            == "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
-        )
-
-    @pytest.mark.skip(reason="Broken test")
-    def test_intialize_agent_or_server_to_device_failed(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Uninitialized IoTD
-        self.iot_device = DeviceController(
-            device_type=this_device.IOT_DEVICE,
-            device_name="iot_device",
-        )
-
-        # WHEN: DM apply execute_one_time_intialize_agent_or_server() on IoTD
-        current_test_when_and_then_log()
-        result = self.iot_device.executor._execute_one_time_intialize_agent_or_server()
-
-        # THEN: Failed to initialize IoTD
-        assert type(result) == Failure
-
-    # @pytest.mark.skip(reason="Broken test")
-    def test_intialize_agent_or_server_with_reboot(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized DM's CS
-        self.cloud_server_dm = device_manufacturer_server()
-
-        # WHEN: Reboot the DM's CS
+        # WHEN: Reboot DM's CS
         current_test_when_and_then_log()
         self.cloud_server_dm.reboot_device()
 
-        # THEN: Still is initialized  IoTD
-        assert self.cloud_server_dm.shared_data.this_device.is_initialized == True
+        # THEN: Still be Initialized DM's CS
+        assert self.cloud_server_dm.shared_data.this_device.ticket_order == 1
         assert self.cloud_server_dm.shared_data.this_device.device_priv_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.device_pub_key_str != None
         assert self.cloud_server_dm.shared_data.this_device.owner_pub_key_str != None
