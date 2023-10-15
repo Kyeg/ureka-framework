@@ -71,7 +71,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="not important",
+            device_u_ticket="pretend to have legal ownership u-ticket",
             ticket_order=2,
         )
         generated_request: dict = {
@@ -167,7 +167,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="no legal u_token",
+            device_u_ticket="pretend to have legal access u-ticket",
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
@@ -273,6 +273,12 @@ class TestFailWhenAccessDeviceByOthers:
 
         # WHEN: ATK's CS reuse the u_token on IoTD
         create_comm_connection(self.iot_device, self.cloud_server_atk)
+        target_device_id = owned_device_id
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
+            device_id=target_device_id,
+            device_u_ticket="pretend to have legal access u-ticket",
+            ticket_order=2,
+        )
         self.cloud_server_atk.shared_data.current_session.iv_cmd = (
             self.cloud_server_ep.shared_data.current_session.iv_cmd
         )

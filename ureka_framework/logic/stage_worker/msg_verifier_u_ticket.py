@@ -168,12 +168,20 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
         ):
-            if u_ticket_in.u_ticket_id != None:
+            # With HOLDER_ID
+            if u_ticket_in.holder_id != None:
                 simple_log("info", success_msg)
                 return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                raise RuntimeError(f"{failure_msg}")
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET:
+            # HOLDER_ID must be Device Owner
+            if u_ticket_in.holder_id == self.this_device.owner_pub_key_str:
+                simple_log("info", success_msg)
+                return u_ticket_in
+            else:
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif (

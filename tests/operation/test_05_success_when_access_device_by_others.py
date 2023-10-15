@@ -80,7 +80,7 @@ class TestSuccessWhenAccessDeviceByOthers:
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"{generated_task_scope}",
+            "task_scope": f"not important",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
