@@ -62,21 +62,10 @@ class TestSuccessWhenAccessDeviceByOwner:
 
         # WHEN: Issuer: DO's UA generate the access_u_ticket to herself
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
-        resource_tree = dict_to_jsonstr(
-            {
-                "SAY-HELLO": "allow",
-                "SAY-GOOD-MORNING": "allow",
-                "SAY-GOOD-NIGHT": "forbid",
-            }
-        )
-        generated_task_scope = dict_to_jsonstr(
-            {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
-        )
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
-            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"{generated_task_scope}",
+            "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=owned_device_id, arbitrary_dict=generated_request

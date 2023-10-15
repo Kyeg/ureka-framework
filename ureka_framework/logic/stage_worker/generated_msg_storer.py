@@ -42,6 +42,7 @@ class GeneratedMsgStorer:
             elif (
                 generated_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
                 or generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or generated_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # Not create new table, just add u_ticket to existing table
                 device_id_for_u_ticket = generated_u_ticket.device_id

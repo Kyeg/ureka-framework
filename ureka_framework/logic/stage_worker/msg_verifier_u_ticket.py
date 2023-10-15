@@ -119,6 +119,7 @@ class UTicketVerifier:
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
@@ -167,6 +168,7 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
         ):
             if u_ticket_in.u_ticket_id != None:
                 simple_log("info", success_msg)
@@ -192,6 +194,7 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
@@ -199,7 +202,7 @@ class UTicketVerifier:
             simple_log("info", success_msg)
             return u_ticket_in
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
-            if u_ticket_in.u_ticket_id != None:
+            if u_ticket_in.task_scope != None:
                 simple_log("info", success_msg)
                 return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
@@ -217,6 +220,7 @@ class UTicketVerifier:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
         ):
             # No PS
             simple_log("info", success_msg)
@@ -250,6 +254,7 @@ class UTicketVerifier:
         # Verify ISSUER_SIGNATURE
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
