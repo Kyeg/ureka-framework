@@ -28,6 +28,9 @@ from typing import Iterator
 ######################################################
 # Import
 ######################################################
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
+from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 
 class TestSuccessWhenAccessDeviceByOwner:
@@ -44,10 +47,70 @@ class TestSuccessWhenAccessDeviceByOwner:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="TODO: Self-Access")
     def test_success_when_apply_self_access_u_ticket(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized DO's UA and DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_device()
+
+        # WHEN:
         current_test_when_and_then_log()
+
+        # WHEN: Issuer: DO's UA generate the access_u_ticket to herself
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        resource_tree = dict_to_jsonstr(
+            {
+                "SAY-HELLO": "allow",
+                "SAY-GOOD-MORNING": "allow",
+                "SAY-GOOD-NIGHT": "forbid",
+            }
+        )
+        generated_task_scope = dict_to_jsonstr(
+            {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
+        )
+        generated_request: dict = {
+            "device_id": f"{owned_device_id}",
+            "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
+            "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
+            "task_scope": f"{generated_task_scope}",
+        }
+        self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
+            device_id=owned_device_id, arbitrary_dict=generated_request
+        )
+
+        # WHEN: Holder: DO's UA forward the access_u_ticket
+        create_comm_connection(self.user_agent_do, self.iot_device)
+        generated_command = "HELLO"
+        self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
+            owned_device_id, generated_command
+        )
+        wait_comm_completed(self.user_agent_do, self.iot_device)
+
+        # THEN: DO's UA succeed to access DO's IoTD
+        # THEN: Still DO's IoTD
+        assert (
+            self.iot_device.shared_data.this_device.owner_pub_key_str
+            == self.user_agent_do.shared_data.this_person.person_pub_key_str
+        )
+        # THEN: DO's UA can share a private session with DO's IoTD
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == generated_command
+        )
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_data
+            == self.user_agent_do.shared_data.current_session.plaintext_data
+        )
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == current_session_to_jsonstr(
+                self.user_agent_do.shared_data.current_session
+            )
+            != "{}"
+        )
 
     @pytest.mark.skip(reason="TODO: Self-Access")
     def test_success_when_reboot(self) -> None:

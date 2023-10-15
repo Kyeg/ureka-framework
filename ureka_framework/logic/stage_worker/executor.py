@@ -661,7 +661,7 @@ class Executor:
     #   Update Ticket Order after:
     #       "has-type": Intial Ticket Order = 0
     #       "agent-initialization": Ticket Order = 1 after device/agent is initialized
-    #       "holder-receive-uticket": Receive UTicket (expected ticket order)
+    #       "holder-generate-or-receive-uticket": Generate or Receive UTicket (expected ticket order)
     #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
     #       "holder-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
@@ -679,7 +679,7 @@ class Executor:
             self.shared_data.this_device.ticket_order = (
                 self.shared_data.this_device.ticket_order + 1
             )
-        elif updating_case == "holder-receive-uticket":
+        elif updating_case == "holder-generate-or-receive-uticket":
             # Recieve UTicket
             if type(ticket_in) == UTicket and (
                 ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET

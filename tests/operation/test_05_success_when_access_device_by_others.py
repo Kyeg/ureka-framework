@@ -56,11 +56,6 @@ class TestSuccessWhenAccessDeviceByOthers:
             self.iot_device,
         ) = device_owner_agent_and_her_device()
 
-        assert (
-            self.iot_device.shared_data.this_device.owner_pub_key_str
-            == self.user_agent_do.shared_data.this_person.person_pub_key_str
-        )
-
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
