@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,

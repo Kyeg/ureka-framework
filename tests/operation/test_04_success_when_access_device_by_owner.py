@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
@@ -112,7 +113,34 @@ class TestSuccessWhenAccessDeviceByOwner:
             != "{}"
         )
 
-    @pytest.mark.skip(reason="TODO: Self-Access")
     def test_success_when_reboot(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        (
+            self.user_agent_do,
+            self.iot_device,
+        ) = device_owner_agent_and_her_session()
+
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == current_session_to_jsonstr(
+                self.user_agent_do.shared_data.current_session
+            )
+            != "{}"
+        )
+
+        # WHEN: Reboot DO's IoTD
         current_test_when_and_then_log()
+        self.user_agent_do.reboot_device()
+        self.iot_device.reboot_device()
+
+        # THEN: The session is deleted (RAM-only)
+        assert (
+            current_session_to_jsonstr(self.user_agent_do.shared_data.current_session)
+            == "{}"
+        )
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == "{}"
+        )

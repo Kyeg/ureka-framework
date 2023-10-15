@@ -17,16 +17,14 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
     device_owner_agent_and_her_device_and_attacker,
 )
-from ureka_framework.model.message_model.r_ticket import jsonstr_to_r_ticket
-from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
-
 
 ######################################################
 # Import
@@ -34,6 +32,7 @@ from typing import Iterator
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
+from ureka_framework.model.message_model.r_ticket import jsonstr_to_r_ticket
 
 
 class TestFailWhenInitializeDevice:
