@@ -151,6 +151,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
 
         # WHEN: Holder: EP's CS forward the u_token
+        #   (with Forbidden command)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
@@ -160,6 +161,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can share a private session with DO's IoTD
+        #   (but Forbidden command is not executed)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd

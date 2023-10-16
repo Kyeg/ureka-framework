@@ -157,7 +157,7 @@ class MsgVerifier:
         task_scope = jsonstr_to_dict(
             self.shared_data.current_session.current_task_scope
         )
-        simple_log("debug", f"current_task_scope: {task_scope}")
+        # simple_log("debug", f"current_task_scope: {task_scope}")
 
         # If the key is not found, get() returns a None
         if cmd == "TX_END":

@@ -194,10 +194,12 @@ def device_owner_agent_and_her_session() -> Tuple[DeviceController, DeviceContro
 
     # WHEN: Issuer: DO's UA generate the self_access_u_ticket to herself
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
         "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
+        "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
         device_id=owned_device_id, arbitrary_dict=generated_request

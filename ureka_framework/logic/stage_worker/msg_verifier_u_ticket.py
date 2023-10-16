@@ -11,6 +11,7 @@ import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
+    dict_to_jsonstr,
 )
 from cryptography.hazmat.primitives.asymmetric import ec
 import ureka_framework.resource.crypto.ecc as ecc
@@ -202,7 +203,6 @@ class UTicketVerifier:
         if (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
@@ -211,6 +211,13 @@ class UTicketVerifier:
             return u_ticket_in
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
             if u_ticket_in.task_scope != None:
+                simple_log("info", success_msg)
+                return u_ticket_in
+            else:  # pragma: no cover -> Weird U-Ticket
+                simple_log("error", failure_msg)
+                raise RuntimeError(f"{failure_msg}")
+        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET:
+            if u_ticket_in.task_scope == dict_to_jsonstr({"ALL": "allow"}):
                 simple_log("info", success_msg)
                 return u_ticket_in
             else:  # pragma: no cover -> Weird U-Ticket
