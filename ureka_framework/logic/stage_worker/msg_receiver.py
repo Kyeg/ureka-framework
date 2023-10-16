@@ -92,10 +92,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
                     # End Comm
-                    # simple_log(
-                    #     "debug",
-                    #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
-                    # )
                     simple_log(
                         "demo",
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
@@ -105,10 +101,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     self.flow_issue_u_token._device_recv_cmd(received_message)
                     # End Comm
-                    # simple_log(
-                    #     "debug",
-                    #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
-                    # )
                     simple_log(
                         "demo",
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
@@ -137,10 +129,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
                     self.flow_open_session._holder_recv_cr_ke_3(received_message)
                     # End Comm
-                    # simple_log(
-                    #     "debug",
-                    #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
-                    # )
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
@@ -154,10 +142,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     self.flow_issue_u_token._holder_recv_data(received_message)
                     # End Comm
-                    # simple_log(
-                    #     "debug",
-                    #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
-                    # )
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",

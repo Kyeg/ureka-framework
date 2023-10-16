@@ -53,6 +53,16 @@ class GeneratedMsgStorer:
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 
+            ######################################################
+            # Storage
+            ######################################################
+            self.simple_storage.store_storage(
+                self.shared_data.this_device,
+                self.shared_data.device_table,
+                self.shared_data.this_person,
+                self.shared_data.current_session,
+            )
+
         except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
             failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
             simple_log("error", failure_msg)
