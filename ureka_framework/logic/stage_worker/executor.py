@@ -160,7 +160,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
-    # Execute UTicket (Update Keystore)
+    # Execute UTicket (Update Keystore & Session)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             try:
@@ -190,6 +190,8 @@ class Executor:
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
+            # Update Session: This IV
+            self.shared_data.current_session.iv_data = u_ticket_in.iv_data
             # Update Session: PS-Cmd
             self._execute_cmd_decryption(
                 associated_plaintext=u_ticket_in.associated_plaintext_cmd,
@@ -199,10 +201,10 @@ class Executor:
                 session_key=current_session_key_byte,
             )
             # Update Session: PS-Data
-            self.shared_data.current_session.iv_data = u_ticket_in.iv_data
-            self._execute_data_processing_and_encryption_and_gen_next_iv(
-                current_session_key_byte
-            )
+            self._execute_data_processing_and_encryption(current_session_key_byte)
+            # Update Session: Next IV
+            self.shared_data.current_session.iv_cmd = self._gen_next_iv()
+
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
                 if self.shared_data.current_session.plaintext_cmd == "TX_END":
@@ -216,6 +218,44 @@ class Executor:
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
+    # Execute RTicket (Update Session)
+    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
+        if (
+            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+        ):
+            # [STAGE: (O)]
+            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(r_ticket_in, "holder")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(r_ticket_in, "device")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(r_ticket_in, "holder")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            # [STAGE: (E)]
+            # Update Session: PS-Key Obtaining ("holder")
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: This IV
+            self.shared_data.current_session.iv_cmd = r_ticket_in.iv_cmd
+            # Update Session: PS-Data
+            self._execute_data_decryption(
+                associated_plaintext=r_ticket_in.associated_plaintext_data,
+                iv=self.shared_data.current_session.iv_data,
+                ciphertext=r_ticket_in.ciphertext_data,
+                gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
+                session_key=current_session_key_byte,
+            )
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", "weird ticket type")
+
+    # Ownership
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -334,10 +374,8 @@ class Executor:
                 self.shared_data.current_session.key_exchange_salt_1 = (
                     ecdh.generate_random_str(32)
                 )
-                # Update Session: PS-Cmd
-                self.shared_data.current_session.iv_cmd = byte_to_base64str(
-                    ecdh.gcm_gen_iv()
-                )
+                # Update Session: Next IV
+                self.shared_data.current_session.iv_cmd = self._gen_next_iv()
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "weird comm_end")
         elif (
@@ -366,9 +404,12 @@ class Executor:
             self.shared_data.current_session.current_session_key_str = (
                 byte_to_base64str(current_session_key_byte)
             )
-            # Update Session: PS-Cmd
+            # Update Session: This IV
             self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
-            self._execute_cmd_encryption_and_gen_next_iv(current_session_key_byte)
+            # Update Session: PS-Cmd
+            self._execute_cmd_encryption(current_session_key_byte)
+            # Update Session: Next IV
+            self.shared_data.current_session.iv_data = self._gen_next_iv()
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET
@@ -391,7 +432,8 @@ class Executor:
             self.shared_data.current_session.current_session_key_str = (
                 byte_to_base64str(current_session_key_byte)
             )
-            # Update Session: PS-Key Obtaining ("device")
+            # Update Session: This IV
+            self.shared_data.current_session.iv_data = ticket_in.iv_data
             # Update Session: PS-Cmd
             self._execute_cmd_decryption(
                 associated_plaintext=ticket_in.associated_plaintext_cmd,
@@ -401,10 +443,9 @@ class Executor:
                 session_key=current_session_key_byte,
             )
             # Update Session: PS-Data
-            self.shared_data.current_session.iv_data = ticket_in.iv_data
-            self._execute_data_processing_and_encryption_and_gen_next_iv(
-                current_session_key_byte
-            )
+            self._execute_data_processing_and_encryption(current_session_key_byte)
+            # Update Session: Next IV
+            self.shared_data.current_session.iv_cmd = self._gen_next_iv()
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
@@ -413,6 +454,8 @@ class Executor:
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
+            # Update Session: This IV
+            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
             # Update Session: PS-Data
             self._execute_data_decryption(
                 associated_plaintext=ticket_in.associated_plaintext_data,
@@ -421,8 +464,6 @@ class Executor:
                 gcm_authentication_tag=ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
             )
-            # Update Session: PS-Cmd
-            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -438,6 +479,7 @@ class Executor:
         #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
         # )
 
+    # CR-KE
     def _execute_generate_session_key(
         self,
         salt_1: str,
@@ -469,9 +511,8 @@ class Executor:
         # len(current_session_key)  # = 32 bytes
         return current_session_key
 
-    def _execute_cmd_encryption_and_gen_next_iv(
-        self, current_session_key_byte: bytes
-    ) -> None:
+    # PS
+    def _execute_cmd_encryption(self, current_session_key_byte: bytes) -> None:
         # Message Encryption
         (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
             plaintext=self.shared_data.current_session.plaintext_cmd,
@@ -484,8 +525,6 @@ class Executor:
         self.shared_data.current_session.gcm_authentication_tag_cmd = (
             gcm_authentication_tag
         )
-        # Update Session: PS-Data
-        self.shared_data.current_session.iv_data = byte_to_base64str(ecdh.gcm_gen_iv())
 
     def _execute_cmd_decryption(
         self,
@@ -506,13 +545,12 @@ class Executor:
         # Update Session: PS-Cmd
         self.shared_data.current_session.plaintext_cmd = plaintext_cmd
         self.shared_data.current_session.associated_plaintext_cmd = associated_plaintext
-        self.shared_data.current_session.iv_cmd = iv
         self.shared_data.current_session.ciphertext_cmd = ciphertext
         self.shared_data.current_session.gcm_authentication_tag_cmd = (
             gcm_authentication_tag
         )
 
-    def _execute_data_processing_and_encryption_and_gen_next_iv(
+    def _execute_data_processing_and_encryption(
         self, current_session_key_byte: bytes
     ) -> None:
         # Data Processing
@@ -536,8 +574,6 @@ class Executor:
         self.shared_data.current_session.gcm_authentication_tag_data = (
             gcm_authentication_tag
         )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.iv_cmd = byte_to_base64str(ecdh.gcm_gen_iv())
 
     def _execute_data_decryption(
         self,
@@ -560,12 +596,15 @@ class Executor:
         self.shared_data.current_session.associated_plaintext_data = (
             associated_plaintext
         )
-        self.shared_data.current_session.iv_data = iv
         self.shared_data.current_session.ciphertext_data = ciphertext
         self.shared_data.current_session.gcm_authentication_tag_data = (
             gcm_authentication_tag
         )
 
+    def _gen_next_iv(self) -> str:
+        return byte_to_base64str(ecdh.gcm_gen_iv())
+
+    # ECDH str
     def _execute_encrypt_plaintext(
         self,
         plaintext: str,
@@ -626,43 +665,6 @@ class Executor:
             simple_log("error", failure_msg)
 
         return plaintext
-
-    # Execute RTicket (Update Session)
-    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
-        if (
-            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
-        ):
-            # [STAGE: (O)]
-            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "device")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # [STAGE: (E)]
-            # Update Session: PS-Key Obtaining ("holder")
-            current_session_key_byte = base64str_backto_byte(
-                self.shared_data.current_session.current_session_key_str
-            )
-            # Update Session: PS-Data
-            self._execute_data_decryption(
-                associated_plaintext=r_ticket_in.associated_plaintext_data,
-                iv=self.shared_data.current_session.iv_data,
-                ciphertext=r_ticket_in.ciphertext_data,
-                gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
-                session_key=current_session_key_byte,
-            )
-            # Update Session: PS-Cmd
-            self.shared_data.current_session.iv_cmd = r_ticket_in.iv_cmd
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
-            simple_log("error", "weird ticket type")
 
     # Execute Application & Data Processing
     def _execute_data_processing(

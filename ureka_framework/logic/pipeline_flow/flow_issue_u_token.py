@@ -65,19 +65,18 @@ class FlowIssueUToken:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
-                # Update Session: PS-Cmd
-                self.shared_data.current_session.plaintext_cmd = cmd
-                self.shared_data.current_session.associated_plaintext_cmd = (
-                    "additional unencrypted cmd"
-                )
                 # Update Session: PS-Key Obtaining ("holder")
                 current_session_key_byte = base64str_backto_byte(
                     self.shared_data.current_session.current_session_key_str
                 )
                 # Update Session: PS-Cmd
-                self.executor._execute_cmd_encryption_and_gen_next_iv(
-                    current_session_key_byte
+                self.shared_data.current_session.plaintext_cmd = cmd
+                self.shared_data.current_session.associated_plaintext_cmd = (
+                    "additional unencrypted cmd"
                 )
+                self.executor._execute_cmd_encryption(current_session_key_byte)
+                # Update Session: Next IV
+                self.shared_data.current_session.iv_data = self.executor._gen_next_iv()
 
                 if tx_end == False:
                     # [STAGE: (C)]
