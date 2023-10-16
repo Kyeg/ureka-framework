@@ -65,17 +65,31 @@ class FlowIssueUToken:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
-                # Update Session: PS-Key Obtaining ("holder")
+                # Update Session: PS-Key (Already)
                 current_session_key_byte = base64str_backto_byte(
                     self.shared_data.current_session.current_session_key_str
                 )
+                # Update Session: This-IV (Already)
                 # Update Session: PS-Cmd
                 self.shared_data.current_session.plaintext_cmd = cmd
                 self.shared_data.current_session.associated_plaintext_cmd = (
                     "additional unencrypted cmd"
                 )
-                self.executor._execute_cmd_encryption(current_session_key_byte)
-                # Update Session: Next IV
+                # Update Session: PS-Cmd
+                (
+                    ciphertext,
+                    gcm_authentication_tag,
+                ) = self.executor._execute_encrypt_plaintext(
+                    plaintext=self.shared_data.current_session.plaintext_cmd,
+                    associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                    session_key=current_session_key_byte,
+                    iv=self.shared_data.current_session.iv_cmd,
+                )
+                self.shared_data.current_session.ciphertext_cmd = ciphertext
+                self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                    gcm_authentication_tag
+                )
+                # Update Session: Next-IV
                 self.shared_data.current_session.iv_data = self.executor._gen_next_iv()
 
                 if tx_end == False:
@@ -139,7 +153,8 @@ class FlowIssueUToken:
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
+        except RuntimeError as error:
+            # FAILURE: (VTK) or (VTS)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
 

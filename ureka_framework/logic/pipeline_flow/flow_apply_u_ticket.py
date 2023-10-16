@@ -115,7 +115,6 @@ class FlowApplyUTicket:
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
                 # [STAGE: (EO)]
                 self.executor._execute_xxx_u_ticket(received_u_ticket)
@@ -134,6 +133,7 @@ class FlowApplyUTicket:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
+            # FAILURE: (VUT)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
             # End Comm
@@ -149,7 +149,6 @@ class FlowApplyUTicket:
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
                 # [STAGE: (G)(S)]
                 self._device_send_r_ticket(

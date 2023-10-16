@@ -90,6 +90,7 @@ class FlowOpenSession:
             self._holder_send_cr_ke_2(result_message)
 
         except RuntimeError as error:
+            # FAILURE: (VRT)
             result_message = f"{error}"
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
@@ -143,6 +144,7 @@ class FlowOpenSession:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except RuntimeError as error:
+            # FAILURE: (VUT) or (VTK)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
             # End Comm

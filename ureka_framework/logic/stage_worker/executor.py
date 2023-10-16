@@ -186,23 +186,50 @@ class Executor:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # [STAGE: (E)]
-            # Update Session: PS-Key Obtaining ("device")
+            # Update Session: PS-Key (Already)
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
-            # Update Session: This IV
+            # Update Session: This-IV
             self.shared_data.current_session.iv_data = u_ticket_in.iv_data
             # Update Session: PS-Cmd
-            self._execute_cmd_decryption(
-                associated_plaintext=u_ticket_in.associated_plaintext_cmd,
-                iv=self.shared_data.current_session.iv_cmd,
+            plaintext_cmd = self._execute_decrypt_ciphertext(
                 ciphertext=u_ticket_in.ciphertext_cmd,
+                associated_plaintext=u_ticket_in.associated_plaintext_cmd,
                 gcm_authentication_tag=u_ticket_in.gcm_authentication_tag_cmd,
                 session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            self.shared_data.current_session.plaintext_cmd = plaintext_cmd
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                u_ticket_in.associated_plaintext_cmd
+            )
+            self.shared_data.current_session.ciphertext_cmd = u_ticket_in.ciphertext_cmd
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                u_ticket_in.gcm_authentication_tag_cmd
+            )
+            # Data Processing
+            (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
+                self.shared_data.current_session.plaintext_cmd,
+                self.shared_data.current_session.associated_plaintext_cmd,
             )
             # Update Session: PS-Data
-            self._execute_data_processing_and_encryption(current_session_key_byte)
-            # Update Session: Next IV
+            self.shared_data.current_session.plaintext_data = plaintext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                associated_plaintext_data
+            )
+            # Update Session: PS-Data
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=plaintext_data,
+                associated_plaintext=associated_plaintext_data,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            self.shared_data.current_session.ciphertext_data = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
             self.shared_data.current_session.iv_cmd = self._gen_next_iv()
 
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
@@ -238,19 +265,29 @@ class Executor:
             self._execute_cr_ke(r_ticket_in, "holder")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # [STAGE: (E)]
-            # Update Session: PS-Key Obtaining ("holder")
+            # Update Session: PS-Key (Already)
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
-            # Update Session: This IV
+            # Update Session: This-IV
             self.shared_data.current_session.iv_cmd = r_ticket_in.iv_cmd
             # Update Session: PS-Data
-            self._execute_data_decryption(
-                associated_plaintext=r_ticket_in.associated_plaintext_data,
-                iv=self.shared_data.current_session.iv_data,
+            plaintext_data = self._execute_decrypt_ciphertext(
                 ciphertext=r_ticket_in.ciphertext_data,
+                associated_plaintext=r_ticket_in.associated_plaintext_data,
                 gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            self.shared_data.current_session.plaintext_data = plaintext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                r_ticket_in.associated_plaintext_data
+            )
+            self.shared_data.current_session.ciphertext_data = (
+                r_ticket_in.ciphertext_data
+            )
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                r_ticket_in.gcm_authentication_tag_data
             )
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
@@ -374,7 +411,7 @@ class Executor:
                 self.shared_data.current_session.key_exchange_salt_1 = (
                     ecdh.generate_random_str(32)
                 )
-                # Update Session: Next IV
+                # Update Session: Next-IV
                 self.shared_data.current_session.iv_cmd = self._gen_next_iv()
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "weird comm_end")
@@ -391,7 +428,7 @@ class Executor:
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ecdh.generate_random_str(32)
             )
-            # Update Session: PS-Key Generation ("holder")
+            # Update Session: PS-Key
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=self.shared_data.current_session.key_exchange_salt_2,
@@ -404,11 +441,21 @@ class Executor:
             self.shared_data.current_session.current_session_key_str = (
                 byte_to_base64str(current_session_key_byte)
             )
-            # Update Session: This IV
+            # Update Session: This-IV
             self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
+            # Update Session: PS-Cmd (Already)
             # Update Session: PS-Cmd
-            self._execute_cmd_encryption(current_session_key_byte)
-            # Update Session: Next IV
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=self.shared_data.current_session.plaintext_cmd,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            self.shared_data.current_session.ciphertext_cmd = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
             self.shared_data.current_session.iv_data = self._gen_next_iv()
         elif (
             type(ticket_in) == RTicket
@@ -419,7 +466,7 @@ class Executor:
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ticket_in.key_exchange_salt_2
             )
-            # Update Session: PS-Key Generation ("device")
+            # Update Session: PS-Key
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=ticket_in.key_exchange_salt_2,
@@ -432,37 +479,72 @@ class Executor:
             self.shared_data.current_session.current_session_key_str = (
                 byte_to_base64str(current_session_key_byte)
             )
-            # Update Session: This IV
+            # Update Session: This-IV
             self.shared_data.current_session.iv_data = ticket_in.iv_data
             # Update Session: PS-Cmd
-            self._execute_cmd_decryption(
-                associated_plaintext=ticket_in.associated_plaintext_cmd,
-                iv=self.shared_data.current_session.iv_cmd,
+            plaintext_cmd = self._execute_decrypt_ciphertext(
                 ciphertext=ticket_in.ciphertext_cmd,
+                associated_plaintext=ticket_in.associated_plaintext_cmd,
                 gcm_authentication_tag=ticket_in.gcm_authentication_tag_cmd,
                 session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            self.shared_data.current_session.plaintext_cmd = plaintext_cmd
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                ticket_in.associated_plaintext_cmd
+            )
+            self.shared_data.current_session.ciphertext_cmd = ticket_in.ciphertext_cmd
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                ticket_in.gcm_authentication_tag_cmd
+            )
+            # Data Processing
+            (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
+                self.shared_data.current_session.plaintext_cmd,
+                self.shared_data.current_session.associated_plaintext_cmd,
             )
             # Update Session: PS-Data
-            self._execute_data_processing_and_encryption(current_session_key_byte)
-            # Update Session: Next IV
+            self.shared_data.current_session.plaintext_data = plaintext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                associated_plaintext_data
+            )
+            # Update Session: PS-Data
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=self.shared_data.current_session.plaintext_data,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_data,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            self.shared_data.current_session.ciphertext_data = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
             self.shared_data.current_session.iv_cmd = self._gen_next_iv()
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
-            # Update Session: PS-Key Obtaining ("holder")
+            # Update Session: PS-Key (Already)
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
-            # Update Session: This IV
+            # Update Session: This-IV
             self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
             # Update Session: PS-Data
-            self._execute_data_decryption(
-                associated_plaintext=ticket_in.associated_plaintext_data,
-                iv=self.shared_data.current_session.iv_data,
+            plaintext_data = self._execute_decrypt_ciphertext(
                 ciphertext=ticket_in.ciphertext_data,
+                associated_plaintext=ticket_in.associated_plaintext_data,
                 gcm_authentication_tag=ticket_in.gcm_authentication_tag_data,
                 session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            self.shared_data.current_session.plaintext_data = plaintext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                ticket_in.associated_plaintext_data
+            )
+            self.shared_data.current_session.ciphertext_data = ticket_in.ciphertext_data
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                ticket_in.gcm_authentication_tag_data
             )
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
@@ -512,99 +594,9 @@ class Executor:
         return current_session_key
 
     # PS
-    def _execute_cmd_encryption(self, current_session_key_byte: bytes) -> None:
-        # Message Encryption
-        (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
-            plaintext=self.shared_data.current_session.plaintext_cmd,
-            associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
-            session_key=current_session_key_byte,
-            iv=self.shared_data.current_session.iv_cmd,
-        )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.ciphertext_cmd = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_cmd = (
-            gcm_authentication_tag
-        )
-
-    def _execute_cmd_decryption(
-        self,
-        associated_plaintext: str,
-        iv: str,
-        ciphertext: str,
-        gcm_authentication_tag: str,
-        session_key: bytes,
-    ) -> None:
-        # Message Decryption
-        plaintext_cmd = self._execute_decrypt_ciphertext(
-            associated_plaintext=associated_plaintext,
-            iv=iv,
-            ciphertext=ciphertext,
-            gcm_authentication_tag=gcm_authentication_tag,
-            session_key=session_key,
-        )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.plaintext_cmd = plaintext_cmd
-        self.shared_data.current_session.associated_plaintext_cmd = associated_plaintext
-        self.shared_data.current_session.ciphertext_cmd = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_cmd = (
-            gcm_authentication_tag
-        )
-
-    def _execute_data_processing_and_encryption(
-        self, current_session_key_byte: bytes
-    ) -> None:
-        # Data Processing
-        (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
-            self.shared_data.current_session.plaintext_cmd,
-            self.shared_data.current_session.associated_plaintext_cmd,
-        )
-        # Message Encryption
-        (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
-            plaintext=plaintext_data,
-            associated_plaintext=associated_plaintext_data,
-            session_key=current_session_key_byte,
-            iv=self.shared_data.current_session.iv_data,
-        )
-        # Update Session: PS-Data
-        self.shared_data.current_session.plaintext_data = plaintext_data
-        self.shared_data.current_session.associated_plaintext_data = (
-            associated_plaintext_data
-        )
-        self.shared_data.current_session.ciphertext_data = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_data = (
-            gcm_authentication_tag
-        )
-
-    def _execute_data_decryption(
-        self,
-        associated_plaintext: str,
-        iv: str,
-        ciphertext: str,
-        gcm_authentication_tag: str,
-        session_key: bytes,
-    ) -> None:
-        # Message Decryption
-        plaintext_data = self._execute_decrypt_ciphertext(
-            associated_plaintext=associated_plaintext,
-            iv=iv,
-            ciphertext=ciphertext,
-            gcm_authentication_tag=gcm_authentication_tag,
-            session_key=session_key,
-        )
-        # Update Session: PS-Data
-        self.shared_data.current_session.plaintext_data = plaintext_data
-        self.shared_data.current_session.associated_plaintext_data = (
-            associated_plaintext
-        )
-        self.shared_data.current_session.ciphertext_data = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_data = (
-            gcm_authentication_tag
-        )
-
     def _gen_next_iv(self) -> str:
         return byte_to_base64str(ecdh.gcm_gen_iv())
 
-    # ECDH str
     def _execute_encrypt_plaintext(
         self,
         plaintext: str,
@@ -625,11 +617,11 @@ class Executor:
 
     def _execute_decrypt_ciphertext(
         self,
-        associated_plaintext: str,
-        iv: str,
         ciphertext: str,
+        associated_plaintext: str,
         gcm_authentication_tag: str,
         session_key: bytes,
+        iv: str,
     ) -> str:
         # [STAGE: (VTK)]
         try:
@@ -640,6 +632,7 @@ class Executor:
             )
             iv_byte: bytes = base64str_backto_byte(iv)
 
+            # verify_token_through_hmac
             plaintext_byte: bytes = ecdh.gcm_decrypt(
                 ciphertext_byte,
                 associated_plaintext_byte,
@@ -654,6 +647,8 @@ class Executor:
             simple_log("info", result_message)
             self.shared_data.result_message = result_message
 
+            return plaintext
+
         except InvalidTag:
             result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
             simple_log("error", result_message)
@@ -663,8 +658,6 @@ class Executor:
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
-
-        return plaintext
 
     # Execute Application & Data Processing
     def _execute_data_processing(
