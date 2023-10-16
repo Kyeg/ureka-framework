@@ -28,11 +28,20 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Stage Worker
+from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+
 
 class Executor:
-    def __init__(self, shared_data: SharedData, simple_storage: SimpleStorage) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        simple_storage: SimpleStorage,
+        msg_verifier: MsgVerifier,
+    ) -> None:
         self.shared_data = shared_data
         self.simple_storage = simple_storage
+        self.msg_verifier = msg_verifier
 
     ######################################################
     # [STAGE: (E)] Execute
@@ -189,7 +198,7 @@ class Executor:
             )
             # Update Session: PS-Data
             self.shared_data.current_session.iv_data = u_ticket_in.iv_data
-            self._execute_data_processing_and_encryption(
+            self._execute_data_processing_and_encryption_and_gen_next_iv(
                 base64str_backto_byte(
                     self.shared_data.current_session.current_session_key_str
                 )
@@ -389,7 +398,9 @@ class Executor:
             )
             # Update Session: PS-Data
             self.shared_data.current_session.iv_data = ticket_in.iv_data
-            self._execute_data_processing_and_encryption(current_session_key_byte)
+            self._execute_data_processing_and_encryption_and_gen_next_iv(
+                current_session_key_byte
+            )
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
@@ -501,25 +512,25 @@ class Executor:
             gcm_authentication_tag
         )
 
-    def _execute_data_processing_and_encryption(
+    def _execute_data_processing_and_encryption_and_gen_next_iv(
         self, current_session_key_byte: bytes
     ) -> None:
         # Data Processing
-        (plaintext_data, associated_plaintext) = self._execute_data_processing(
+        (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
             self.shared_data.current_session.plaintext_cmd,
             self.shared_data.current_session.associated_plaintext_cmd,
         )
         # Message Encryption
         (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
             plaintext=plaintext_data,
-            associated_plaintext=associated_plaintext,
+            associated_plaintext=associated_plaintext_data,
             session_key=current_session_key_byte,
             iv=self.shared_data.current_session.iv_data,
         )
         # Update Session: PS-Data
         self.shared_data.current_session.plaintext_data = plaintext_data
         self.shared_data.current_session.associated_plaintext_data = (
-            associated_plaintext
+            associated_plaintext_data
         )
         self.shared_data.current_session.ciphertext_data = ciphertext
         self.shared_data.current_session.gcm_authentication_tag_data = (
@@ -653,14 +664,33 @@ class Executor:
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("error", "weird ticket type")
 
-    # [STAGE: (VTS)] TODO: Verify Task Scope before Execution
     # Execute Application & Data Processing
     def _execute_data_processing(
         self, plaintext_cmd: str, associated_plaintext_cmd: str
     ) -> Tuple[str, str]:
-        plaintext_cmd = f"Data: {plaintext_cmd}"
-        associated_plaintext_cmd = f"Data: {associated_plaintext_cmd}"
-        return (plaintext_cmd, associated_plaintext_cmd)
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} is executing application...",
+        )
+
+        # [STAGE: (VTS)] Verify Task Scope before Execution
+        if self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd):
+            result_message = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
+            simple_log("info", result_message)
+            # self.shared_data.result_message = result_message
+
+            plaintext_data = f"DATA: {plaintext_cmd}"
+            associated_plaintext_cmd = f"DATA: {associated_plaintext_cmd}"
+        else:
+            result_message = f"-> FAILURE: VERIFY_CMD_IN_TASK_SCOPE"
+            simple_log("error", result_message)
+            # self.shared_data.result_message = result_message
+
+            plaintext_data = f"FORBIDDEN: {plaintext_cmd}"
+            associated_plaintext_cmd = f"FORBIDDEN: {associated_plaintext_cmd}"
+            # raise RuntimeError(result_message)
+
+        return (plaintext_data, associated_plaintext_cmd)
 
     ######################################################
     # [STAGE: (O)] Update Ticket Order

@@ -81,7 +81,7 @@ class TestFailWhenAccessDeviceByOwner:
 
         # WHEN: Holder: ATK's CS forward the self_access_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
@@ -126,7 +126,7 @@ class TestFailWhenAccessDeviceByOwner:
 
         # WHEN: Holder: ATK's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )

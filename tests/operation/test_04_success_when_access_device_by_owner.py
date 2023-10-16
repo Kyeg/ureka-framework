@@ -73,13 +73,14 @@ class TestSuccessWhenAccessDeviceByOwner:
 
         # WHEN: Holder: DO's UA forward the self_access_u_ticket
         create_comm_connection(self.user_agent_do, self.iot_device)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
         wait_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: DO's UA succeed to access DO's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         # THEN: Still DO's IoTD
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
@@ -92,7 +93,7 @@ class TestSuccessWhenAccessDeviceByOwner:
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            == self.user_agent_do.shared_data.current_session.plaintext_data
+            == "DATA: " + generated_command
         )
         assert (
             current_session_to_jsonstr(self.iot_device.shared_data.current_session)

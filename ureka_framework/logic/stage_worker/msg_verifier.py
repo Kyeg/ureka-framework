@@ -8,6 +8,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Serialization)
+from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
 from ureka_framework.logic.stage_worker.msg_verifier_r_ticket import RTicketVerifier
@@ -149,3 +152,28 @@ class MsgVerifier:
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+    def verify_cmd_is_in_task_scope(self, cmd: str) -> bool:
+        task_scope = jsonstr_to_dict(
+            self.shared_data.current_session.current_task_scope
+        )
+        simple_log("debug", f"current_task_scope: {task_scope}")
+
+        # If the key is not found, get() returns a None
+        if cmd == "TX_END":
+            return True
+        elif cmd == "HELLO-1" and (
+            task_scope.get("SAY-HELLO-1") == "allow" or task_scope.get("ALL") == "allow"
+        ):
+            return True
+        elif cmd == "HELLO-2" and (
+            task_scope.get("SAY-HELLO-2") == "allow" or task_scope.get("ALL") == "allow"
+        ):
+            return True
+        elif cmd == "HELLO-3" and (
+            task_scope.get("SAY-HELLO-3") == "allow" or task_scope.get("ALL") == "allow"
+        ):
+            return True
+        else:
+            simple_log("error", f"Undefined or Forbidden Command: {cmd}")
+            return False

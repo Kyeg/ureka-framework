@@ -67,7 +67,9 @@ class DeviceController:
         )
         self.msg_verifier = MsgVerifier(shared_data=self.shared_data)
         self.executor = Executor(
-            shared_data=self.shared_data, simple_storage=self.simple_storage
+            shared_data=self.shared_data,
+            simple_storage=self.simple_storage,
+            msg_verifier=self.msg_verifier,
         )
         self.msg_generator = MsgGenerator(shared_data=self.shared_data)
         self.generated_msg_storer = GeneratedMsgStorer(

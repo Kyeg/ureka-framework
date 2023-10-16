@@ -66,21 +66,12 @@ class TestSuccessWhenAccessDeviceByOthers:
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
-        resource_tree = dict_to_jsonstr(
-            {
-                "SAY-HELLO": "allow",
-                "SAY-GOOD-MORNING": "allow",
-                "SAY-GOOD-NIGHT": "forbid",
-            }
-        )
-        generated_task_scope = dict_to_jsonstr(
-            {u_ticket.TASK_SCOPE_RESOURCE_TREE: resource_tree}
-        )
+        generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"not important",
+            "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
@@ -89,13 +80,14 @@ class TestSuccessWhenAccessDeviceByOthers:
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         # THEN: Still DO's IoTD
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
@@ -108,7 +100,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            == self.cloud_server_ep.shared_data.current_session.plaintext_data
+            == "DATA: " + generated_command
         )
         assert (
             current_session_to_jsonstr(self.iot_device.shared_data.current_session)
@@ -141,13 +133,14 @@ class TestSuccessWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can share a private session with DO's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            == self.cloud_server_ep.shared_data.current_session.plaintext_data
+            == "DATA: " + generated_command
         )
         assert (
             current_session_to_jsonstr(self.iot_device.shared_data.current_session)
@@ -167,20 +160,19 @@ class TestSuccessWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can share a private session with DO's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            == self.cloud_server_ep.shared_data.current_session.plaintext_data
+            == "FORBIDDEN: " + generated_command
         )
-        assert (
-            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
-            == current_session_to_jsonstr(
-                self.cloud_server_ep.shared_data.current_session
-            )
-            != "{}"
+        assert current_session_to_jsonstr(
+            self.iot_device.shared_data.current_session
+        ) == current_session_to_jsonstr(
+            self.cloud_server_ep.shared_data.current_session
         )
 
         # WHEN: Holder: EP's CS forward the u_token (TX_END)
@@ -197,6 +189,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1
