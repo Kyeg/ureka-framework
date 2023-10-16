@@ -186,22 +186,22 @@ class Executor:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
             # [STAGE: (E)]
+            # Update Session: PS-Key Obtaining ("device")
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
             # Update Session: PS-Cmd
             self._execute_cmd_decryption(
                 associated_plaintext=u_ticket_in.associated_plaintext_cmd,
                 iv=self.shared_data.current_session.iv_cmd,
                 ciphertext=u_ticket_in.ciphertext_cmd,
                 gcm_authentication_tag=u_ticket_in.gcm_authentication_tag_cmd,
-                session_key=base64str_backto_byte(
-                    self.shared_data.current_session.current_session_key_str
-                ),
+                session_key=current_session_key_byte,
             )
             # Update Session: PS-Data
             self.shared_data.current_session.iv_data = u_ticket_in.iv_data
             self._execute_data_processing_and_encryption_and_gen_next_iv(
-                base64str_backto_byte(
-                    self.shared_data.current_session.current_session_key_str
-                )
+                current_session_key_byte
             )
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
@@ -353,7 +353,7 @@ class Executor:
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ecdh.generate_random_str(32)
             )
-            # Session Key Gereration ("holder")
+            # Update Session: PS-Key Generation ("holder")
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=self.shared_data.current_session.key_exchange_salt_2,
@@ -362,6 +362,9 @@ class Executor:
                     self.shared_data.current_session.current_device_id,
                     "ecc-public-key",
                 ),
+            )
+            self.shared_data.current_session.current_session_key_str = (
+                byte_to_base64str(current_session_key_byte)
             )
             # Update Session: PS-Cmd
             self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
@@ -375,7 +378,7 @@ class Executor:
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ticket_in.key_exchange_salt_2
             )
-            # Session Key Gereration ("device")
+            # Update Session: PS-Key Generation ("device")
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=ticket_in.key_exchange_salt_2,
@@ -388,6 +391,7 @@ class Executor:
             self.shared_data.current_session.current_session_key_str = (
                 byte_to_base64str(current_session_key_byte)
             )
+            # Update Session: PS-Key Obtaining ("device")
             # Update Session: PS-Cmd
             self._execute_cmd_decryption(
                 associated_plaintext=ticket_in.associated_plaintext_cmd,
@@ -405,7 +409,7 @@ class Executor:
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
-            # Session Key Obtaining ("holder")
+            # Update Session: PS-Key Obtaining ("holder")
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )
@@ -474,10 +478,6 @@ class Executor:
             associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
             session_key=current_session_key_byte,
             iv=self.shared_data.current_session.iv_cmd,
-        )
-        # Update Session: PS-Key
-        self.shared_data.current_session.current_session_key_str = byte_to_base64str(
-            current_session_key_byte
         )
         # Update Session: PS-Cmd
         self.shared_data.current_session.ciphertext_cmd = ciphertext
@@ -647,7 +647,7 @@ class Executor:
             self._execute_cr_ke(r_ticket_in, "holder")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # [STAGE: (E)]
-            # Session Key Obtaining ("holder")
+            # Update Session: PS-Key Obtaining ("holder")
             current_session_key_byte = base64str_backto_byte(
                 self.shared_data.current_session.current_session_key_str
             )

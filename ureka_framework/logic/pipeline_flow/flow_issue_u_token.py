@@ -70,11 +70,13 @@ class FlowIssueUToken:
                 self.shared_data.current_session.associated_plaintext_cmd = (
                     "additional unencrypted cmd"
                 )
-                # Message Encryption
+                # Update Session: PS-Key Obtaining ("holder")
+                current_session_key_byte = base64str_backto_byte(
+                    self.shared_data.current_session.current_session_key_str
+                )
+                # Update Session: PS-Cmd
                 self.executor._execute_cmd_encryption_and_gen_next_iv(
-                    base64str_backto_byte(
-                        self.shared_data.current_session.current_session_key_str
-                    )
+                    current_session_key_byte
                 )
 
                 if tx_end == False:
