@@ -8,10 +8,6 @@ from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
 
-# Resource (Crypto)
-from ureka_framework.resource.crypto.serialization_util import base64str_backto_byte
-from cryptography.exceptions import InvalidTag
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -65,32 +61,7 @@ class FlowIssueUToken:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
-                # Update Session: PS-Key (Already)
-                current_session_key_byte = base64str_backto_byte(
-                    self.shared_data.current_session.current_session_key_str
-                )
-                # Update Session: This-IV (Already)
-                # Update Session: PS-Cmd
-                self.shared_data.current_session.plaintext_cmd = cmd
-                self.shared_data.current_session.associated_plaintext_cmd = (
-                    "additional unencrypted cmd"
-                )
-                # Update Session: PS-Cmd
-                (
-                    ciphertext,
-                    gcm_authentication_tag,
-                ) = self.executor._execute_encrypt_plaintext(
-                    plaintext=self.shared_data.current_session.plaintext_cmd,
-                    associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
-                    session_key=current_session_key_byte,
-                    iv=self.shared_data.current_session.iv_cmd,
-                )
-                self.shared_data.current_session.ciphertext_cmd = ciphertext
-                self.shared_data.current_session.gcm_authentication_tag_cmd = (
-                    gcm_authentication_tag
-                )
-                # Update Session: Next-IV
-                self.shared_data.current_session.iv_data = self.executor._gen_next_iv()
+                self.executor._execute_ps(executing_case="send-utoken", plaintext=cmd)
 
                 if tx_end == False:
                     # [STAGE: (C)]
@@ -143,6 +114,7 @@ class FlowIssueUToken:
 
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
+
             # PS
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]

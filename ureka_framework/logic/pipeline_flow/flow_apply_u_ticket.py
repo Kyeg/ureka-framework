@@ -49,10 +49,6 @@ class FlowApplyUTicket:
     # APY (No CR):
     #       holder_apply_u_ticket() -> _device_recv_u_ticket()
     #       _holder_recv_r_ticket() <- _device_send_r_ticket()
-    #
-    # Automatic UT-RT & UT-CR-KE-PS-RT
-    #           Concurrent device_controller,
-    #           i.e., FakeComm (Sequential Sender/Receiver) -> (Concurrent Sender/Receiver)
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
         try:
@@ -78,7 +74,9 @@ class FlowApplyUTicket:
                 or stored_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # [STAGE: (E)]
-                self.executor._execute_cr_ke(stored_u_ticket, "holder", cmd)
+                self.executor._execute_cr_ke(
+                    ticket_in=stored_u_ticket, comm_end="holder", cmd=cmd
+                )
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE1)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -111,7 +109,7 @@ class FlowApplyUTicket:
             result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
             self.shared_data.result_message = result_message
 
-            # After TX End
+            # UT-RT
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
@@ -120,7 +118,7 @@ class FlowApplyUTicket:
                 self.executor._execute_xxx_u_ticket(received_u_ticket)
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # CR-KE-PS
+            # CR-KE
             elif (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
@@ -145,7 +143,7 @@ class FlowApplyUTicket:
             simple_log("error", failure_msg)
 
         finally:
-            # After TX End
+            # UT-RT
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
@@ -156,7 +154,7 @@ class FlowApplyUTicket:
                     received_u_ticket.u_ticket_id,
                     result_message,
                 )
-            # CR-KE-PS
+            # CR-KE
             elif (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
