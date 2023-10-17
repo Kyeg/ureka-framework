@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
@@ -67,8 +68,7 @@ class TestSuccessWhenIntializeDevice:
 
         # WHEN:
         current_test_when_and_then_log()
-        # WHEN: DM's CS apply the intialization_u_ticket to Uninitialized IoTD
-        create_comm_connection(self.cloud_server_dm, self.iot_device)
+        # WHEN: Issuer: DM's CS generate the intialization_u_ticket to herself
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
@@ -78,6 +78,9 @@ class TestSuccessWhenIntializeDevice:
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
+
+        # WHEN: Holder: DO's UA forward the access_u_ticket to Uninitialized IoTD
+        create_comm_connection(self.cloud_server_dm, self.iot_device)
         self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
             id_for_initialization_u_ticket
         )

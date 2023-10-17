@@ -2,7 +2,7 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
-from ureka_framework.model.message_model.u_ticket import UTicket
+from ureka_framework.model.message_model.u_ticket import UTicket, jsonstr_to_u_ticket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -64,6 +64,12 @@ class FlowIssueUTicket:
                     generated_u_ticket_json
                 )
 
+                # [STAGE: (O)]
+                self.executor._execute_update_ticket_order(
+                    "holder-generate-or-receive-uticket",
+                    jsonstr_to_u_ticket(generated_u_ticket_json),
+                )
+
         except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
@@ -119,7 +125,7 @@ class FlowIssueUTicket:
 
             # [STAGE: (O)]
             self.executor._execute_update_ticket_order(
-                "holder-receive-uticket", received_u_ticket
+                "holder-generate-or-receive-uticket", received_u_ticket
             )
 
         except RuntimeError:  # pragma: no cover -> FAILURE: (VR)

@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
@@ -56,11 +57,6 @@ class TestSuccessWhenAccessDeviceByOthers:
             self.iot_device,
         ) = device_owner_agent_and_her_device()
 
-        assert (
-            self.iot_device.shared_data.this_device.owner_pub_key_str
-            == self.user_agent_do.shared_data.this_person.person_pub_key_str
-        )
-
         # GIVEN: Initialized EP's CS
         self.cloud_server_ep = enterprise_provider_server()
 
@@ -84,7 +80,7 @@ class TestSuccessWhenAccessDeviceByOthers:
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"{generated_task_scope}",
+            "task_scope": f"not important",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request

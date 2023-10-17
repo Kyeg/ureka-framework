@@ -73,7 +73,10 @@ class FlowApplyUTicket:
             ):
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
-            elif stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+            elif (
+                stored_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or stored_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+            ):
                 # [STAGE: (E)]
                 self.executor._execute_cr_ke(stored_u_ticket, "holder", cmd)
                 # [STAGE: (C)]
@@ -119,7 +122,10 @@ class FlowApplyUTicket:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # CR-KE-PS
-            elif received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+            elif (
+                received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+            ):
                 # [STAGE: (E)]
                 self.executor._execute_xxx_u_ticket(received_u_ticket)
                 # [STAGE: (C)]
@@ -152,7 +158,10 @@ class FlowApplyUTicket:
                     result_message,
                 )
             # CR-KE-PS
-            elif received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+            elif (
+                received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+            ):
                 # [STAGE: (G)(S)]
                 self.flow_open_session._device_send_cr_ke_1(result_message)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()

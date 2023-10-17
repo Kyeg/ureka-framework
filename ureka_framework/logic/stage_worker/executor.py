@@ -166,7 +166,10 @@ class Executor:
             self._execute_ownership_transfer(u_ticket_in)
             # [STAGE: (O)]
             self._execute_update_ticket_order("device-verify-uticket", u_ticket_in)
-        elif u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+        elif (
+            u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+        ):
             # [STAGE: (E)]
             self._execute_cr_ke(u_ticket_in, "device")
         elif (
@@ -286,6 +289,9 @@ class Executor:
         if (
             type(ticket_in) == UTicket
             and ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+        ) or (
+            type(ticket_in) == UTicket
+            and ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
         ):
             if comm_end == "holder":
                 # Update Session: Access UT
@@ -661,7 +667,7 @@ class Executor:
     #   Update Ticket Order after:
     #       "has-type": Intial Ticket Order = 0
     #       "agent-initialization": Ticket Order = 1 after device/agent is initialized
-    #       "holder-receive-uticket": Receive UTicket (expected ticket order)
+    #       "holder-generate-or-receive-uticket": Generate or Receive UTicket (expected ticket order)
     #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
     #       "holder-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
@@ -679,11 +685,13 @@ class Executor:
             self.shared_data.this_device.ticket_order = (
                 self.shared_data.this_device.ticket_order + 1
             )
-        elif updating_case == "holder-receive-uticket":
+        elif updating_case == "holder-generate-or-receive-uticket":
             # Recieve UTicket
             if type(ticket_in) == UTicket and (
-                ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
                 or ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 self.shared_data.device_table[
                     ticket_in.device_id

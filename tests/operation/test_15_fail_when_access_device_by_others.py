@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
@@ -30,8 +31,6 @@ from typing import Iterator
 ######################################################
 from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.u_ticket as u_ticket
-from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
-from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
 
@@ -72,7 +71,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="not important",
+            device_u_ticket="pretend to have legal ownership u-ticket",
             ticket_order=2,
         )
         generated_request: dict = {
@@ -168,7 +167,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="no legal u_token",
+            device_u_ticket="pretend to have legal access u-ticket",
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
@@ -274,6 +273,12 @@ class TestFailWhenAccessDeviceByOthers:
 
         # WHEN: ATK's CS reuse the u_token on IoTD
         create_comm_connection(self.iot_device, self.cloud_server_atk)
+        target_device_id = owned_device_id
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
+            device_id=target_device_id,
+            device_u_ticket="pretend to have legal access u-ticket",
+            ticket_order=2,
+        )
         self.cloud_server_atk.shared_data.current_session.iv_cmd = (
             self.cloud_server_ep.shared_data.current_session.iv_cmd
         )

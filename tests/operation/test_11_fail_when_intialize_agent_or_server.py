@@ -17,6 +17,7 @@ from tests.conftest import (
     device_manufacturer_server_and_her_device,
     device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
@@ -47,7 +48,6 @@ class TestFailWhenInitializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    # @pytest.mark.skip(reason="Implemented but not tested")
     def test_fail_when_re_initialize_agent_or_server(self) -> None:
         current_test_given_log()
 
