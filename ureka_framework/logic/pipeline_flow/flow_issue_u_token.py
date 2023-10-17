@@ -109,12 +109,12 @@ class FlowIssueUToken:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_token)
-            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
-            self.shared_data.result_message = result_message
 
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
+
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
 
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]
@@ -126,8 +126,8 @@ class FlowIssueUToken:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"{error}"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
@@ -139,13 +139,13 @@ class FlowIssueUToken:
             # PS
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (G)(S)]
-                self._device_send_data(result_message)
+                self._device_send_data(self.shared_data.result_message)
             elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (G)(S)]
                 self.flow_apply_u_ticket._device_send_r_ticket(
                     received_u_token.u_ticket_type,
                     received_u_token.u_ticket_id,
-                    result_message,
+                    self.shared_data.result_message,
                 )
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
@@ -205,18 +205,19 @@ class FlowIssueUToken:
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
-                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
                 # [STAGE: (VTK)]
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_token)
 
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
             except RuntimeError as error:
-                result_message = f"{error}"
+                self.shared_data.result_message = f"{error}"
 
-            simple_log("debug", f"result_message = {result_message}")
+            simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"

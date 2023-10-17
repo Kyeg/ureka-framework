@@ -231,6 +231,15 @@ class TestFailWhenAccessDeviceByOthers:
         simple_log("debug", f"Intercepted UTicket: {intercepted_uticket_json}")
         create_comm_connection(self.iot_device, self.cloud_server_atk)
         generated_command = "HELLO-1"
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
+            device_id=target_device_id,
+            device_u_ticket=intercepted_uticket_json,
+            ticket_order=2,
+        )
+        self.cloud_server_atk.shared_data.current_session.current_device_id = (
+            target_device_id
+        )
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_CRKE1
         )
@@ -279,7 +288,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = owned_device_id
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal access u-ticket",
+            device_u_ticket=intercepted_utoken_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.iv_cmd = (

@@ -84,6 +84,7 @@ class TestSuccessWhenIntializeAgentOrServer:
         wait_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
             == self.user_agent_do.shared_data.this_person.person_pub_key_str

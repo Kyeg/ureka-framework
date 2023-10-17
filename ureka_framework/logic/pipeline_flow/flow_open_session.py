@@ -86,7 +86,7 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
@@ -94,11 +94,10 @@ class FlowOpenSession:
             self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
 
             # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._holder_send_cr_ke_2(result_message)
+            self._holder_send_cr_ke_2(self.shared_data.result_message)
 
         except RuntimeError as error:
-            result_message = f"{error}"
+            self.shared_data.result_message = f"{error}"
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
@@ -110,6 +109,8 @@ class FlowOpenSession:
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+        simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
     def _holder_send_cr_ke_2(self, result_message: str) -> None:
         try:
@@ -147,19 +148,19 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
-            self.shared_data.result_message = result_message
 
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
 
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except RuntimeError as error:
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"{error}"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
@@ -172,8 +173,7 @@ class FlowOpenSession:
 
         finally:
             # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._device_send_cr_ke_3(result_message)
+            self._device_send_cr_ke_3(self.shared_data.result_message)
 
     def _device_send_cr_ke_3(self, result_message: str) -> None:
         try:
@@ -212,35 +212,35 @@ class FlowOpenSession:
         try:
             # [STAGE: (R)(VR)]
 
-            try:
-                # [STAGE: (VRT)]
-                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
-                    r_ticket_in=received_r_ticket,
-                    audit_start_ticket=None,
-                    audit_end_ticket=None,
-                )
-                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            # [STAGE: (VRT)]
+            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                r_ticket_in=received_r_ticket,
+                audit_start_ticket=None,
+                audit_end_ticket=None,
+            )
 
-                # [STAGE: (VTK)]
-                # [STAGE: (E)]
-                self.executor._execute_xxx_r_ticket(received_r_ticket)
+            # [STAGE: (VTK)]
+            # [STAGE: (E)]
+            self.executor._execute_xxx_r_ticket(received_r_ticket)
 
-                # [STAGE: (C)]
-                self.executor._change_state(
-                    this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
-                )
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
-                result_message = f"{error}"
-                # [STAGE: (C)]
-                self.executor._change_state(
-                    this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
-                )
-                # End Comm
-                simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-                self.executor.complete_comm()
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
-            simple_log("debug", f"result_message = {result_message}")
+            # [STAGE: (C)]
+            self.executor._change_state(
+                this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+            )
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
+            self.shared_data.result_message = f"{error}"
 
+            # [STAGE: (C)]
+            self.executor._change_state(
+                this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+            )
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+            self.executor.complete_comm()
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+        simple_log("debug", f"result_message = {self.shared_data.result_message}")

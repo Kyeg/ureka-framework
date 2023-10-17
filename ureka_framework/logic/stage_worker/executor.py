@@ -205,17 +205,16 @@ class Executor:
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
                 if self.shared_data.current_session.plaintext_cmd == "TX_END":
-                    result_message = f"-> SUCCESS: VERIFY_TX_END"
-                    simple_log("info", result_message)
+                    self.shared_data.result_message = f"-> SUCCESS: VERIFY_TX_END"
+                    simple_log("info", self.shared_data.result_message)
                     # [STAGE: (O)]
                     self._execute_update_ticket_order(
                         "device-verify-uticket", u_ticket_in
                     )
                 else:  # pragma: no cover -> FAILURE: (VTK)
-                    result_message = f"-> FAILURE: VERIFY_TX_END"
-                    simple_log("error", result_message)
-                    self.shared_data.result_message = result_message
-                    raise RuntimeError(result_message)
+                    self.shared_data.result_message = f"-> FAILURE: VERIFY_TX_END"
+                    simple_log("error", self.shared_data.result_message)
+                    raise RuntimeError(self.shared_data.result_message)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -479,9 +478,9 @@ class Executor:
     def _execute_ps(
         self,
         executing_case: str,
-        ticket_in: UTicket or RTicket = None,
-        plaintext: str = "",
-        associated_plaintext: str = "",
+        ticket_in: None | UTicket | RTicket = None,
+        plaintext: None | str = None,
+        associated_plaintext: None | str = None,
     ) -> None:
         simple_log(
             "info",
@@ -767,17 +766,15 @@ class Executor:
 
             plaintext: str = byte_backto_str(plaintext_byte)
 
-            result_message = f"-> SUCCESS: VERIFY_IV_AND_HMAC"
-            simple_log("info", result_message)
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_IV_AND_HMAC"
+            simple_log("info", self.shared_data.result_message)
 
             return plaintext
 
         except InvalidTag:
-            result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
-            simple_log("error", result_message)
-            self.shared_data.result_message = result_message
-            raise RuntimeError(result_message)
+            self.shared_data.result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
+            simple_log("error", self.shared_data.result_message)
+            raise RuntimeError(self.shared_data.result_message)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

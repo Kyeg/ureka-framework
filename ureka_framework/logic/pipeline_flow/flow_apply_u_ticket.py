@@ -106,8 +106,7 @@ class FlowApplyUTicket:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_ticket)
-            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
 
             # UT-RT
             if (
@@ -131,8 +130,8 @@ class FlowApplyUTicket:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"{error}"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
@@ -153,7 +152,7 @@ class FlowApplyUTicket:
                 self._device_send_r_ticket(
                     received_u_ticket.u_ticket_type,
                     received_u_ticket.u_ticket_id,
-                    result_message,
+                    self.shared_data.result_message,
                 )
             # CR-KE
             elif (
@@ -161,7 +160,9 @@ class FlowApplyUTicket:
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # [STAGE: (G)(S)]
-                self.flow_open_session._device_send_cr_ke_1(result_message)
+                self.flow_open_session._device_send_cr_ke_1(
+                    self.shared_data.result_message
+                )
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
@@ -250,7 +251,10 @@ class FlowApplyUTicket:
                         audit_start_ticket=stored_u_ticket,
                         audit_end_ticket=None,
                     )
-                    result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+                    self.shared_data.result_message = (
+                        f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+                    )
+
                     # [STAGE: (E)(O)]
                     self.executor._execute_xxx_r_ticket(received_r_ticket)
                     # [STAGE: (C)]
@@ -258,9 +262,11 @@ class FlowApplyUTicket:
                         this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                     )
                 except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
-                    result_message = f"{error}"
+                    self.shared_data.result_message = f"{error}"
 
-                simple_log("debug", f"result_message = {result_message}")
+                simple_log(
+                    "debug", f"result_message = {self.shared_data.result_message}"
+                )
 
             else:  # pragma: no cover -> TODO: Revocation UTicket
                 failure_msg = f"Not implemented yet"
