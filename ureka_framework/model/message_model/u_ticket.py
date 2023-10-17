@@ -50,6 +50,7 @@ class UTicket(BaseModel):
     device_id: None | str = None
 
     ticket_order: None | int = None
+
     holder_id: None | str = None
     task_scope: None | str = None
 

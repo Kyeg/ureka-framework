@@ -174,27 +174,33 @@ class FlowApplyUTicket:
                 u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             ):
-                r_ticket_request: dict = {
-                    "r_ticket_type": f"{u_ticket_type}",
-                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{u_ticket_id}",
-                    "result": f"{result_message}",
-                }
+                if "SUCCESS" in result_message:
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                        "audit_start": f"{u_ticket_id}",
+                    }
+                else:
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                    }
             elif u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 if "SUCCESS" in result_message:
                     # audit_start has already stored when receiving Access UTicket
                     r_ticket_request: dict = {
                         "r_ticket_type": f"{u_ticket_type}",
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
                         "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                         "audit_end": f"TX_END",
-                        "result": f"{result_message}",
                     }
                 else:  # pragma: no cover -> Weird U-Token
                     r_ticket_request: dict = {
                         "r_ticket_type": f"{u_ticket_type}",
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                        "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                         "result": f"{result_message}",
                     }
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()

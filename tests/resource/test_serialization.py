@@ -165,7 +165,6 @@ class TestSerialization:
         current_test_when_and_then_log()
         test_request: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
-            "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_befo: str = (
@@ -380,7 +379,6 @@ class TestSerialization:
 
         test_request_1: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-            "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_1: str = (
@@ -397,7 +395,6 @@ class TestSerialization:
 
         test_request_2: dict = {
             "r_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
-            "audit_start": f"u_ticket_id",
             "result": f"Success/Failure",
         }
         r_ticket_json_2: str = (

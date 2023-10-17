@@ -157,8 +157,8 @@ class FlowIssueUToken:
                 generated_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
                     "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                     "result": f"{result_message}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                     "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
                     "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
                     "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
@@ -168,7 +168,6 @@ class FlowIssueUToken:
                 generated_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
                     "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                     "result": f"{result_message}",
                 }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(

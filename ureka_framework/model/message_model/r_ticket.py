@@ -50,10 +50,11 @@ class RTicket(BaseModel):
 
     device_id: None | str = None
 
+    result: None | str = None
     ticket_order: None | int = None
+
     audit_start: None | str = None
     audit_end: None | str = None
-    result: None | str = None
 
     # CR-KE
     challenge_1: None | str = None
