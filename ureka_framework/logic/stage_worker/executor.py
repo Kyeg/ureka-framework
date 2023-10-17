@@ -186,6 +186,7 @@ class Executor:
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             # Update Session: PS-Cmd
             self._execute_ps(executing_case="recv-utoken", ticket_in=u_ticket_in)
@@ -201,7 +202,6 @@ class Executor:
                 plaintext=plaintext_data,
                 associated_plaintext=associated_plaintext_data,
             )
-
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
                 if self.shared_data.current_session.plaintext_cmd == "TX_END":
@@ -479,7 +479,7 @@ class Executor:
     def _execute_ps(
         self,
         executing_case: str,
-        ticket_in: RTicket = None,
+        ticket_in: UTicket or RTicket = None,
         plaintext: str = "",
         associated_plaintext: str = "",
     ) -> None:
@@ -534,6 +534,7 @@ class Executor:
             self.shared_data.current_session.gcm_authentication_tag_cmd = (
                 ticket_in.gcm_authentication_tag_cmd
             )
+            # [STAGE: (VTK)(VTS)]
             # Update Session: PS-Cmd (Decyrption)
             plaintext_cmd = self._execute_decrypt_ciphertext(
                 ciphertext=self.shared_data.current_session.ciphertext_cmd,
@@ -542,6 +543,7 @@ class Executor:
                 session_key=current_session_key_byte,
                 iv=self.shared_data.current_session.iv_cmd,
             )
+            self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd)
             # Update Session: PS-Cmd (Output: Plaintext)
             self.shared_data.current_session.plaintext_cmd = plaintext_cmd
         elif executing_case == "send-crke3":
@@ -585,6 +587,7 @@ class Executor:
             self.shared_data.current_session.gcm_authentication_tag_data = (
                 ticket_in.gcm_authentication_tag_data
             )
+            # [STAGE: (VTK)]
             # Update Session: PS-Data (Decyrption)
             plaintext_data = self._execute_decrypt_ciphertext(
                 ciphertext=self.shared_data.current_session.ciphertext_data,
@@ -635,6 +638,7 @@ class Executor:
             self.shared_data.current_session.gcm_authentication_tag_cmd = (
                 ticket_in.gcm_authentication_tag_cmd
             )
+            # [STAGE: (VTK)(VTS)]
             # Update Session: PS-Cmd (Decyrption)
             plaintext_cmd = self._execute_decrypt_ciphertext(
                 ciphertext=self.shared_data.current_session.ciphertext_cmd,
@@ -643,6 +647,8 @@ class Executor:
                 session_key=current_session_key_byte,
                 iv=self.shared_data.current_session.iv_cmd,
             )
+            if ticket_in.u_ticket_type != u_ticket.TYPE_TX_END_UTOKEN:
+                self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd)
             # Update Session: PS-Cmd (Output: Plaintext)
             self.shared_data.current_session.plaintext_cmd = plaintext_cmd
         elif executing_case == "send-rtoken":
@@ -686,6 +692,7 @@ class Executor:
             self.shared_data.current_session.gcm_authentication_tag_data = (
                 ticket_in.gcm_authentication_tag_data
             )
+            # [STAGE: (VTK)]
             # Update Session: PS-Data (Decyrption)
             plaintext_data = self._execute_decrypt_ciphertext(
                 ciphertext=self.shared_data.current_session.ciphertext_data,
@@ -785,22 +792,8 @@ class Executor:
             f"+ {self.shared_data.this_device.device_name} is executing application...",
         )
 
-        # [STAGE: (VTS)] Verify Task Scope before Execution
-        if self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd):
-            result_message = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
-            simple_log("info", result_message)
-            # self.shared_data.result_message = result_message
-
-            plaintext_data = f"DATA: {plaintext_cmd}"
-            associated_plaintext_cmd = f"DATA: {associated_plaintext_cmd}"
-        else:
-            result_message = f"-> FAILURE: VERIFY_CMD_IN_TASK_SCOPE"
-            simple_log("error", result_message)
-            # self.shared_data.result_message = result_message
-
-            plaintext_data = f"FORBIDDEN: {plaintext_cmd}"
-            associated_plaintext_cmd = f"FORBIDDEN: {associated_plaintext_cmd}"
-            # raise RuntimeError(result_message)
+        plaintext_data = f"DATA: {plaintext_cmd}"
+        associated_plaintext_cmd = f"DATA: {associated_plaintext_cmd}"
 
         return (plaintext_data, associated_plaintext_cmd)
 

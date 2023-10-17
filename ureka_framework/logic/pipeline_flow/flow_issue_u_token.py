@@ -204,7 +204,7 @@ class FlowIssueUToken:
 
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
+            except RuntimeError as error:
                 result_message = f"{error}"
 
             simple_log("debug", f"result_message = {result_message}")

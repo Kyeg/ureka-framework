@@ -162,19 +162,14 @@ class TestSuccessWhenAccessDeviceByOthers:
 
         # THEN: EP's CS can share a private session with DO's IoTD
         #   (but Forbidden command is not executed)
-        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "FAILURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            == generated_command
+            != generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            == "FORBIDDEN: " + generated_command
-        )
-        assert current_session_to_jsonstr(
-            self.iot_device.shared_data.current_session
-        ) == current_session_to_jsonstr(
-            self.cloud_server_ep.shared_data.current_session
+            != "DATA: " + generated_command
         )
 
         # WHEN: Holder: EP's CS forward the u_token (TX_END)
