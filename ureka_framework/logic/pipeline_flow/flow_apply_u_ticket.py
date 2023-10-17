@@ -131,7 +131,6 @@ class FlowApplyUTicket:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
-            # FAILURE: (VUT)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
             # End Comm

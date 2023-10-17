@@ -205,13 +205,17 @@ class Executor:
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
                 if self.shared_data.current_session.plaintext_cmd == "TX_END":
-                    simple_log("info", f"-> SUCCESS: VERIFY_TX_END")
+                    result_message = f"-> SUCCESS: VERIFY_TX_END"
+                    simple_log("info", result_message)
                     # [STAGE: (O)]
                     self._execute_update_ticket_order(
                         "device-verify-uticket", u_ticket_in
                     )
                 else:  # pragma: no cover -> FAILURE: (VTK)
-                    simple_log("error", f"-> FAILURE: VERIFY_TX_END")
+                    result_message = f"-> FAILURE: VERIFY_TX_END"
+                    simple_log("error", result_message)
+                    self.shared_data.result_message = result_message
+                    raise RuntimeError(result_message)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
@@ -736,7 +740,7 @@ class Executor:
         session_key: bytes,
         iv: str,
     ) -> str:
-        # [STAGE: (VTK)]
+        # [STAGE: (VTK)] Verify HMAC before Execution
         try:
             ciphertext_byte: bytes = base64str_backto_byte(ciphertext)
             associated_plaintext_byte: bytes = str_to_byte(associated_plaintext)

@@ -26,8 +26,8 @@ class MsgVerifier:
     #   (VL): has_u_ticket_in_device_table
     #   (VUT): verify_u_ticket_can_execute
     #   (VRT): verify_u_ticket_has_successfully_executed_through_r_ticket
-    #   (VTK): verify_token_through_hmac
-    #   (VTS): verify_cmd_is_in_task_scope
+    #   (VTK): verify_token_through_hmac (_execute_decrypt_ciphertext)
+    #   (VTS): verify_cmd_is_in_task_scope (_execute_data_processing)
     ######################################################
     def _classify_message_is_defined_type(
         self, arbitrary_json: str
@@ -106,7 +106,6 @@ class MsgVerifier:
             u_ticket_in = u_ticket_verifier.verify_ps(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
         except RuntimeError as error:
-            # FAILURE: (VUT)
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -149,7 +148,6 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
         except RuntimeError as error:
-            # FAILURE: (VUT)
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -174,7 +172,7 @@ class MsgVerifier:
             return True
         elif cmd == "HELLO-3" and (
             task_scope.get("SAY-HELLO-3") == "allow" or task_scope.get("ALL") == "allow"
-        ):
+        ):  # pragma: no cover -> FAILURE: (VTK)
             return True
         else:
             simple_log("error", f"Undefined or Forbidden Command: {cmd}")

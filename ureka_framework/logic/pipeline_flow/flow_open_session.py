@@ -90,7 +90,6 @@ class FlowOpenSession:
             self._holder_send_cr_ke_2(result_message)
 
         except RuntimeError as error:
-            # FAILURE: (VRT)
             result_message = f"{error}"
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
@@ -138,13 +137,15 @@ class FlowOpenSession:
             )
             result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
             self.shared_data.result_message = result_message
+
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except RuntimeError as error:
-            # FAILURE: (VUT) or (VTK)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
             # End Comm
@@ -198,13 +199,16 @@ class FlowOpenSession:
                     audit_end_ticket=None,
                 )
                 result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
+                # [STAGE: (VTK)]
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_ticket)
+
                 # [STAGE: (C)]
                 self.executor._change_state(
                     this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 )
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
                 result_message = f"{error}"
                 # End Comm
                 simple_log("debug", f"+ Failed CR-KE~~ (holder)")

@@ -95,8 +95,8 @@ class FlowIssueUToken:
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragma: no cover -> Weird UTK-Request (ValidationError)
-            failure_msg = f"FAILURE: (VUTKREQ)"
+        except RuntimeError:  # pragma: no cover -> Weird TK-Request (ValidationError)
+            failure_msg = f"FAILURE: (VTKREQ)"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -112,10 +112,10 @@ class FlowIssueUToken:
             result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
             self.shared_data.result_message = result_message
 
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
 
-            # PS
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
@@ -126,7 +126,6 @@ class FlowIssueUToken:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
-            # FAILURE: (VTK) or (VTS)
             result_message = f"{error}"
             self.shared_data.result_message = result_message
 
@@ -198,11 +197,14 @@ class FlowIssueUToken:
                     audit_end_ticket=None,
                 )
                 result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
+                # [STAGE: (VTK)]
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_token)
+
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
                 result_message = f"{error}"
 
             simple_log("debug", f"result_message = {result_message}")
