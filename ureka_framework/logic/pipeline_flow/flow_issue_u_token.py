@@ -128,6 +128,8 @@ class FlowIssueUToken:
         except RuntimeError as error:
             result_message = f"{error}"
             self.shared_data.result_message = result_message
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -151,16 +153,24 @@ class FlowIssueUToken:
     def _device_send_data(self, result_message: str) -> None:
         try:
             # [STAGE: (G)]
-            generated_request: dict = {
-                "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
-                "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                "result": f"{result_message}",
-                "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
-                "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
-                "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
-                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
-            }
+            if "SUCCESS" in result_message:
+                generated_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                    "result": f"{result_message}",
+                    "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
+                    "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
+                    "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
+                    "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
+                }
+            else:
+                generated_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                    "result": f"{result_message}",
+                }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 generated_request
             )

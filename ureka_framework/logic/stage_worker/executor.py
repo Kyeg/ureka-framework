@@ -105,14 +105,14 @@ class Executor:
             self.shared_data.this_device.device_type
             != this_device.USER_AGENT_OR_CLOUD_SERVER
         ):  # pragma: no cover -> weird operation
-            failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+            failure_msg = "-> FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
         if (
             self.shared_data.this_device.ticket_order != 0
         ):  # pragma: no cover -> FAILURE: (VR), because of verify_ticket_order()
-            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            failure_msg = "-> FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 

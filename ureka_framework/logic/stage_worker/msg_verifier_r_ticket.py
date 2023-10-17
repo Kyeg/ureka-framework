@@ -399,13 +399,15 @@ class RTicketVerifier:
                 r_ticket_in,
                 str_to_key(self.current_session.current_holder_id, "ecc-public-key"),
             ):
+                success_msg = f"-> SUCCESS: VERIFY_HOLDER_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
                 simple_log("info", success_msg)
                 return r_ticket_in
             else:
+                failure_msg = f"-> FAILURE: VERIFY_HOLDER_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # No ISSUER_SIGNATURE
+            # No DEVICE_SIGNATURE
             simple_log("info", success_msg)
             return r_ticket_in
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()

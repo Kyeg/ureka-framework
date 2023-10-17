@@ -141,9 +141,11 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)
 
             r_ticket_in = r_ticket_verifier.verify_ticket_order(r_ticket_in)
+
             r_ticket_in = r_ticket_verifier.verify_audit_start(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_audit_end(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
+
             r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)

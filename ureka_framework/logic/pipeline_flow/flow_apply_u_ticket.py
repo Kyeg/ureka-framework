@@ -133,6 +133,8 @@ class FlowApplyUTicket:
         except RuntimeError as error:
             result_message = f"{error}"
             self.shared_data.result_message = result_message
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
@@ -179,14 +181,22 @@ class FlowApplyUTicket:
                     "result": f"{result_message}",
                 }
             elif u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                # audit_start has already stored when receiving Access UTicket
-                r_ticket_request: dict = {
-                    "r_ticket_type": f"{u_ticket_type}",
-                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                    "audit_end": f"TX_END",
-                    "result": f"{result_message}",
-                }
+                if "SUCCESS" in result_message:
+                    # audit_start has already stored when receiving Access UTicket
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                        "audit_end": f"TX_END",
+                        "result": f"{result_message}",
+                    }
+                else:  # pragma: no cover -> Weird U-Token
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                        "result": f"{result_message}",
+                    }
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
