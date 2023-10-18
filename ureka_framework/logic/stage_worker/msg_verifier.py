@@ -8,6 +8,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Serialization)
+from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
 from ureka_framework.logic.stage_worker.msg_verifier_r_ticket import RTicketVerifier
@@ -23,7 +26,7 @@ class MsgVerifier:
     #   (VL): has_u_ticket_in_device_table
     #   (VUT): verify_u_ticket_can_execute
     #   (VRT): verify_u_ticket_has_successfully_executed_through_r_ticket
-    #   (VTK): verify_token_through_hmac
+    #   (VTK): verify_token_through_hmac (when _execute_decrypt_ciphertext)
     #   (VTS): verify_cmd_is_in_task_scope
     ######################################################
     def _classify_message_is_defined_type(
@@ -128,8 +131,6 @@ class MsgVerifier:
                 current_session=self.shared_data.current_session,
             )
 
-            r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
-
             # r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
             # r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
@@ -137,10 +138,12 @@ class MsgVerifier:
             # r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)
 
+            r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ticket_order(r_ticket_in)
+
             r_ticket_in = r_ticket_verifier.verify_audit_start(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_audit_end(r_ticket_in)
-            # r_ticket_in = r_ticket_verifier.verify_result(r_ticket_in)
+
             r_ticket_in = r_ticket_verifier.verify_cr_ke(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_ps(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
@@ -149,3 +152,27 @@ class MsgVerifier:
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+    def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
+        success_msg = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
+        failure_msg = f"-> FAILURE: VERIFY_CMD_IN_TASK_SCOPE"
+
+        task_scope: dict = jsonstr_to_dict(
+            self.shared_data.current_session.current_task_scope
+        )
+        # simple_log("debug", f"current_task_scope: {task_scope}")
+
+        # If the key is not found, get() returns a None
+        if task_scope.get("ALL") == "allow":
+            simple_log("info", success_msg)
+        elif cmd == "HELLO-1" and task_scope.get("SAY-HELLO-1") == "allow":
+            simple_log("info", success_msg)
+        elif cmd == "HELLO-2" and task_scope.get("SAY-HELLO-2") == "allow":
+            simple_log("info", success_msg)
+        elif (
+            cmd == "HELLO-3" and task_scope.get("SAY-HELLO-3") == "allow"
+        ):  # pragma: no cover -> FAILURE: (VTS)
+            simple_log("info", success_msg)
+        else:
+            simple_log("error", f"{failure_msg}: Undefined or Forbidden Command: {cmd}")
+            raise RuntimeError(f"{failure_msg}")

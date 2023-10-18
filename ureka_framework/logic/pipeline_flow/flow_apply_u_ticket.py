@@ -49,10 +49,6 @@ class FlowApplyUTicket:
     # APY (No CR):
     #       holder_apply_u_ticket() -> _device_recv_u_ticket()
     #       _holder_recv_r_ticket() <- _device_send_r_ticket()
-    #
-    # Automatic UT-RT & UT-CR-KE-PS-RT
-    #           Concurrent device_controller,
-    #           i.e., FakeComm (Sequential Sender/Receiver) -> (Concurrent Sender/Receiver)
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
         try:
@@ -78,7 +74,9 @@ class FlowApplyUTicket:
                 or stored_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # [STAGE: (E)]
-                self.executor._execute_cr_ke(stored_u_ticket, "holder", cmd)
+                self.executor._execute_cr_ke(
+                    ticket_in=stored_u_ticket, comm_end="holder", cmd=cmd
+                )
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE1)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -108,20 +106,18 @@ class FlowApplyUTicket:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_ticket)
-            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
 
-            # After TX End
+            # UT-RT
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
                 # [STAGE: (EO)]
                 self.executor._execute_xxx_u_ticket(received_u_ticket)
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # CR-KE-PS
+            # CR-KE
             elif (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
@@ -134,8 +130,10 @@ class FlowApplyUTicket:
                 simple_log("error", "weird ticket type")
 
         except RuntimeError as error:
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"{error}"
+
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
@@ -145,25 +143,26 @@ class FlowApplyUTicket:
             simple_log("error", failure_msg)
 
         finally:
-            # After TX End
+            # UT-RT
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
                 # [STAGE: (G)(S)]
                 self._device_send_r_ticket(
                     received_u_ticket.u_ticket_type,
                     received_u_ticket.u_ticket_id,
-                    result_message,
+                    self.shared_data.result_message,
                 )
-            # CR-KE-PS
+            # CR-KE
             elif (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # [STAGE: (G)(S)]
-                self.flow_open_session._device_send_cr_ke_1(result_message)
+                self.flow_open_session._device_send_cr_ke_1(
+                    self.shared_data.result_message
+                )
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
@@ -176,21 +175,35 @@ class FlowApplyUTicket:
                 u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             ):
-                r_ticket_request: dict = {
-                    "r_ticket_type": f"{u_ticket_type}",
-                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{u_ticket_id}",
-                    "result": f"{result_message}",
-                }
+                if "SUCCESS" in result_message:
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                        "audit_start": f"{u_ticket_id}",
+                    }
+                else:
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                    }
             elif u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-                # audit_start has already stored when receiving Access UTicket
-                r_ticket_request: dict = {
-                    "r_ticket_type": f"{u_ticket_type}",
-                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                    "audit_end": f"TX_END",
-                    "result": f"{result_message}",
-                }
+                if "SUCCESS" in result_message:
+                    # audit_start has already stored when receiving Access UTicket
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                        "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                        "audit_end": f"TX_END",
+                    }
+                else:  # pragma: no cover -> Weird U-Token
+                    r_ticket_request: dict = {
+                        "r_ticket_type": f"{u_ticket_type}",
+                        "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                        "result": f"{result_message}",
+                    }
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
@@ -238,7 +251,10 @@ class FlowApplyUTicket:
                         audit_start_ticket=stored_u_ticket,
                         audit_end_ticket=None,
                     )
-                    result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+                    self.shared_data.result_message = (
+                        f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+                    )
+
                     # [STAGE: (E)(O)]
                     self.executor._execute_xxx_r_ticket(received_r_ticket)
                     # [STAGE: (C)]
@@ -246,9 +262,11 @@ class FlowApplyUTicket:
                         this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                     )
                 except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
-                    result_message = f"{error}"
+                    self.shared_data.result_message = f"{error}"
 
-                simple_log("debug", f"result_message = {result_message}")
+                simple_log(
+                    "debug", f"result_message = {self.shared_data.result_message}"
+                )
 
             else:  # pragma: no cover -> TODO: Revocation UTicket
                 failure_msg = f"Not implemented yet"

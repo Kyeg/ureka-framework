@@ -12,11 +12,9 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
-import ureka_framework.model.message_model.u_ticket as u_ticket
-from ureka_framework.resource.crypto.serialization_util import (
-    dict_to_jsonstr,
-)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 
 def setup():
@@ -57,11 +55,12 @@ def test_script():
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     create_comm_connection(user_agent_do, cloud_server_ep)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
         "device_id": f"{owned_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-        "task_scope": f"not important",
+        "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
@@ -71,7 +70,7 @@ def test_script():
 
     # WHEN: Holder: EP's CS forward the access_u_ticket
     create_comm_connection(cloud_server_ep, iot_device)
-    # generated_command = "HELLO"
+    # generated_command = "HELLO-1"
     generated_command = input("\nEP's CS enter 1st command to DO's IoTD: ")
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
         owned_device_id, generated_command

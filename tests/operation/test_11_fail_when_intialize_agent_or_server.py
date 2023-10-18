@@ -62,7 +62,7 @@ class TestFailWhenInitializeAgentOrServer:
         # THEN: Fail to re-initialize CS
         assert (
             str(error_info.value)
-            == "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            == "-> FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
         )
 
     @pytest.mark.skip(reason="TODO: Access Agent")

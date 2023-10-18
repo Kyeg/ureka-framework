@@ -81,7 +81,7 @@ class TestFailWhenInitializeDevice:
             if value.device_id != "no_id":
                 assert (
                     jsonstr_to_r_ticket(value.device_r_ticket).result
-                    == "FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                    == "-> FAILURE: IOT_DEVICE ALREADY INITIALIZED"
                 )
 
     def test_fail_when_initialize_device_by_intializing_agent_or_server(self) -> None:
@@ -105,5 +105,5 @@ class TestFailWhenInitializeDevice:
         # THEN: Fail to initialize IoTD
         assert (
             str(error_info.value)
-            == "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+            == "-> FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
         )

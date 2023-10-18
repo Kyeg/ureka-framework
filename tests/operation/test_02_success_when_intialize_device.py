@@ -87,6 +87,7 @@ class TestSuccessWhenIntializeDevice:
         wait_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert self.iot_device.shared_data.this_device.ticket_order == 1
         assert self.iot_device.shared_data.this_device.device_priv_key_str != None
         assert self.iot_device.shared_data.this_device.device_pub_key_str != None

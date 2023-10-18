@@ -155,6 +155,17 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
+    def verify_result(self, r_ticket_in: RTicket) -> RTicket:
+        success_msg = f"-> SUCCESS: VERIFY_RESULT"
+        failure_msg = f"-> FAILURE: VERIFY_RESULT"
+
+        if "SUCCESS" in r_ticket_in.result:
+            simple_log("info", success_msg)
+            return r_ticket_in
+        else:  # pragma: no cover -> Weird R-Ticket
+            simple_log("error", failure_msg)
+            raise RuntimeError(f"{failure_msg}")
+
     def verify_ticket_order(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_TICKET_ORDER"
         failure_msg = f"-> FAILURE: VERIFY_TICKET_ORDER"
@@ -254,17 +265,6 @@ class RTicketVerifier:
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
             simple_log("info", success_msg)
             return r_ticket_in
-
-    def verify_result(self, r_ticket_in: RTicket) -> RTicket:
-        success_msg = f"-> SUCCESS: VERIFY_RESULT"
-        failure_msg = f"-> FAILURE: VERIFY_RESULT"
-
-        if "SUCCESS" in r_ticket_in.result:
-            simple_log("info", success_msg)
-            return r_ticket_in
-        else:  # pragma: no cover -> Weird R-Ticket
-            simple_log("error", failure_msg)
-            raise RuntimeError(f"{failure_msg}")
 
     def verify_cr_ke(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_CR_KE"
@@ -399,13 +399,15 @@ class RTicketVerifier:
                 r_ticket_in,
                 str_to_key(self.current_session.current_holder_id, "ecc-public-key"),
             ):
+                success_msg = f"-> SUCCESS: VERIFY_HOLDER_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
                 simple_log("info", success_msg)
                 return r_ticket_in
             else:
+                failure_msg = f"-> FAILURE: VERIFY_HOLDER_SIGNATURE on {r_ticket_in.r_ticket_type} RTICKET"
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # No ISSUER_SIGNATURE
+            # No DEVICE_SIGNATURE
             simple_log("info", success_msg)
             return r_ticket_in
         else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()

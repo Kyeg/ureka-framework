@@ -33,6 +33,7 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
+from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 
 class TestFailWhenAccessDeviceByOthers:
@@ -74,16 +75,17 @@ class TestFailWhenAccessDeviceByOthers:
             device_u_ticket="pretend to have legal ownership u-ticket",
             ticket_order=2,
         )
+        generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_atk.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"not important",
+            "task_scope": f"{generated_task_scope}",
         }
         self.cloud_server_atk.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
@@ -119,11 +121,12 @@ class TestFailWhenAccessDeviceByOthers:
         #       but ATK's CS intercept the u_ticket & pretend to be EP's CS
         create_comm_connection(self.user_agent_do, self.cloud_server_atk)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
-            "task_scope": f"not important",
+            "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
@@ -132,7 +135,7 @@ class TestFailWhenAccessDeviceByOthers:
 
         # WHEN: Holder: ATK's CS forward the access_u_ticket
         create_comm_connection(self.cloud_server_atk, self.iot_device)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
@@ -227,7 +230,16 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN: ATK's CS reuse the intercepted u_ticket on IoTD
         simple_log("debug", f"Intercepted UTicket: {intercepted_uticket_json}")
         create_comm_connection(self.iot_device, self.cloud_server_atk)
-        generated_command = "HELLO"
+        generated_command = "HELLO-1"
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
+            device_id=target_device_id,
+            device_u_ticket=intercepted_uticket_json,
+            ticket_order=2,
+        )
+        self.cloud_server_atk.shared_data.current_session.current_device_id = (
+            target_device_id
+        )
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_CRKE1
         )
@@ -276,7 +288,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = owned_device_id
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal access u-ticket",
+            device_u_ticket=intercepted_utoken_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.iv_cmd = (

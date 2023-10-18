@@ -8,10 +8,6 @@ from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
 
-# Resource (Crypto)
-from ureka_framework.resource.crypto.serialization_util import base64str_backto_byte
-from cryptography.exceptions import InvalidTag
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -65,17 +61,7 @@ class FlowIssueUToken:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
-                # Update Session: PS-Cmd
-                self.shared_data.current_session.plaintext_cmd = cmd
-                self.shared_data.current_session.associated_plaintext_cmd = (
-                    "additional unencrypted cmd"
-                )
-                # Message Encryption
-                self.executor._execute_cmd_encryption_and_gen_next_iv(
-                    base64str_backto_byte(
-                        self.shared_data.current_session.current_session_key_str
-                    )
-                )
+                self.executor._execute_ps(executing_case="send-utoken", plaintext=cmd)
 
                 if tx_end == False:
                     # [STAGE: (C)]
@@ -109,8 +95,8 @@ class FlowIssueUToken:
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragma: no cover -> Weird UTK-Request (ValidationError)
-            failure_msg = f"FAILURE: (VUTKREQ)"
+        except RuntimeError:  # pragma: no cover -> Weird TK-Request (ValidationError)
+            failure_msg = f"FAILURE: (VTKREQ)"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
@@ -123,12 +109,13 @@ class FlowIssueUToken:
 
             # [STAGE: (VUT)]
             self.msg_verifier.verify_u_ticket_can_execute(received_u_token)
-            result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
-            self.shared_data.result_message = result_message
 
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
-            # PS
+
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
+
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
@@ -138,9 +125,11 @@ class FlowIssueUToken:
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VUT)
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+        except RuntimeError as error:
+            self.shared_data.result_message = f"{error}"
+
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -150,13 +139,13 @@ class FlowIssueUToken:
             # PS
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (G)(S)]
-                self._device_send_data(result_message)
+                self._device_send_data(self.shared_data.result_message)
             elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (G)(S)]
                 self.flow_apply_u_ticket._device_send_r_ticket(
                     received_u_token.u_ticket_type,
                     received_u_token.u_ticket_id,
-                    result_message,
+                    self.shared_data.result_message,
                 )
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
@@ -164,16 +153,23 @@ class FlowIssueUToken:
     def _device_send_data(self, result_message: str) -> None:
         try:
             # [STAGE: (G)]
-            generated_request: dict = {
-                "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
-                "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
-                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                "result": f"{result_message}",
-                "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
-                "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
-                "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
-                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
-            }
+            if "SUCCESS" in result_message:
+                generated_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                    "result": f"{result_message}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                    "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
+                    "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
+                    "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
+                    "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
+                }
+            else:
+                generated_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_DATA_RTOKEN}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
+                    "result": f"{result_message}",
+                }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 generated_request
             )
@@ -209,15 +205,19 @@ class FlowIssueUToken:
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
-                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
+                # [STAGE: (VTK)]
                 # [STAGE: (E)]
                 self.executor._execute_xxx_r_ticket(received_r_token)
+
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
-                result_message = f"{error}"
+            except RuntimeError as error:
+                self.shared_data.result_message = f"{error}"
 
-            simple_log("debug", f"result_message = {result_message}")
+            simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"

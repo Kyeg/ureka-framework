@@ -49,15 +49,22 @@ class FlowOpenSession:
     def _device_send_cr_ke_1(self, result_message: str) -> None:
         try:
             # [STAGE: (G)]
-            r_ticket_request: dict = {
-                "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
-                "device_id": f"{self.shared_data.current_session.current_device_id}",
-                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                "result": f"{result_message}",
-                "challenge_1": f"{self.shared_data.current_session.challenge_1}",
-                "key_exchange_salt_1": f"{self.shared_data.current_session.key_exchange_salt_1}",
-                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
-            }
+            if "SUCCESS" in result_message:
+                r_ticket_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
+                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "result": f"{result_message}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                    "challenge_1": f"{self.shared_data.current_session.challenge_1}",
+                    "key_exchange_salt_1": f"{self.shared_data.current_session.key_exchange_salt_1}",
+                    "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
+                }
+            else:
+                r_ticket_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
+                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "result": f"{result_message}",
+                }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
             )
@@ -79,18 +86,22 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
 
             # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._holder_send_cr_ke_2(result_message)
+            self._holder_send_cr_ke_2(self.shared_data.result_message)
 
         except RuntimeError as error:
-            result_message = f"{error}"
+            self.shared_data.result_message = f"{error}"
+            # [STAGE: (C)]
+            self.executor._change_state(
+                this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+            )
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
@@ -99,14 +110,16 @@ class FlowOpenSession:
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
+        simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
     def _holder_send_cr_ke_2(self, result_message: str) -> None:
         try:
             # [STAGE: (G)]
             r_ticket_request: dict = {
                 "r_ticket_type": f"{r_ticket.TYPE_CRKE2_RTICKET}",
                 "device_id": f"{self.shared_data.current_session.current_device_id}",
-                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                 "result": f"{result_message}",
+                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                 "challenge_1": f"{self.shared_data.current_session.challenge_1}",
                 "challenge_2": f"{self.shared_data.current_session.challenge_2}",
                 "key_exchange_salt_2": f"{self.shared_data.current_session.key_exchange_salt_2}",
@@ -135,16 +148,21 @@ class FlowOpenSession:
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
-            self.shared_data.result_message = result_message
+
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_ticket)
+
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except RuntimeError as error:
-            result_message = f"{error}"
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"{error}"
+
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
@@ -155,23 +173,29 @@ class FlowOpenSession:
 
         finally:
             # [STAGE: (G)(S)]
-            simple_log("debug", f"result_message = {result_message}")
-            self._device_send_cr_ke_3(result_message)
+            self._device_send_cr_ke_3(self.shared_data.result_message)
 
     def _device_send_cr_ke_3(self, result_message: str) -> None:
         try:
             # [STAGE: (G)]
-            r_ticket_request: dict = {
-                "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
-                "device_id": f"{self.shared_data.current_session.current_device_id}",
-                "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                "result": f"{result_message}",
-                "challenge_2": f"{self.shared_data.current_session.challenge_2}",
-                "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
-                "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
-                "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
-                "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
-            }
+            if "SUCCESS" in result_message:
+                r_ticket_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
+                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "result": f"{result_message}",
+                    "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
+                    "challenge_2": f"{self.shared_data.current_session.challenge_2}",
+                    "associated_plaintext_data": f"{self.shared_data.current_session.associated_plaintext_data}",
+                    "ciphertext_data": f"{self.shared_data.current_session.ciphertext_data}",
+                    "gcm_authentication_tag_data": f"{self.shared_data.current_session.gcm_authentication_tag_data}",
+                    "iv_cmd": f"{self.shared_data.current_session.iv_cmd}",
+                }
+            else:
+                r_ticket_request: dict = {
+                    "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
+                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "result": f"{result_message}",
+                }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
             )
@@ -188,28 +212,35 @@ class FlowOpenSession:
         try:
             # [STAGE: (R)(VR)]
 
-            try:
-                # [STAGE: (VRT)]
-                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
-                    r_ticket_in=received_r_ticket,
-                    audit_start_ticket=None,
-                    audit_end_ticket=None,
-                )
-                result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
-                # [STAGE: (E)]
-                self.executor._execute_xxx_r_ticket(received_r_ticket)
-                # [STAGE: (C)]
-                self.executor._change_state(
-                    this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
-                )
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
-                result_message = f"{error}"
-                # End Comm
-                simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-                self.executor.complete_comm()
+            # [STAGE: (VRT)]
+            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                r_ticket_in=received_r_ticket,
+                audit_start_ticket=None,
+                audit_end_ticket=None,
+            )
 
-            simple_log("debug", f"result_message = {result_message}")
+            # [STAGE: (VTK)]
+            # [STAGE: (E)]
+            self.executor._execute_xxx_r_ticket(received_r_ticket)
 
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
+            # [STAGE: (C)]
+            self.executor._change_state(
+                this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+            )
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
+            self.shared_data.result_message = f"{error}"
+
+            # [STAGE: (C)]
+            self.executor._change_state(
+                this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+            )
+            # End Comm
+            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
+            self.executor.complete_comm()
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+        simple_log("debug", f"result_message = {self.shared_data.result_message}")

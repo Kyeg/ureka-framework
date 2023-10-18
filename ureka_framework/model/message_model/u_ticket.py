@@ -37,12 +37,6 @@ LEGAL_UTICKET_TYPES: {str} = {
 
 
 ######################################################
-# Task Scope
-######################################################
-TASK_SCOPE_RESOURCE_TREE: str = "TASK-SCOPE-RESOURCE-TREE"
-
-
-######################################################
 # Data Model
 ######################################################
 class UTicket(BaseModel):
@@ -56,6 +50,7 @@ class UTicket(BaseModel):
     device_id: None | str = None
 
     ticket_order: None | int = None
+
     holder_id: None | str = None
     task_scope: None | str = None
 

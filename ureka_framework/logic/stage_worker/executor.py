@@ -1,6 +1,7 @@
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 
 # Data Model (Message)
 import ureka_framework.model.message_model.u_ticket as u_ticket
@@ -28,11 +29,20 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Stage Worker
+from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+
 
 class Executor:
-    def __init__(self, shared_data: SharedData, simple_storage: SimpleStorage) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        simple_storage: SimpleStorage,
+        msg_verifier: MsgVerifier,
+    ) -> None:
         self.shared_data = shared_data
         self.simple_storage = simple_storage
+        self.msg_verifier = msg_verifier
 
     ######################################################
     # [STAGE: (E)] Execute
@@ -95,14 +105,14 @@ class Executor:
             self.shared_data.this_device.device_type
             != this_device.USER_AGENT_OR_CLOUD_SERVER
         ):  # pragma: no cover -> weird operation
-            failure_msg = "FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
+            failure_msg = "-> FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
         if (
             self.shared_data.this_device.ticket_order != 0
         ):  # pragma: no cover -> FAILURE: (VR), because of verify_ticket_order()
-            failure_msg = "FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            failure_msg = "-> FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
@@ -151,7 +161,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
-    # Execute UTicket (Update Keystore)
+    # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             try:
@@ -171,42 +181,68 @@ class Executor:
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
         ):
             # [STAGE: (E)]
-            self._execute_cr_ke(u_ticket_in, "device")
+            self._execute_cr_ke(ticket_in=u_ticket_in, comm_end="device")
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
             or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
         ):
+            # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             # Update Session: PS-Cmd
-            self._execute_cmd_decryption(
-                associated_plaintext=u_ticket_in.associated_plaintext_cmd,
-                iv=self.shared_data.current_session.iv_cmd,
-                ciphertext=u_ticket_in.ciphertext_cmd,
-                gcm_authentication_tag=u_ticket_in.gcm_authentication_tag_cmd,
-                session_key=base64str_backto_byte(
-                    self.shared_data.current_session.current_session_key_str
-                ),
+            self._execute_ps(executing_case="recv-utoken", ticket_in=u_ticket_in)
+            # Data Processing
+            (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
+                self.shared_data.current_session.plaintext_cmd,
+                self.shared_data.current_session.associated_plaintext_cmd,
             )
             # Update Session: PS-Data
-            self.shared_data.current_session.iv_data = u_ticket_in.iv_data
-            self._execute_data_processing_and_encryption(
-                base64str_backto_byte(
-                    self.shared_data.current_session.current_session_key_str
-                )
+            self._execute_ps(
+                executing_case="send-rtoken",
+                ticket_in=u_ticket_in,
+                plaintext=plaintext_data,
+                associated_plaintext=associated_plaintext_data,
             )
             if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # [STAGE: (VTK)]
                 if self.shared_data.current_session.plaintext_cmd == "TX_END":
-                    simple_log("info", f"-> SUCCESS: VERIFY_TX_END")
+                    self.shared_data.result_message = f"-> SUCCESS: VERIFY_TX_END"
+                    simple_log("info", self.shared_data.result_message)
                     # [STAGE: (O)]
                     self._execute_update_ticket_order(
                         "device-verify-uticket", u_ticket_in
                     )
                 else:  # pragma: no cover -> FAILURE: (VTK)
-                    simple_log("error", f"-> FAILURE: VERIFY_TX_END")
+                    self.shared_data.result_message = f"-> FAILURE: VERIFY_TX_END"
+                    simple_log("error", self.shared_data.result_message)
+                    raise RuntimeError(self.shared_data.result_message)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
 
+    # Execute RTicket (Update Session, & Ticket Order)
+    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
+        if (
+            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+        ):
+            # [STAGE: (O)]
+            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="device")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+            # [STAGE: (E)]
+            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+            # [STAGE: (E)]
+            self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
+        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+            simple_log("error", "weird ticket type")
+
+    # Ownership
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -274,7 +310,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
-    # Execute UTicket (Update Session)
+    # CR-KE
     def _execute_cr_ke(
         self, ticket_in: UTicket | RTicket, comm_end: str, cmd: str = ""
     ) -> None:
@@ -282,10 +318,6 @@ class Executor:
             "info",
             f"+ {self.shared_data.this_device.device_name} is updating current session...",
         )
-        ######################################################
-        # Update Session
-        ######################################################
-        # RAM
         if (
             type(ticket_in) == UTicket
             and ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
@@ -303,11 +335,8 @@ class Executor:
                 self.shared_data.current_session.current_task_scope = (
                     ticket_in.task_scope
                 )
-                # Update Session: PS-Cmd
-                self.shared_data.current_session.plaintext_cmd = cmd
-                self.shared_data.current_session.associated_plaintext_cmd = (
-                    "additional unencrypted cmd"
-                )
+                # Update Session: PS-Cmd (Input: Plaintext, Associated-Plaintext)
+                self._execute_ps(executing_case="send-ut", plaintext=cmd)
             elif comm_end == "device":
                 # Update Session: Access UT
                 self.shared_data.current_session.current_u_ticket_id = (
@@ -318,33 +347,33 @@ class Executor:
                 self.shared_data.current_session.current_task_scope = (
                     ticket_in.task_scope
                 )
-                # Update Session: CR-KE
+                # Update Session: CR
                 self.shared_data.current_session.challenge_1 = ecdh.generate_random_str(
                     32
                 )
+                # Update Session: KE
                 self.shared_data.current_session.key_exchange_salt_1 = (
                     ecdh.generate_random_str(32)
                 )
                 # Update Session: PS-Cmd
-                self.shared_data.current_session.iv_cmd = byte_to_base64str(
-                    ecdh.gcm_gen_iv()
-                )
+                self._execute_ps(executing_case="recv-ut-and-send-crke1")
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "weird comm_end")
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
         ):
-            # Update Session: CR-KE
+            # Update Session: CR
             self.shared_data.current_session.challenge_1 = ticket_in.challenge_1
+            self.shared_data.current_session.challenge_2 = ecdh.generate_random_str(32)
+            # Update Session: KE
             self.shared_data.current_session.key_exchange_salt_1 = (
                 ticket_in.key_exchange_salt_1
             )
-            self.shared_data.current_session.challenge_2 = ecdh.generate_random_str(32)
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ecdh.generate_random_str(32)
             )
-            # Session Key Gereration ("holder")
+            # Update Session: KE
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=self.shared_data.current_session.key_exchange_salt_2,
@@ -354,19 +383,24 @@ class Executor:
                     "ecc-public-key",
                 ),
             )
+            self.shared_data.current_session.current_session_key_str = (
+                byte_to_base64str(current_session_key_byte)
+            )
             # Update Session: PS-Cmd
-            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
-            self._execute_cmd_encryption_and_gen_next_iv(current_session_key_byte)
+            self._execute_ps(
+                executing_case="recv-crke1-and-send-crke2", ticket_in=ticket_in
+            )
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET
         ):
-            # Update Session: CR-KE
+            # Update Session: CR
             self.shared_data.current_session.challenge_2 = ticket_in.challenge_2
+            # Update Session: KE
             self.shared_data.current_session.key_exchange_salt_2 = (
                 ticket_in.key_exchange_salt_2
             )
-            # Session Key Gereration ("device")
+            # Update Session: KE
             current_session_key_byte = self._execute_generate_session_key(
                 salt_1=self.shared_data.current_session.key_exchange_salt_1,
                 salt_2=ticket_in.key_exchange_salt_2,
@@ -380,41 +414,27 @@ class Executor:
                 byte_to_base64str(current_session_key_byte)
             )
             # Update Session: PS-Cmd
-            self._execute_cmd_decryption(
-                associated_plaintext=ticket_in.associated_plaintext_cmd,
-                iv=self.shared_data.current_session.iv_cmd,
-                ciphertext=ticket_in.ciphertext_cmd,
-                gcm_authentication_tag=ticket_in.gcm_authentication_tag_cmd,
-                session_key=current_session_key_byte,
+            self._execute_ps(executing_case="recv-crke2", ticket_in=ticket_in)
+            # Data Processing
+            (plaintext_data, associated_plaintext_data) = self._execute_data_processing(
+                self.shared_data.current_session.plaintext_cmd,
+                self.shared_data.current_session.associated_plaintext_cmd,
             )
             # Update Session: PS-Data
-            self.shared_data.current_session.iv_data = ticket_in.iv_data
-            self._execute_data_processing_and_encryption(current_session_key_byte)
+            self._execute_ps(
+                executing_case="send-crke3",
+                ticket_in=ticket_in,
+                plaintext=plaintext_data,
+                associated_plaintext=associated_plaintext_data,
+            )
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
         ):
-            # Session Key Obtaining ("holder")
-            current_session_key_byte = base64str_backto_byte(
-                self.shared_data.current_session.current_session_key_str
-            )
             # Update Session: PS-Data
-            self._execute_data_decryption(
-                associated_plaintext=ticket_in.associated_plaintext_data,
-                iv=self.shared_data.current_session.iv_data,
-                ciphertext=ticket_in.ciphertext_data,
-                gcm_authentication_tag=ticket_in.gcm_authentication_tag_data,
-                session_key=current_session_key_byte,
-            )
-            # Update Session: PS-Cmd
-            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
+            self._execute_ps(executing_case="recv-crke3", ticket_in=ticket_in)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
             simple_log("error", "weird ticket type")
-
-        # simple_log(
-        #     "debug",
-        #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
-        # )
 
         ######################################################
         # Storage (Persistent vs. RAM-only)
@@ -454,106 +474,251 @@ class Executor:
         # len(current_session_key)  # = 32 bytes
         return current_session_key
 
-    def _execute_cmd_encryption_and_gen_next_iv(
-        self, current_session_key_byte: bytes
-    ) -> None:
-        # Message Encryption
-        (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
-            plaintext=self.shared_data.current_session.plaintext_cmd,
-            associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
-            session_key=current_session_key_byte,
-            iv=self.shared_data.current_session.iv_cmd,
-        )
-        # Update Session: PS-Key
-        self.shared_data.current_session.current_session_key_str = byte_to_base64str(
-            current_session_key_byte
-        )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.ciphertext_cmd = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_cmd = (
-            gcm_authentication_tag
-        )
-        # Update Session: PS-Data
-        self.shared_data.current_session.iv_data = byte_to_base64str(ecdh.gcm_gen_iv())
-
-    def _execute_cmd_decryption(
+    # PS
+    def _execute_ps(
         self,
-        associated_plaintext: str,
-        iv: str,
-        ciphertext: str,
-        gcm_authentication_tag: str,
-        session_key: bytes,
+        executing_case: str,
+        ticket_in: None | UTicket | RTicket = None,
+        plaintext: None | str = None,
+        associated_plaintext: None | str = None,
     ) -> None:
-        # Message Decryption
-        plaintext_cmd = self._execute_decrypt_ciphertext(
-            associated_plaintext=associated_plaintext,
-            iv=iv,
-            ciphertext=ciphertext,
-            gcm_authentication_tag=gcm_authentication_tag,
-            session_key=session_key,
-        )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.plaintext_cmd = plaintext_cmd
-        self.shared_data.current_session.associated_plaintext_cmd = associated_plaintext
-        self.shared_data.current_session.iv_cmd = iv
-        self.shared_data.current_session.ciphertext_cmd = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_cmd = (
-            gcm_authentication_tag
+        simple_log(
+            "info",
+            f"+ {self.shared_data.this_device.device_name} is updating current session...",
         )
 
-    def _execute_data_processing_and_encryption(
-        self, current_session_key_byte: bytes
-    ) -> None:
-        # Data Processing
-        (plaintext_data, associated_plaintext) = self._execute_data_processing(
-            self.shared_data.current_session.plaintext_cmd,
-            self.shared_data.current_session.associated_plaintext_cmd,
-        )
-        # Message Encryption
-        (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
-            plaintext=plaintext_data,
-            associated_plaintext=associated_plaintext,
-            session_key=current_session_key_byte,
-            iv=self.shared_data.current_session.iv_data,
-        )
-        # Update Session: PS-Data
-        self.shared_data.current_session.plaintext_data = plaintext_data
-        self.shared_data.current_session.associated_plaintext_data = (
-            associated_plaintext
-        )
-        self.shared_data.current_session.ciphertext_data = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_data = (
-            gcm_authentication_tag
-        )
-        # Update Session: PS-Cmd
-        self.shared_data.current_session.iv_cmd = byte_to_base64str(ecdh.gcm_gen_iv())
+        # CR-KE
+        if executing_case == "send-ut":
+            # Update Session: PS-Cmd (Input: Plaintext, Associated-Plaintext)
+            self.shared_data.current_session.plaintext_cmd = plaintext
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                "additional unencrypted cmd"
+            )
+        elif executing_case == "recv-ut-and-send-crke1":
+            # Update Session: Next-IV
+            self.shared_data.current_session.iv_cmd = self._gen_next_iv()
+        elif executing_case == "recv-crke1-and-send-crke2":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
+            # Update Session: PS-Cmd (Input: Plaintext, Associated-Plaintext)
+            # Update Session: PS-Cmd (Encyrption)
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=self.shared_data.current_session.plaintext_cmd,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            # Update Session: PS-Cmd (Output: Ciphertext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_cmd = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
+            self.shared_data.current_session.iv_data = self._gen_next_iv()
+        elif executing_case == "recv-crke2":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            # Update Session: PS-Cmd (Input: Ciphertext, Associated-Plaintext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_cmd = ticket_in.ciphertext_cmd
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                ticket_in.associated_plaintext_cmd
+            )
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                ticket_in.gcm_authentication_tag_cmd
+            )
+            # [STAGE: (VTK)(VTS)]
+            # Update Session: PS-Cmd (Decyrption)
+            plaintext_cmd = self._execute_decrypt_ciphertext(
+                ciphertext=self.shared_data.current_session.ciphertext_cmd,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                gcm_authentication_tag=self.shared_data.current_session.gcm_authentication_tag_cmd,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd)
+            # Update Session: PS-Cmd (Output: Plaintext)
+            self.shared_data.current_session.plaintext_cmd = plaintext_cmd
+        elif executing_case == "send-crke3":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            self.shared_data.current_session.iv_data = ticket_in.iv_data
+            # Update Session: PS-Data (Input: Plaintext, Associated-Plaintext)
+            self.shared_data.current_session.plaintext_data = plaintext
+            self.shared_data.current_session.associated_plaintext_data = (
+                associated_plaintext
+            )
+            # Update Session: PS-Data (Encyrption)
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=self.shared_data.current_session.plaintext_data,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_data,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            # Update Session: PS-Data (Output: Ciphertext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_data = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
+            self.shared_data.current_session.iv_cmd = self._gen_next_iv()
+        elif executing_case == "recv-crke3":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
+            # Update Session: PS-Data (Input: Ciphertext, Associated-Plaintext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_data = ticket_in.ciphertext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                ticket_in.associated_plaintext_data
+            )
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                ticket_in.gcm_authentication_tag_data
+            )
+            # [STAGE: (VTK)]
+            # Update Session: PS-Data (Decyrption)
+            plaintext_data = self._execute_decrypt_ciphertext(
+                ciphertext=self.shared_data.current_session.ciphertext_data,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_data,
+                gcm_authentication_tag=self.shared_data.current_session.gcm_authentication_tag_data,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            # Update Session: PS-Data (Output: Plaintext)
+            self.shared_data.current_session.plaintext_data = plaintext_data
+        # PS
+        elif executing_case == "send-utoken":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            # Update Session: PS-Cmd (Input: Plaintext, Associated-Plaintext)
+            self.shared_data.current_session.plaintext_cmd = plaintext
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                "additional unencrypted cmd"
+            )
+            # Update Session: PS-Cmd (Encyrption)
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=self.shared_data.current_session.plaintext_cmd,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            # Update Session: PS-Cmd (Output: Ciphertext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_cmd = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
+            self.shared_data.current_session.iv_data = self._gen_next_iv()
+        elif executing_case == "recv-utoken":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            # Update Session: PS-Cmd (Input: Ciphertext, Associated-Plaintext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_cmd = ticket_in.ciphertext_cmd
+            self.shared_data.current_session.associated_plaintext_cmd = (
+                ticket_in.associated_plaintext_cmd
+            )
+            self.shared_data.current_session.gcm_authentication_tag_cmd = (
+                ticket_in.gcm_authentication_tag_cmd
+            )
+            # [STAGE: (VTK)(VTS)]
+            # Update Session: PS-Cmd (Decyrption)
+            plaintext_cmd = self._execute_decrypt_ciphertext(
+                ciphertext=self.shared_data.current_session.ciphertext_cmd,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_cmd,
+                gcm_authentication_tag=self.shared_data.current_session.gcm_authentication_tag_cmd,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_cmd,
+            )
+            if ticket_in.u_ticket_type != u_ticket.TYPE_TX_END_UTOKEN:
+                self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd)
+            # Update Session: PS-Cmd (Output: Plaintext)
+            self.shared_data.current_session.plaintext_cmd = plaintext_cmd
+        elif executing_case == "send-rtoken":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            self.shared_data.current_session.iv_data = ticket_in.iv_data
+            # Update Session: PS-Data (Input: Plaintext, Associated-Plaintext)
+            self.shared_data.current_session.plaintext_data = plaintext
+            self.shared_data.current_session.associated_plaintext_data = (
+                associated_plaintext
+            )
+            # Update Session: PS-Data (Encyrption)
+            (ciphertext, gcm_authentication_tag) = self._execute_encrypt_plaintext(
+                plaintext=plaintext,
+                associated_plaintext=associated_plaintext,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            # Update Session: PS-Data (Output: Ciphertext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_data = ciphertext
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                gcm_authentication_tag
+            )
+            # Update Session: Next-IV
+            self.shared_data.current_session.iv_cmd = self._gen_next_iv()
+        elif executing_case == "recv-rtoken":
+            # Update Session: PS-Cmd (Input: Key)
+            current_session_key_byte = base64str_backto_byte(
+                self.shared_data.current_session.current_session_key_str
+            )
+            # Update Session: PS-Cmd (Input: This-IV)
+            self.shared_data.current_session.iv_cmd = ticket_in.iv_cmd
+            # Update Session: PS-Data (Input: Ciphertext, Associated-Plaintext, GCM-Authentication-Tag)
+            self.shared_data.current_session.ciphertext_data = ticket_in.ciphertext_data
+            self.shared_data.current_session.associated_plaintext_data = (
+                ticket_in.associated_plaintext_data
+            )
+            self.shared_data.current_session.gcm_authentication_tag_data = (
+                ticket_in.gcm_authentication_tag_data
+            )
+            # [STAGE: (VTK)]
+            # Update Session: PS-Data (Decyrption)
+            plaintext_data = self._execute_decrypt_ciphertext(
+                ciphertext=self.shared_data.current_session.ciphertext_data,
+                associated_plaintext=self.shared_data.current_session.associated_plaintext_data,
+                gcm_authentication_tag=self.shared_data.current_session.gcm_authentication_tag_data,
+                session_key=current_session_key_byte,
+                iv=self.shared_data.current_session.iv_data,
+            )
+            # Update Session: PS-Data (Output: Plaintext)
+            self.shared_data.current_session.plaintext_data = plaintext_data
+        else:  # pragma: no cover -> Never reach here
+            simple_log("error", "weird executing_case")
 
-    def _execute_data_decryption(
-        self,
-        associated_plaintext: str,
-        iv: str,
-        ciphertext: str,
-        gcm_authentication_tag: str,
-        session_key: bytes,
-    ) -> None:
-        # Message Decryption
-        plaintext_data = self._execute_decrypt_ciphertext(
-            associated_plaintext=associated_plaintext,
-            iv=iv,
-            ciphertext=ciphertext,
-            gcm_authentication_tag=gcm_authentication_tag,
-            session_key=session_key,
-        )
-        # Update Session: PS-Data
-        self.shared_data.current_session.plaintext_data = plaintext_data
-        self.shared_data.current_session.associated_plaintext_data = (
-            associated_plaintext
-        )
-        self.shared_data.current_session.iv_data = iv
-        self.shared_data.current_session.ciphertext_data = ciphertext
-        self.shared_data.current_session.gcm_authentication_tag_data = (
-            gcm_authentication_tag
-        )
+        # simple_log(
+        #     "debug",
+        #     f"current_session_json in {self.shared_data.this_device.device_name} = {current_session_to_jsonstr(self.shared_data.current_session)}",
+        # )
+
+        ######################################################
+        # Storage (Persistent vs. RAM-only)
+        ######################################################
+        # self.simple_storage.store_storage(
+        #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
+        # )
+
+    def _gen_next_iv(self) -> str:
+        return byte_to_base64str(ecdh.gcm_gen_iv())
 
     def _execute_encrypt_plaintext(
         self,
@@ -575,13 +740,13 @@ class Executor:
 
     def _execute_decrypt_ciphertext(
         self,
-        associated_plaintext: str,
-        iv: str,
         ciphertext: str,
+        associated_plaintext: str,
         gcm_authentication_tag: str,
         session_key: bytes,
+        iv: str,
     ) -> str:
-        # [STAGE: (VTK)]
+        # [STAGE: (VTK)] Verify HMAC before Execution
         try:
             ciphertext_byte: bytes = base64str_backto_byte(ciphertext)
             associated_plaintext_byte: bytes = str_to_byte(associated_plaintext)
@@ -590,6 +755,7 @@ class Executor:
             )
             iv_byte: bytes = base64str_backto_byte(iv)
 
+            # verify_token_through_hmac
             plaintext_byte: bytes = ecdh.gcm_decrypt(
                 ciphertext_byte,
                 associated_plaintext_byte,
@@ -600,67 +766,33 @@ class Executor:
 
             plaintext: str = byte_backto_str(plaintext_byte)
 
-            result_message = f"-> SUCCESS: VERIFY_IV_AND_HMAC"
-            simple_log("info", result_message)
-            self.shared_data.result_message = result_message
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_IV_AND_HMAC"
+            simple_log("info", self.shared_data.result_message)
+
+            return plaintext
 
         except InvalidTag:
-            result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
-            simple_log("error", result_message)
-            self.shared_data.result_message = result_message
-            raise RuntimeError(result_message)
+            self.shared_data.result_message = f"-> FAILURE: VERIFY_IV_AND_HMAC"
+            simple_log("error", self.shared_data.result_message)
+            raise RuntimeError(self.shared_data.result_message)
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-        return plaintext
-
-    # Execute RTicket (Update Session)
-    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
-        if (
-            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
-        ):
-            # [STAGE: (O)]
-            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "device")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(r_ticket_in, "holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # [STAGE: (E)]
-            # Session Key Obtaining ("holder")
-            current_session_key_byte = base64str_backto_byte(
-                self.shared_data.current_session.current_session_key_str
-            )
-            # Update Session: PS-Data
-            self._execute_data_decryption(
-                associated_plaintext=r_ticket_in.associated_plaintext_data,
-                iv=self.shared_data.current_session.iv_data,
-                ciphertext=r_ticket_in.ciphertext_data,
-                gcm_authentication_tag=r_ticket_in.gcm_authentication_tag_data,
-                session_key=current_session_key_byte,
-            )
-            # Update Session: PS-Cmd
-            self.shared_data.current_session.iv_cmd = r_ticket_in.iv_cmd
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
-            simple_log("error", "weird ticket type")
-
-    # [STAGE: (VTS)] TODO: Verify Task Scope before Execution
     # Execute Application & Data Processing
     def _execute_data_processing(
         self, plaintext_cmd: str, associated_plaintext_cmd: str
     ) -> Tuple[str, str]:
-        plaintext_cmd = f"Data: {plaintext_cmd}"
-        associated_plaintext_cmd = f"Data: {associated_plaintext_cmd}"
-        return (plaintext_cmd, associated_plaintext_cmd)
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} is executing application...",
+        )
+
+        plaintext_data = f"DATA: {plaintext_cmd}"
+        associated_plaintext_cmd = f"DATA: {associated_plaintext_cmd}"
+
+        return (plaintext_data, associated_plaintext_cmd)
 
     ######################################################
     # [STAGE: (O)] Update Ticket Order
