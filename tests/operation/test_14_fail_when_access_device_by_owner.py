@@ -68,10 +68,10 @@ class TestFailWhenAccessDeviceByOwner:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         intercepted_uticket_json = self.user_agent_do.shared_data.device_table[
             target_device_id
-        ].device_u_ticket
+        ].device_u_ticket_for_owner
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket=intercepted_uticket_json,
+            device_u_ticket_for_owner=intercepted_uticket_json,
             ticket_order=2,
         )
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})

@@ -12,15 +12,18 @@ class OtherDevice:
     # Use device public key as Primary key in Table
     device_id: None | str = None
 
-    # role: None | str = None
-
     ticket_order: None | int = None
-    # consent_state: None | str = None
-    # execution_state: None | str = None
+
+    # role: None | str = None
+    # pending_role: None | str = None
 
     # URequest, UTicket, UReject, RTicket, etc.
-    device_u_ticket: None | str = None
-    device_r_ticket: None | str = None
+    device_u_ticket_for_owner: None | str = None
+    device_ownership_u_ticket_for_others: None | str = None
+    device_access_u_ticket_for_others: None | str = None
+    device_r_ticket_for_owner: None | str = None
+    device_ownership_r_ticket_for_others: None | str = None
+    device_access_r_ticket_for_others: None | str = None
 
 
 ################################################################################

@@ -35,7 +35,7 @@ class GeneratedMsgStorer:
                     device_id_for_initialization_u_ticket
                 ] = OtherDevice(
                     device_id=device_id_for_initialization_u_ticket,
-                    device_u_ticket=generated_u_ticket_json,
+                    device_u_ticket_for_owner=generated_u_ticket_json,
                 )
             # TODO: RTN
             # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
@@ -48,7 +48,7 @@ class GeneratedMsgStorer:
                 device_id_for_u_ticket = generated_u_ticket.device_id
                 self.shared_data.device_table[
                     device_id_for_u_ticket
-                ].device_u_ticket = generated_u_ticket_json
+                ].device_u_ticket_for_owner = generated_u_ticket_json
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)

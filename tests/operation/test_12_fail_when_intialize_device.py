@@ -80,7 +80,7 @@ class TestFailWhenInitializeDevice:
         for value in self.cloud_server_dm.shared_data.device_table.values():
             if value.device_id != "no_id":
                 assert (
-                    jsonstr_to_r_ticket(value.device_r_ticket).result
+                    jsonstr_to_r_ticket(value.device_r_ticket_for_owner).result
                     == "-> FAILURE: IOT_DEVICE ALREADY INITIALIZED"
                 )
 

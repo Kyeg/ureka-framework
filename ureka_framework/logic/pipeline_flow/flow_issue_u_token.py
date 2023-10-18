@@ -196,11 +196,11 @@ class FlowIssueUToken:
             # [STAGE: (R)(VR)]
 
             # Query Corresponding UTicket
-            # [STAGE: (VL)]
+            # [STAGE: (VL)(L)]
             device_id = received_r_token.device_id
             stored_u_ticket_json = self.shared_data.device_table[
                 device_id
-            ].device_u_ticket
+            ].device_u_ticket_for_owner
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (VR)]
             stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(

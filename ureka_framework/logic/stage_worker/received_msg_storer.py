@@ -43,7 +43,7 @@ class ReceivedMsgStorer:
                     received_u_ticket.device_id
                 ] = OtherDevice(
                     device_id=received_u_ticket.device_id,
-                    device_u_ticket=received_u_ticket_json,
+                    device_u_ticket_for_owner=received_u_ticket_json,
                 )
             # Normally, we do not forward Initialization UTicket
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -78,21 +78,21 @@ class ReceivedMsgStorer:
                 # Put u_ticket (temporary in device_table["no_id"]) & r_ticket in device_table["created_device_id"]
                 self.shared_data.device_table[created_device_id] = OtherDevice(
                     device_id=created_device_id,
-                    device_u_ticket=self.shared_data.device_table[
+                    device_u_ticket_for_owner=self.shared_data.device_table[
                         "no_id"
-                    ].device_u_ticket,
-                    device_r_ticket=received_r_ticket_json,
+                    ].device_u_ticket_for_owner,
+                    device_r_ticket_for_owner=received_r_ticket_json,
                 )
             elif received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
                 # Not create new table, just add r_ticket to existing table
                 self.shared_data.device_table[
                     received_r_ticket.device_id
-                ].device_r_ticket = received_r_ticket_json
+                ].device_r_ticket_for_owner = received_r_ticket_json
             elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
                 # Not create new table, just add r_ticket to existing table
                 self.shared_data.device_table[
                     received_r_ticket.device_id
-                ].device_r_ticket = received_r_ticket_json
+                ].device_r_ticket_for_owner = received_r_ticket_json
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 
