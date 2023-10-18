@@ -73,10 +73,9 @@ class GeneratedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+            self.shared_data.result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)

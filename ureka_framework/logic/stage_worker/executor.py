@@ -777,7 +777,7 @@ class Executor:
             raise RuntimeError(self.shared_data.result_message)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     # Execute Application & Data Processing

@@ -133,7 +133,7 @@ class MsgVerifier:
         except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def verify_u_ticket_has_successfully_executed_through_r_ticket(
@@ -174,7 +174,7 @@ class MsgVerifier:
         except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:

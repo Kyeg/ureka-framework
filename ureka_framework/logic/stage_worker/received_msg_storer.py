@@ -59,12 +59,8 @@ class ReceivedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _store_received_xxx_r_ticket(self, received_r_ticket: RTicket) -> None:
@@ -106,10 +102,6 @@ class ReceivedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)

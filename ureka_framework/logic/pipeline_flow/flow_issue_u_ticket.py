@@ -80,7 +80,7 @@ class FlowIssueUTicket:
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def issuer_issue_u_ticket_to_holder(
@@ -113,7 +113,7 @@ class FlowIssueUTicket:
                 self.executor.complete_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
         except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
@@ -121,7 +121,7 @@ class FlowIssueUTicket:
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
@@ -138,13 +138,8 @@ class FlowIssueUTicket:
                 "holder-generate-or-receive-uticket", received_u_ticket
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
-
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         finally:
@@ -169,11 +164,11 @@ class FlowIssueUTicket:
             )
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     # TODO: RTN

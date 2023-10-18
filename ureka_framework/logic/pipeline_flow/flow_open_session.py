@@ -81,7 +81,7 @@ class FlowOpenSession:
             )
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_cr_ke_1(self, received_r_ticket: RTicket) -> None:
@@ -114,7 +114,7 @@ class FlowOpenSession:
             self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")
@@ -148,7 +148,7 @@ class FlowOpenSession:
             )
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
@@ -179,7 +179,7 @@ class FlowOpenSession:
             self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         finally:
@@ -220,7 +220,7 @@ class FlowOpenSession:
             )
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_cr_ke_3(self, received_r_ticket: RTicket) -> None:
@@ -255,7 +255,7 @@ class FlowOpenSession:
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")

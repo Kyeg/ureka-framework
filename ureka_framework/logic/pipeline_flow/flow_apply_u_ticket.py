@@ -92,15 +92,14 @@ class FlowApplyUTicket:
             )
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+            self.shared_data.result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
@@ -145,7 +144,7 @@ class FlowApplyUTicket:
             self.executor.complete_comm()
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         finally:
@@ -228,7 +227,7 @@ class FlowApplyUTicket:
             )
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
@@ -238,62 +237,52 @@ class FlowApplyUTicket:
             # [STAGE: (SR)]
             self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
 
-            # Query Corresponding UTicket(s)
-            #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
-            # [STAGE: (VL)(L)]
-            stored_u_ticket_json: str = self.shared_data.device_table[
-                received_r_ticket.device_id
-            ].device_u_ticket_for_owner
-            simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
-            # [STAGE: (VR)]
-            stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
-                stored_u_ticket_json
-            )
-
             if (
                 received_r_ticket.audit_end == None
                 or received_r_ticket.audit_end == "TX_END"
             ):
-                try:
-                    # [STAGE: (VRT)]
-                    self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
-                        r_ticket_in=received_r_ticket,
-                        audit_start_ticket=stored_u_ticket,
-                        audit_end_ticket=None,
-                    )
-                    self.shared_data.result_message = (
-                        f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
-                    )
+                # Query Corresponding UTicket(s)
+                #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
+                # [STAGE: (VL)(L)]
+                stored_u_ticket_json: str = self.shared_data.device_table[
+                    received_r_ticket.device_id
+                ].device_u_ticket_for_owner
+                simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
+                # [STAGE: (VR)]
+                stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
+                    stored_u_ticket_json
+                )
 
-                    # [STAGE: (E)(O)]
-                    self.executor._execute_xxx_r_ticket(received_r_ticket)
-                    # [STAGE: (C)]
-                    self.executor._change_state(
-                        this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
-                    )
-                except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)
-                    self.shared_data.result_message = f"{error}"
+                # [STAGE: (VRT)]
+                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                    r_ticket_in=received_r_ticket,
+                    audit_start_ticket=stored_u_ticket,
+                    audit_end_ticket=None,
+                )
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
-                simple_log(
-                    "debug", f"result_message = {self.shared_data.result_message}"
+                # [STAGE: (E)(O)]
+                self.executor._execute_xxx_r_ticket(received_r_ticket)
+                # [STAGE: (C)]
+                self.executor._change_state(
+                    this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 )
 
             else:  # pragma: no cover -> TODO: Revocation UTicket
+                # Query Corresponding UTicket(s)
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
-            if error == "NOT VALID JSON or VALID RTICKET SCHEMA":
-                failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-                simple_log("error", failure_msg)
-            elif error == "NOT VALID JSON or VALID UTICKET SCHEMA":
-                failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-                simple_log("error", failure_msg)
+        except RuntimeError as error:  # FAILURE: (VR)(VRT)
+            self.shared_data.result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
+
+        finally:
+            simple_log("debug", f"result_message = {self.shared_data.result_message}")
