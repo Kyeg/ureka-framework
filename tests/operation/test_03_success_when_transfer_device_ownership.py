@@ -90,16 +90,16 @@ class TestSuccessWhenIntializeAgentOrServer:
             == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
 
-        # WHEN: Holder: DO's UA return the ownership_u_ticket to DM's CS
+        # WHEN: Holder: DO's UA return the ownership_r_ticket to DM's CS
         # TODO: RTN
-        # create_comm_connection(self.user_agent_do, self.cloud_server_dm)
-        # self.user_agent_do.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
-        #     owned_device_id
-        # )
-        # wait_comm_completed(self.cloud_server_dm, self.user_agent_do)
+        create_comm_connection(self.user_agent_do, self.cloud_server_dm)
+        self.user_agent_do.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
+            owned_device_id
+        )
+        wait_comm_completed(self.cloud_server_dm, self.user_agent_do)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
-        # assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
 
     def test_success_when_reboot(self) -> None:
         current_test_given_log()

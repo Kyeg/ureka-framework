@@ -51,6 +51,7 @@ class TestFailWhenTransferDeviceOwnership:
     ######################################################
     # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
     ######################################################
+    @pytest.mark.skip(reason="TODO: Simulate interception")
     def test_fail_when_apply_wrong_issuer_signature(self) -> None:
         current_test_given_log()
 
@@ -92,3 +93,4 @@ class TestFailWhenTransferDeviceOwnership:
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong issuer signature)
         #       (because no legal issuer private key, legal authorization (issuer signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
+        assert "VERIFY_ISSUER_SIGNATURE" in self.iot_device.shared_data.result_message

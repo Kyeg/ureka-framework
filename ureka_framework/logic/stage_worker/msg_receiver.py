@@ -125,12 +125,21 @@ class MsgReceiver:
                     self.shared_data.state
                     == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 ):
-                    self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
-                        received_message
-                    )
-                    # End Comm
-                    simple_log("debug", f"+ Finish UT-UT~~ (holder)")
-                    self.executor.complete_comm()
+                    # TODO: RTN
+                    if type(received_message) == UTicket:
+                        self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
+                            received_message
+                        )
+                        # End Comm
+                        simple_log("debug", f"+ Finish UT-UT~~ (holder)")
+                        self.executor.complete_comm()
+                    elif type(received_message) == RTicket:
+                        self.flow_issuer_issue_u_ticket._issuer_recv_r_ticket(
+                            received_message
+                        )
+                        # End Comm
+                        simple_log("debug", f"+ Finish RT-RT~~ (issuer)")
+                        self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     self.flow_apply_u_ticket._holder_recv_r_ticket(received_message)
                     # End Comm

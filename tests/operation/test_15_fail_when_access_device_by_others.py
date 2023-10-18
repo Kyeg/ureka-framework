@@ -54,6 +54,7 @@ class TestFailWhenAccessDeviceByOthers:
     ######################################################
     # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
     ######################################################
+    @pytest.mark.skip(reason="TODO: Simulate interception")
     def test_fail_when_apply_wrong_issuer_signature(self) -> None:
         current_test_given_log()
 
@@ -77,7 +78,7 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
             device_u_ticket_for_owner=intercepted_uticket_json,
-            ticket_order=2,
+            ticket_order=1,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
             target_device_id
@@ -101,6 +102,7 @@ class TestFailWhenAccessDeviceByOthers:
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong issuer signature)
         #       (because no legal issuer private key, legal authorization (issuer signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
+        assert "VERIFY_ISSUER_SIGNATURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command

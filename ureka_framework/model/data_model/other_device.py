@@ -17,13 +17,15 @@ class OtherDevice:
     # role: None | str = None
     # pending_role: None | str = None
 
-    # URequest, UTicket, UReject, RTicket, etc.
+    # URequest, UTicket, UReject, etc.
     device_u_ticket_for_owner: None | str = None
     device_ownership_u_ticket_for_others: None | str = None
     device_access_u_ticket_for_others: None | str = None
+
+    # URequest, RTicket, etc.
     device_r_ticket_for_owner: None | str = None
     device_ownership_r_ticket_for_others: None | str = None
-    device_access_r_ticket_for_others: None | str = None
+    device_tx_end_r_ticket_for_others: None | str = None
 
 
 ################################################################################

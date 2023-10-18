@@ -58,7 +58,9 @@ class FlowApplyUTicket:
             stored_u_ticket_json: str = self.shared_data.device_table[
                 device_id
             ].device_u_ticket_for_owner
-            # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
+            # simple_log(
+            #     "debug", f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}"
+            # )
 
             # [STAGE: (VR)]
             stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
@@ -237,9 +239,14 @@ class FlowApplyUTicket:
             # [STAGE: (SR)]
             self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
 
+            # if (
+            #     received_r_ticket.audit_end == None
+            #     or received_r_ticket.audit_end == "TX_END"
+            # ):
             if (
-                received_r_ticket.audit_end == None
-                or received_r_ticket.audit_end == "TX_END"
+                received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
             ):
                 # Query Corresponding UTicket(s)
                 #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
