@@ -1,11 +1,13 @@
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
+import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
 import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
-from ureka_framework.model.message_model.u_ticket import UTicket
 from ureka_framework.model.message_model.u_ticket import UTicket, jsonstr_to_u_ticket
+import ureka_framework.model.message_model.r_ticket as r_ticket
+from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -42,9 +44,9 @@ class FlowIssueUTicket:
     # [PIPELINE FLOW]
     #
     # CST: issuer_issue_u_ticket_to_herself()
-    # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
+    # TODO: REQ: _issuer_recv_request() <- holder_send_request_to_issuer()
     # CST: issuer_issue_u_ticket_to_holder() -> _holder_recv_u_ticket()
-    # TODO: RTN: _issuer_recv_r_ticket() <- _holder_send_r_ticket()
+    # TODO: RTN: _issuer_recv_r_ticket() <- holder_send_r_ticket_to_issuer()
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
@@ -93,10 +95,11 @@ class FlowIssueUTicket:
                 )
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
-                # [STAGE: (SG)]
                 # TODO: RTN
-                # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-                # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
+                # [STAGE: (SG)]
+                self.generated_msg_storer._store_generated_xxx_u_ticket(
+                    generated_u_ticket_json
+                )
 
                 # [STAGE: (S)]
                 self.msg_sender._send_xxx_message(
@@ -148,3 +151,31 @@ class FlowIssueUTicket:
             # [STAGE: (G)(S)]
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
             pass
+
+    # TODO: RTN
+    def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
+        try:
+            # [STAGE: (VL)(L)]
+            stored_r_ticket_json: str = self.shared_data.device_table[
+                device_id
+            ].device_u_ticket_for_owner
+            # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
+
+            # [STAGE: (S)]
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_RECV_AND_STORE,
+                r_ticket.MESSAGE_TYPE,
+                stored_r_ticket_json,
+            )
+
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
+
+    # TODO: RTN
+    def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
+        pass
