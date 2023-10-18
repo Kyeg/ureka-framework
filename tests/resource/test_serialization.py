@@ -1,4 +1,5 @@
 import copy
+from ureka_framework.model.message_model.message import jsonstr_to_message
 from ureka_framework.resource.logger.simple_logger import simple_log
 import pytest
 from tests.conftest import (
@@ -193,6 +194,8 @@ class TestSerialization:
         # WHEN: Try to serialize/deserialize an invalid json
         with pytest.raises(RuntimeError) as jsonstr_to_dict_error_info:
             dict: str = jsonstr_to_dict(wrong_json_schema)
+        with pytest.raises(RuntimeError) as jsonstr_to_message_error_info:
+            message: str = jsonstr_to_message(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_u_ticket_error_info:
             u_ticket: str = jsonstr_to_u_ticket(wrong_json_schema)
         with pytest.raises(RuntimeError) as jsonstr_to_r_ticket_error_info:
@@ -208,6 +211,10 @@ class TestSerialization:
 
         # THEN: Failed to serialize/deserialize an invalid json
         assert str(jsonstr_to_dict_error_info.value) == "NOT VALID JSON"
+        assert (
+            str(jsonstr_to_message_error_info.value)
+            == "NOT VALID JSON or VALID MESSAGE SCHEMA"
+        )
         assert (
             str(jsonstr_to_u_ticket_error_info.value)
             == "NOT VALID JSON or VALID UTICKET SCHEMA"

@@ -77,7 +77,7 @@ class RTicket(BaseModel):
     device_signature: None | str = None
 
     def __eq__(self, other):
-        if isinstance(other, RTicket):
+        if type(other) == RTicket:
             return self.r_ticket_id == other.r_ticket_id
         return False
 

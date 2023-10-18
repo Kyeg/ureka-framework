@@ -64,7 +64,7 @@ class UTicket(BaseModel):
     iv_data: None | str = None
 
     def __eq__(self, other):
-        if isinstance(other, UTicket):
+        if type(other) == UTicket:
             return self.u_ticket_id == other.u_ticket_id
         return False
 

@@ -65,4 +65,5 @@ class MsgSender:
             elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover
                 time.sleep(0.5)
 
-        self.comm_channel.sender_queue.put(sent_message_json)
+        # self.comm_channel.sender_queue.put(sent_message_json)
+        self.comm_channel.sender_queue.put(new_message_json)

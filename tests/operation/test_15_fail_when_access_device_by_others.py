@@ -71,10 +71,16 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN: Issuer: ATK's CS forge an access_u_ticket to herself without issuer's signature
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket_json = self.user_agent_do.shared_data.device_table[
+            target_device_id
+        ].device_u_ticket
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal ownership u-ticket",
+            device_u_ticket=intercepted_uticket_json,
             ticket_order=2,
+        )
+        self.cloud_server_atk.shared_data.current_session.current_device_id = (
+            target_device_id
         )
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
@@ -169,9 +175,12 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN: Holder: ATK's CS attempt to forward an u_token without session_key
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
+            target_device_id
+        ].device_u_ticket
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal access u-ticket",
+            device_u_ticket=intercepted_uticket_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (

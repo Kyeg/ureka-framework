@@ -55,7 +55,7 @@ class FlowOpenSession:
             if "SUCCESS" in result_message:
                 r_ticket_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
-                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                     "result": f"{result_message}",
                     "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                     "challenge_1": f"{self.shared_data.current_session.challenge_1}",
@@ -65,7 +65,7 @@ class FlowOpenSession:
             else:
                 r_ticket_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_CRKE1_RTICKET}",
-                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                     "result": f"{result_message}",
                 }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
@@ -192,7 +192,7 @@ class FlowOpenSession:
             if "SUCCESS" in result_message:
                 r_ticket_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
-                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                     "result": f"{result_message}",
                     "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                     "challenge_2": f"{self.shared_data.current_session.challenge_2}",
@@ -204,7 +204,7 @@ class FlowOpenSession:
             else:
                 r_ticket_request: dict = {
                     "r_ticket_type": f"{r_ticket.TYPE_CRKE3_RTICKET}",
-                    "device_id": f"{self.shared_data.current_session.current_device_id}",
+                    "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                     "result": f"{result_message}",
                 }
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(

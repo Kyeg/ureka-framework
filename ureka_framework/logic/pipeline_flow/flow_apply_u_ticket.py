@@ -61,7 +61,7 @@ class FlowApplyUTicket:
             # simple_log("debug",f"Stored (& to be Forwarded) UTicket: {stored_u_ticket_json}")
 
             # [STAGE: (VR)]
-            stored_u_ticket = self.msg_verifier._classify_message_is_defined_type(
+            stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
                 stored_u_ticket_json
             )
 
@@ -246,7 +246,7 @@ class FlowApplyUTicket:
             ].device_u_ticket
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (VR)]
-            stored_u_ticket = self.msg_verifier._classify_message_is_defined_type(
+            stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
                 stored_u_ticket_json
             )
 

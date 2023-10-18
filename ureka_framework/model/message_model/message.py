@@ -41,6 +41,6 @@ def jsonstr_to_message(json_str: str) -> Message:
     try:
         return Message.model_validate_json(json_str)
     except ValidationError as error:
-        failure_msg = "NOT VALID JSON or VALID MESSAFE SCHEMA"
+        failure_msg = "NOT VALID JSON or VALID MESSAGE SCHEMA"
         # simple_log("error", f"{failure_msg}: {error}")
         raise RuntimeError(failure_msg)
