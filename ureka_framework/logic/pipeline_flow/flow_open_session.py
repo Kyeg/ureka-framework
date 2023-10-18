@@ -3,6 +3,9 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
 
@@ -71,7 +74,11 @@ class FlowOpenSession:
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                r_ticket.MESSAGE_TYPE,
+                generated_r_ticket_json,
+            )
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -134,7 +141,11 @@ class FlowOpenSession:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                r_ticket.MESSAGE_TYPE,
+                generated_r_ticket_json,
+            )
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
@@ -202,7 +213,11 @@ class FlowOpenSession:
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                r_ticket.MESSAGE_TYPE,
+                generated_r_ticket_json,
+            )
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"

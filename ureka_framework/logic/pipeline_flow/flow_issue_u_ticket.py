@@ -2,6 +2,9 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
+import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import UTicket
 from ureka_framework.model.message_model.u_ticket import UTicket, jsonstr_to_u_ticket
 
 # Resource (Logger)
@@ -96,7 +99,11 @@ class FlowIssueUTicket:
                 # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
 
                 # [STAGE: (S)]
-                self.msg_sender._send_xxx_message(generated_u_ticket_json)
+                self.msg_sender._send_xxx_message(
+                    message.MESSAGE_RECV_AND_STORE,
+                    u_ticket.MESSAGE_TYPE,
+                    generated_u_ticket_json,
+                )
 
                 # End Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")

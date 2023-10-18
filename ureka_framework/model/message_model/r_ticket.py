@@ -43,7 +43,6 @@ LEGAL_RTICKET_TYPES: {str} = {
 class RTicket(BaseModel):
     # RT
     protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
-    message_type: None | str = MESSAGE_TYPE
 
     r_ticket_id: None | str = None
     r_ticket_type: None | str = None

@@ -42,7 +42,6 @@ LEGAL_UTICKET_TYPES: {str} = {
 class UTicket(BaseModel):
     # UT
     protocol_verision: None | str = PROTOCOL_VERSION
-    message_type: None | str = MESSAGE_TYPE
 
     u_ticket_id: None | str = None
     u_ticket_type: None | str = None

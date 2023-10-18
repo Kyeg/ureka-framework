@@ -45,7 +45,6 @@ class MsgVerifier:
 
             u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
             u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
-            u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.has_device_id(u_ticket_in)
@@ -64,7 +63,6 @@ class MsgVerifier:
 
                 r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
                 r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
                 r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
@@ -95,7 +93,6 @@ class MsgVerifier:
 
             # u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
             # u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
-            # u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
             # u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
             # u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_device_id(u_ticket_in)
@@ -133,7 +130,6 @@ class MsgVerifier:
 
             # r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
             # r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
-            # r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)

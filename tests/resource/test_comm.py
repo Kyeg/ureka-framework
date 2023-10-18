@@ -8,6 +8,7 @@ from tests.conftest import (
     device_manufacturer_server,
 )
 from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.message_model.message as message
 from ureka_framework.model.message_model import u_ticket
 import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -55,7 +56,9 @@ class TestStorage:
         test_u_ticket: str = self.cloud_server_dm.msg_generator._generate_xxx_u_ticket(
             test_request
         )
-        self.cloud_server_dm.msg_sender._send_xxx_message(test_u_ticket)
+        self.cloud_server_dm.msg_sender._send_xxx_message(
+            message.MESSAGE_VERIFY_AND_EXECUTE, u_ticket.MESSAGE_TYPE, test_u_ticket
+        )
 
         self.iot_device.msg_receiver._recv_xxx_message()
         result = self.iot_device.msg_verifier.verify_u_ticket_can_execute(test_u_ticket)

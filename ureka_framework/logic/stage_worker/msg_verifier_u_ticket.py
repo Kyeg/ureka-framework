@@ -53,17 +53,6 @@ class UTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
-    def verify_message_type(self, u_ticket_in: UTicket) -> UTicket:
-        success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
-        failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
-
-        if u_ticket_in.message_type != None:
-            simple_log("info", success_msg)
-            return u_ticket_in
-        else:  # pragma: no cover -> Weird U-Ticket
-            simple_log("error", failure_msg)
-            raise RuntimeError(f"{failure_msg}")
-
     def verify_u_ticket_id(self, u_ticket_in: UTicket) -> UTicket:
         success_msg = f"-> SUCCESS: VERIFY_UTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_UTICKET_ID"

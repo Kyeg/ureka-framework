@@ -68,17 +68,6 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
-    def verify_message_type(self, r_ticket_in: RTicket) -> RTicket:
-        success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
-        failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
-
-        if r_ticket_in.message_type != None:
-            simple_log("info", success_msg)
-            return r_ticket_in
-        else:  # pragma: no cover -> Weird U-Ticket
-            simple_log("error", failure_msg)
-            raise RuntimeError(f"{failure_msg}")
-
     def verify_r_ticket_id(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"

@@ -30,6 +30,7 @@ from typing import Iterator
 # Import
 ######################################################
 from ureka_framework.resource.logger.simple_logger import simple_log
+import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
@@ -243,7 +244,11 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_CRKE1
         )
-        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_uticket_json)
+        self.cloud_server_atk.msg_sender._send_xxx_message(
+            message.MESSAGE_VERIFY_AND_EXECUTE,
+            u_ticket.MESSAGE_TYPE,
+            intercepted_uticket_json,
+        )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD
@@ -297,7 +302,11 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_DATA
         )
-        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_utoken_json)
+        self.cloud_server_atk.msg_sender._send_xxx_message(
+            message.MESSAGE_VERIFY_AND_EXECUTE,
+            u_ticket.MESSAGE_TYPE,
+            intercepted_utoken_json,
+        )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot reuse the generated_command with DO's IoTD

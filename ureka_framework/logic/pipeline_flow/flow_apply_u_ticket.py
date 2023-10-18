@@ -3,8 +3,10 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
+import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
@@ -83,7 +85,11 @@ class FlowApplyUTicket:
                 simple_log("error", "weird ticket type")
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(stored_u_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                u_ticket.MESSAGE_TYPE,
+                stored_u_ticket_json,
+            )
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
@@ -215,7 +221,11 @@ class FlowApplyUTicket:
             # Can optionally _stored_generated_xxx_r_ticket
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                r_ticket.MESSAGE_TYPE,
+                generated_r_ticket_json,
+            )
 
         except:  # pragma: no cover -> Unpredicted Error
             failure_msg = f"FAILURE: UNPREDICTED ERROR"
