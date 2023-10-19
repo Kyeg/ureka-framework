@@ -197,6 +197,17 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
 
+        # WHEN: Holder: DO's UA return the tx_end_r_ticket to DM's CS
+
+        create_comm_connection(self.cloud_server_ep, self.user_agent_do)
+        self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
+            owned_device_id
+        )
+        wait_comm_completed(self.user_agent_do, self.cloud_server_ep)
+
+        # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
+
     def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 

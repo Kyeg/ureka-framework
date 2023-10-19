@@ -46,7 +46,7 @@ class FlowIssueUTicket:
     # CST: issuer_issue_u_ticket_to_herself()
     # TODO: REQ: _issuer_recv_request() <- holder_send_request_to_issuer()
     # CST: issuer_issue_u_ticket_to_holder() -> _holder_recv_u_ticket()
-    # TODO: RTN: _issuer_recv_r_ticket() <- holder_send_r_ticket_to_issuer()
+    # RTN: _issuer_recv_r_ticket() <- holder_send_r_ticket_to_issuer()
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
@@ -95,7 +95,6 @@ class FlowIssueUTicket:
                 )
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
-                # TODO: RTN
                 # [STAGE: (SG)]
                 self.generated_msg_storer._store_generated_xxx_u_ticket(
                     generated_u_ticket_json
@@ -147,7 +146,6 @@ class FlowIssueUTicket:
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
             pass
 
-    # TODO: RTN
     def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
         try:
             # [STAGE: (VL)(L)]
@@ -175,7 +173,6 @@ class FlowIssueUTicket:
             failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
-    # TODO: RTN
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (R)(VR)]

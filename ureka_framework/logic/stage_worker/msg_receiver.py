@@ -125,7 +125,6 @@ class MsgReceiver:
                     self.shared_data.state
                     == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 ):
-                    # TODO: RTN
                     if type(received_message) == UTicket:
                         self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
                             received_message
