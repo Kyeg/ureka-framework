@@ -53,7 +53,7 @@ class RTicketGenerator:
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
-            or new_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             new_r_ticket.ticket_order = self.this_device.ticket_order
         # "holder"
@@ -79,7 +79,7 @@ class RTicketGenerator:
             or new_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or new_r_ticket.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
-            or new_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or new_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             new_r_ticket = self._add_device_signature_on_r_ticket(
                 new_r_ticket, self.this_device.device_priv_key

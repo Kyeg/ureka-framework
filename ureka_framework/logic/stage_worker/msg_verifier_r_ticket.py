@@ -68,17 +68,6 @@ class RTicketVerifier:
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
-    def verify_message_type(self, r_ticket_in: RTicket) -> RTicket:
-        success_msg = f"-> SUCCESS: VERIFY_MESSAGE_TYPE"
-        failure_msg = f"-> FAILURE: VERIFY_MESSAGE_TYPE"
-
-        if r_ticket_in.message_type != None:
-            simple_log("info", success_msg)
-            return r_ticket_in
-        else:  # pragma: no cover -> Weird U-Ticket
-            simple_log("error", failure_msg)
-            raise RuntimeError(f"{failure_msg}")
-
     def verify_r_ticket_id(self, r_ticket_in: RTicket) -> RTicket:
         success_msg = f"-> SUCCESS: VERIFY_RTICKET_ID"
         failure_msg = f"-> FAILURE: VERIFY_RTICKET_ID"
@@ -136,7 +125,7 @@ class RTicketVerifier:
         elif (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             if r_ticket_in.device_id == self.audit_start_ticket.device_id:
                 simple_log("info", success_msg)
@@ -181,7 +170,7 @@ class RTicketVerifier:
                 raise RuntimeError(f"{failure_msg}")
         elif (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             if (
                 r_ticket_in.ticket_order
@@ -228,7 +217,7 @@ class RTicketVerifier:
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             if r_ticket_in.audit_start == self.audit_start_ticket.u_ticket_id:
                 simple_log("info", success_msg)
@@ -255,8 +244,8 @@ class RTicketVerifier:
         #   Per-Use
         #   TXend UToken
         #   TODO: Revocation UTicket
-        if r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
-            if r_ticket_in.audit_end == "TX_END":
+        if r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
+            if r_ticket_in.audit_end == "ACCESS_END":
                 simple_log("info", success_msg)
                 return r_ticket_in
             else:  # pragma: no cover -> Weird R-Ticket
@@ -274,7 +263,7 @@ class RTicketVerifier:
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             # NO CR-KE
             simple_log("info", success_msg)
@@ -318,7 +307,7 @@ class RTicketVerifier:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             # NO PS
             simple_log("info", success_msg)
@@ -383,7 +372,7 @@ class RTicketVerifier:
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
             or r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             if self._verify_device_signature_on_r_ticket(
                 r_ticket_in,

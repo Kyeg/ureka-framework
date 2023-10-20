@@ -116,11 +116,11 @@ class TestStorage:
 
         self.cloud_server_dm.shared_data.device_table["device_id_1"] = OtherDevice(
             device_id="device_id_1",
-            device_u_ticket="u_ticket_json_1",
+            device_u_ticket_for_owner="u_ticket_json_1",
         )
         self.cloud_server_dm.shared_data.device_table["device_id_2"] = OtherDevice(
             device_id="device_id_2",
-            device_u_ticket="u_ticket_json_2",
+            device_u_ticket_for_owner="u_ticket_json_2",
         )
         simple_log(
             "debug",
@@ -153,11 +153,15 @@ class TestStorage:
         assert updated_device_table["device_id_1"].device_id == "device_id_1"
         assert updated_device_table["device_id_2"].device_id == "device_id_2"
         assert (
-            self.cloud_server_dm.shared_data.device_table["device_id_1"].device_u_ticket
+            self.cloud_server_dm.shared_data.device_table[
+                "device_id_1"
+            ].device_u_ticket_for_owner
             == "u_ticket_json_1"
         )
         assert (
-            self.cloud_server_dm.shared_data.device_table["device_id_2"].device_u_ticket
+            self.cloud_server_dm.shared_data.device_table[
+                "device_id_2"
+            ].device_u_ticket_for_owner
             == "u_ticket_json_2"
         )
 

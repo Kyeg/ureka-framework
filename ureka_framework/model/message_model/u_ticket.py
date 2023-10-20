@@ -23,8 +23,8 @@ TYPE_ACCESS_UTICKET: str = "ACCESS"
 # TYPE_QUERY_UTICKET: str = "QUERY"
 # UToken
 TYPE_CMD_UTOKEN: str = "CMD_UTOKEN"
-# RToken (TX_END)
-TYPE_TX_END_UTOKEN: str = "TX_END"
+# RToken (ACCESS_END)
+TYPE_ACCESS_END_UTOKEN: str = "ACCESS_END"
 # UTicket
 LEGAL_UTICKET_TYPES: {str} = {
     TYPE_INITIALIZATION_UTICKET,
@@ -32,7 +32,7 @@ LEGAL_UTICKET_TYPES: {str} = {
     TYPE_SELFACCESS_UTICKET,
     TYPE_ACCESS_UTICKET,
     TYPE_CMD_UTOKEN,
-    TYPE_TX_END_UTOKEN,
+    TYPE_ACCESS_END_UTOKEN,
 }
 
 
@@ -42,7 +42,6 @@ LEGAL_UTICKET_TYPES: {str} = {
 class UTicket(BaseModel):
     # UT
     protocol_verision: None | str = PROTOCOL_VERSION
-    message_type: None | str = MESSAGE_TYPE
 
     u_ticket_id: None | str = None
     u_ticket_type: None | str = None
@@ -65,7 +64,7 @@ class UTicket(BaseModel):
     iv_data: None | str = None
 
     def __eq__(self, other):
-        if isinstance(other, UTicket):
+        if type(other) == UTicket:
             return self.u_ticket_id == other.u_ticket_id
         return False
 

@@ -146,10 +146,6 @@ class Executor:
 
         # [STAGE: (O)]
         self._execute_update_ticket_order("agent-initialization")
-        simple_log(
-            "debug",
-            f"{self.shared_data.this_device.device_name}: ticket_order={self.shared_data.this_device.ticket_order}",
-        )
 
         ######################################################
         # Storage
@@ -184,7 +180,7 @@ class Executor:
             self._execute_cr_ke(ticket_in=u_ticket_in, comm_end="device")
         elif (
             u_ticket_in.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
@@ -202,17 +198,17 @@ class Executor:
                 plaintext=plaintext_data,
                 associated_plaintext=associated_plaintext_data,
             )
-            if u_ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            if u_ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (VTK)]
-                if self.shared_data.current_session.plaintext_cmd == "TX_END":
-                    self.shared_data.result_message = f"-> SUCCESS: VERIFY_TX_END"
+                if self.shared_data.current_session.plaintext_cmd == "ACCESS_END":
+                    self.shared_data.result_message = f"-> SUCCESS: VERIFY_ACCESS_END"
                     simple_log("info", self.shared_data.result_message)
                     # [STAGE: (O)]
                     self._execute_update_ticket_order(
                         "device-verify-uticket", u_ticket_in
                     )
                 else:  # pragma: no cover -> FAILURE: (VTK)
-                    self.shared_data.result_message = f"-> FAILURE: VERIFY_TX_END"
+                    self.shared_data.result_message = f"-> FAILURE: VERIFY_ACCESS_END"
                     simple_log("error", self.shared_data.result_message)
                     raise RuntimeError(self.shared_data.result_message)
         else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -223,7 +219,7 @@ class Executor:
         if (
             r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             # [STAGE: (O)]
             self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
@@ -646,7 +642,7 @@ class Executor:
                 session_key=current_session_key_byte,
                 iv=self.shared_data.current_session.iv_cmd,
             )
-            if ticket_in.u_ticket_type != u_ticket.TYPE_TX_END_UTOKEN:
+            if ticket_in.u_ticket_type != u_ticket.TYPE_ACCESS_END_UTOKEN:
                 self.msg_verifier.verify_cmd_is_in_task_scope(plaintext_cmd)
             # Update Session: PS-Cmd (Output: Plaintext)
             self.shared_data.current_session.plaintext_cmd = plaintext_cmd
@@ -777,7 +773,7 @@ class Executor:
             raise RuntimeError(self.shared_data.result_message)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     # Execute Application & Data Processing
@@ -830,7 +826,7 @@ class Executor:
                 ].ticket_order = ticket_in.ticket_order
                 simple_log(
                     "debug",
-                    f"{self.shared_data.this_device.device_name}: ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
+                    f"{self.shared_data.this_device.device_name}: Predicted ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "Other ticket types should not update ticket_order")
@@ -839,14 +835,14 @@ class Executor:
             if type(ticket_in) == UTicket and (
                 ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or ticket_in.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+                or ticket_in.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
             ):
                 self.shared_data.this_device.ticket_order = (
                     self.shared_data.this_device.ticket_order + 1
                 )
                 simple_log(
                     "debug",
-                    f"{self.shared_data.this_device.device_name}: ticket_order={self.shared_data.this_device.ticket_order}",
+                    f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.this_device.ticket_order}",
                 )
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "Other ticket types should not update ticket_order")
@@ -855,14 +851,14 @@ class Executor:
             if type(ticket_in) == RTicket and (
                 ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or ticket_in.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+                or ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
             ):
                 self.shared_data.device_table[
                     ticket_in.device_id
                 ].ticket_order = ticket_in.ticket_order
                 simple_log(
                     "debug",
-                    f"{self.shared_data.this_device.device_name}: ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
+                    f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
             else:  # pragma: no cover -> Never reach here
                 simple_log("error", "Other ticket types should not update ticket_order")

@@ -30,26 +30,36 @@ class GeneratedMsgStorer:
             #   we temporary store Initialization UTicket in device_table["no_id"]
             #   and the device_table will be updated by its RTicket with newly-created device_id
             if generated_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
+                # Holder (for Owner)
                 device_id_for_initialization_u_ticket = "no_id"
                 self.shared_data.device_table[
                     device_id_for_initialization_u_ticket
                 ] = OtherDevice(
                     device_id=device_id_for_initialization_u_ticket,
-                    device_u_ticket=generated_u_ticket_json,
+                    device_u_ticket_for_owner=generated_u_ticket_json,
                 )
-            # TODO: RTN
-            # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-            elif (
-                generated_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
-                or generated_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
-            ):
+            elif generated_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+                # Issuer (for Others)
                 # Not create new table, just add u_ticket to existing table
                 device_id_for_u_ticket = generated_u_ticket.device_id
                 self.shared_data.device_table[
                     device_id_for_u_ticket
-                ].device_u_ticket = generated_u_ticket_json
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                ].device_ownership_u_ticket_for_others = generated_u_ticket_json
+            elif generated_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET:
+                # Holder (for Owner)
+                # Not create new table, just add u_ticket to existing table
+                device_id_for_u_ticket = generated_u_ticket.device_id
+                self.shared_data.device_table[
+                    generated_u_ticket.device_id
+                ].device_u_ticket_for_owner = generated_u_ticket_json
+            elif generated_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET:
+                # Issuer (for Others)
+                # Not create new table, just add u_ticket to existing table
+                device_id_for_u_ticket = generated_u_ticket.device_id
+                self.shared_data.device_table[
+                    device_id_for_u_ticket
+                ].device_access_u_ticket_for_others = generated_u_ticket_json
+            else:  # pragma: no cover -> TODO: Revocation UTicket
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 
@@ -63,10 +73,9 @@ class GeneratedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+            self.shared_data.result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)

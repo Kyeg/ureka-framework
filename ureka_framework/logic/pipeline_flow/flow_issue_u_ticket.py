@@ -1,8 +1,13 @@
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
+import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket, jsonstr_to_u_ticket
+import ureka_framework.model.message_model.r_ticket as r_ticket
+from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -39,9 +44,9 @@ class FlowIssueUTicket:
     # [PIPELINE FLOW]
     #
     # CST: issuer_issue_u_ticket_to_herself()
-    # TODO: REQ: _issuer_receive_request() <- holder_issue_request_to_issuer()
+    # TODO: REQ: _issuer_recv_request() <- holder_send_request_to_issuer()
     # CST: issuer_issue_u_ticket_to_holder() -> _holder_recv_u_ticket()
-    # TODO: RTN: _issuer_recv_r_ticket() <- _holder_send_r_ticket()
+    # RTN: _issuer_recv_r_ticket() <- holder_send_r_ticket_to_issuer()
     #
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
@@ -75,7 +80,7 @@ class FlowIssueUTicket:
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def issuer_issue_u_ticket_to_holder(
@@ -91,19 +96,23 @@ class FlowIssueUTicket:
                 # simple_log("debug", f"Generated UTicket: {generated_u_ticket_json}")
 
                 # [STAGE: (SG)]
-                # TODO: RTN
-                # Issuer can moreover store this UTicket so that can receive and verify RTicket from holder
-                # self.generated_msg_storer._store_generated_xxx_u_ticket(generated_u_ticket_json)
+                self.generated_msg_storer._store_generated_xxx_u_ticket(
+                    generated_u_ticket_json
+                )
 
                 # [STAGE: (S)]
-                self.msg_sender._send_xxx_message(generated_u_ticket_json)
+                self.msg_sender._send_xxx_message(
+                    message.MESSAGE_RECV_AND_STORE,
+                    u_ticket.MESSAGE_TYPE,
+                    generated_u_ticket_json,
+                )
 
                 # End Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
                 self.executor.complete_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
         except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
@@ -111,7 +120,7 @@ class FlowIssueUTicket:
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
@@ -128,16 +137,117 @@ class FlowIssueUTicket:
                 "holder-generate-or-receive-uticket", received_u_ticket
             )
 
-        except RuntimeError:  # pragma: no cover -> FAILURE: (VR)
-            failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-            simple_log("error", failure_msg)
-            raise RuntimeError(failure_msg)
-
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         finally:
             # [STAGE: (G)(S)]
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
             pass
+
+    def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
+        try:
+            # [STAGE: (VL)(L)]
+            stored_r_ticket_json: str = self.shared_data.device_table[
+                device_id
+            ].device_r_ticket_for_owner
+            # simple_log("debug", f"Stored RTicket: {stored_r_ticket_json}")
+
+            # [STAGE: (S)]
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_RECV_AND_STORE,
+                r_ticket.MESSAGE_TYPE,
+                stored_r_ticket_json,
+            )
+
+            # End Comm
+            simple_log("debug", f"+ Finish RT-RT~~ (holder)")
+            self.executor.complete_comm()
+
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
+
+    def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
+        try:
+            # [STAGE: (R)(VR)]
+
+            # [STAGE: (SR)]
+            self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
+
+            if (
+                received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
+            ):
+                # Query Corresponding UTicket(s)
+                #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
+                # [STAGE: (VL)(L)]
+                if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+                    stored_u_ticket_json: str = self.shared_data.device_table[
+                        received_r_ticket.device_id
+                    ].device_ownership_u_ticket_for_others
+                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
+                    stored_u_ticket_json: str = self.shared_data.device_table[
+                        received_r_ticket.device_id
+                    ].device_access_u_ticket_for_others
+                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                    simple_log("error", "weird ticket type")
+                simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
+                # [STAGE: (VR)]
+                stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
+                    stored_u_ticket_json
+                )
+
+                # [STAGE: (VRT)]
+                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                    r_ticket_in=received_r_ticket,
+                    audit_start_ticket=stored_u_ticket,
+                    audit_end_ticket=None,
+                )
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
+                # [STAGE: (E)(O)]
+                if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+                    # Now owner anymore, delete this device in table
+                    self.shared_data.device_table.pop(received_r_ticket.device_id)
+                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
+                    # Still owner, but keep/delete device_access_u_ticket_for_others in table
+                    self.shared_data.device_table[
+                        received_r_ticket.device_id
+                    ].device_access_u_ticket_for_others = None
+                    self.shared_data.device_table[
+                        received_r_ticket.device_id
+                    ].device_access_end_r_ticket_for_others = None
+                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
+                    simple_log("error", "weird ticket type")
+
+                # [STAGE: (C)]
+                self.executor._change_state(
+                    this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
+                )
+
+            else:  # pragma: no cover -> TODO: Revocation UTicket
+                # Query Corresponding UTicket(s)
+                failure_msg = f"Not implemented yet"
+                simple_log("error", failure_msg)
+
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
+            simple_log("error", failure_msg)
+
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)(VRT)
+            # TODO: test_fail_when_double_issuing_or_double_spending
+            self.shared_data.result_message = f"{error}"
+
+        except:  # pragma: no cover -> Unpredicted Error
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
+            simple_log("error", failure_msg)
+
+        finally:
+            simple_log("debug", f"result_message = {self.shared_data.result_message}")

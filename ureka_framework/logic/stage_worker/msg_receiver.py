@@ -14,13 +14,15 @@ import threading
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 from ureka_framework.logic.stage_worker.executor import Executor
-from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
+from ureka_framework.model.message_model.u_ticket import UTicket, u_ticket_to_jsonstr
+from ureka_framework.model.message_model.r_ticket import RTicket, r_ticket_to_jsonstr
 
 # Pipeline Flow
 from ureka_framework.logic.pipeline_flow.flow_issue_u_ticket import FlowIssueUTicket
 from ureka_framework.logic.pipeline_flow.flow_apply_u_ticket import FlowApplyUTicket
 from ureka_framework.logic.pipeline_flow.flow_open_session import FlowOpenSession
 from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUToken
+
 
 from typing import TYPE_CHECKING
 
@@ -69,18 +71,28 @@ class MsgReceiver:
             try:
                 # [STAGE: (R)]
                 # This will block until message is received
-                received_message_json = self.comm_channel.receiver_queue.get()
-                self.shared_data.received_message_json = received_message_json
+                message = self.comm_channel.receiver_queue.get()
 
                 simple_log(
                     "info",
                     f"+ {self.shared_data.this_device.device_name} is receiving message from {self.comm_channel.end.shared_data.this_device.device_name}...",
                 )
-                simple_log("demo", f"Received Message: {received_message_json}")
 
                 # [STAGE: (VR)]
                 received_message = self.msg_verifier._classify_message_is_defined_type(
-                    received_message_json
+                    message
+                )
+                if type(received_message) == UTicket:
+                    self.shared_data.received_message_json = u_ticket_to_jsonstr(
+                        received_message
+                    )
+                elif type(received_message) == RTicket:
+                    self.shared_data.received_message_json = r_ticket_to_jsonstr(
+                        received_message
+                    )
+                simple_log(
+                    "demo",
+                    f"Received Message: {self.shared_data.received_message_json}",
                 )
 
                 # IOT_DEVICE
@@ -113,12 +125,20 @@ class MsgReceiver:
                     self.shared_data.state
                     == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 ):
-                    self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
-                        received_message
-                    )
-                    # End Comm
-                    simple_log("debug", f"+ Finish UT-UT~~ (holder)")
-                    self.executor.complete_comm()
+                    if type(received_message) == UTicket:
+                        self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
+                            received_message
+                        )
+                        # End Comm
+                        simple_log("debug", f"+ Finish UT-UT~~ (holder)")
+                        self.executor.complete_comm()
+                    elif type(received_message) == RTicket:
+                        self.flow_issuer_issue_u_ticket._issuer_recv_r_ticket(
+                            received_message
+                        )
+                        # End Comm
+                        simple_log("debug", f"+ Finish RT-RT~~ (issuer)")
+                        self.executor.complete_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     self.flow_apply_u_ticket._holder_recv_r_ticket(received_message)
                     # End Comm
@@ -151,12 +171,10 @@ class MsgReceiver:
                 else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                     simple_log("error", "weird ticket type")
 
-            except (
-                RuntimeError
-            ):  # pragma: no cover -> FAILURE: (VR) TODO: device_send_error_r_ticket (Sterilization)
-                failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-                simple_log("error", failure_msg)
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+                # TODO: device_send_error_r_ticket (Sterilization)
+                simple_log("error", f"{error}")
 
             except:  # pragma: no cover -> Unpredicted Error
-                failure_msg = f"FAILURE: UNPREDICTED ERROR"
+                failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
                 simple_log("error", failure_msg)

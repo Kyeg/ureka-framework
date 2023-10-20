@@ -23,8 +23,8 @@ TYPE_CRKE3_RTICKET: str = "CR-KE-3"
 LEGAL_CRKE_TYPES: {str} = {TYPE_CRKE1_RTICKET, TYPE_CRKE2_RTICKET, TYPE_CRKE3_RTICKET}
 # RToken
 TYPE_DATA_RTOKEN: str = "DATA_RTOKEN"
-# RToken (TX_END)
-# TYPE_TX_END_UTOKEN: str = "TX_END"
+# RToken (ACCESS_END)
+# TYPE_ACCESS_END_UTOKEN: str = "ACCESS_END"
 # All
 LEGAL_RTICKET_TYPES: {str} = {
     u_ticket.TYPE_INITIALIZATION_UTICKET,
@@ -33,7 +33,7 @@ LEGAL_RTICKET_TYPES: {str} = {
     TYPE_CRKE2_RTICKET,
     TYPE_CRKE3_RTICKET,
     TYPE_DATA_RTOKEN,
-    u_ticket.TYPE_TX_END_UTOKEN,
+    u_ticket.TYPE_ACCESS_END_UTOKEN,
 }
 
 
@@ -43,7 +43,6 @@ LEGAL_RTICKET_TYPES: {str} = {
 class RTicket(BaseModel):
     # RT
     protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
-    message_type: None | str = MESSAGE_TYPE
 
     r_ticket_id: None | str = None
     r_ticket_type: None | str = None
@@ -78,7 +77,7 @@ class RTicket(BaseModel):
     device_signature: None | str = None
 
     def __eq__(self, other):
-        if isinstance(other, RTicket):
+        if type(other) == RTicket:
             return self.r_ticket_id == other.r_ticket_id
         return False
 

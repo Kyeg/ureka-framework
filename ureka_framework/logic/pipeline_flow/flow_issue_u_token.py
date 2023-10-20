@@ -3,6 +3,7 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
@@ -53,17 +54,19 @@ class FlowIssueUToken:
     #                           ...
     #                       ..repeated..
     #                           ...
-    #       holder_send_cmd(tx_end) -> _device_recv_cmd(tx_end)
+    #       holder_send_cmd(access_end) -> _device_recv_cmd(access_end)
     #       _holder_recv_r_ticket() <- _device_send_r_ticket()
     ######################################################
-    def holder_send_cmd(self, device_id: str, cmd: str, tx_end: bool = False) -> None:
+    def holder_send_cmd(
+        self, device_id: str, cmd: str, access_end: bool = False
+    ) -> None:
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
                 self.executor._execute_ps(executing_case="send-utoken", plaintext=cmd)
 
-                if tx_end == False:
+                if access_end == False:
                     # [STAGE: (C)]
                     self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_DATA)
                     # [STAGE: (G)]
@@ -72,7 +75,7 @@ class FlowIssueUToken:
                     # [STAGE: (C)]
                     self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                     # [STAGE: (G)]
-                    u_ticket_type = f"{u_ticket.TYPE_TX_END_UTOKEN}"
+                    u_ticket_type = f"{u_ticket.TYPE_ACCESS_END_UTOKEN}"
 
                 # [STAGE: (G)]
                 generated_request: dict = {
@@ -89,10 +92,14 @@ class FlowIssueUToken:
                 # simple_log("debug", f"Generated UToken: {generated_u_ticket_json}")
 
                 # [STAGE: (S)]
-                self.msg_sender._send_xxx_message(generated_u_ticket_json)
+                self.msg_sender._send_xxx_message(
+                    message.MESSAGE_VERIFY_AND_EXECUTE,
+                    u_ticket.MESSAGE_TYPE,
+                    generated_u_ticket_json,
+                )
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
         except RuntimeError:  # pragma: no cover -> Weird TK-Request (ValidationError)
@@ -100,7 +107,7 @@ class FlowIssueUToken:
             simple_log("error", failure_msg)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
@@ -119,7 +126,7 @@ class FlowIssueUToken:
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif received_u_token.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -132,7 +139,7 @@ class FlowIssueUToken:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
         finally:
@@ -140,7 +147,7 @@ class FlowIssueUToken:
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (G)(S)]
                 self._device_send_data(self.shared_data.result_message)
-            elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif received_u_token.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (G)(S)]
                 self.flow_apply_u_ticket._device_send_r_ticket(
                     received_u_token.u_ticket_type,
@@ -176,10 +183,14 @@ class FlowIssueUToken:
             # simple_log("debug", f"Generated RToken: {generated_r_ticket_json}")
 
             # [STAGE: (S)]
-            self.msg_sender._send_xxx_message(generated_r_ticket_json)
+            self.msg_sender._send_xxx_message(
+                message.MESSAGE_VERIFY_AND_EXECUTE,
+                r_ticket.MESSAGE_TYPE,
+                generated_r_ticket_json,
+            )
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def _holder_recv_data(self, received_r_token: RTicket) -> None:
@@ -187,50 +198,42 @@ class FlowIssueUToken:
             # [STAGE: (R)(VR)]
 
             # Query Corresponding UTicket
-            # [STAGE: (VL)]
+            # [STAGE: (VL)(L)]
             device_id = received_r_token.device_id
             stored_u_ticket_json = self.shared_data.device_table[
                 device_id
-            ].device_u_ticket
+            ].device_u_ticket_for_owner
             simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
             # [STAGE: (VR)]
-            stored_u_ticket = self.msg_verifier._classify_message_is_defined_type(
+            stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
                 stored_u_ticket_json
             )
 
-            try:
-                # [STAGE: (VRT)]
-                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
-                    r_ticket_in=received_r_token,
-                    audit_start_ticket=stored_u_ticket,
-                    audit_end_ticket=None,
-                )
+            # [STAGE: (VRT)]
+            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                r_ticket_in=received_r_token,
+                audit_start_ticket=stored_u_ticket,
+                audit_end_ticket=None,
+            )
 
-                # [STAGE: (VTK)]
-                # [STAGE: (E)]
-                self.executor._execute_xxx_r_ticket(received_r_token)
+            # [STAGE: (VTK)]
+            # [STAGE: (E)]
+            self.executor._execute_xxx_r_ticket(received_r_token)
 
-                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
-                # [STAGE: (C)]
-                self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            except RuntimeError as error:
-                self.shared_data.result_message = f"{error}"
+            # [STAGE: (C)]
+            self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
-            failure_msg = f"FAILURE: (VL): has_u_ticket_in_device_table"
+            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
-            if error == "NOT VALID JSON or VALID RTICKET SCHEMA":
-                failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-                simple_log("error", failure_msg)
-            elif error == "NOT VALID JSON or VALID UTICKET SCHEMA":
-                failure_msg = f"FAILURE: (VR): classify_message_is_defined_type"
-                simple_log("error", failure_msg)
+        except RuntimeError as error:  # FAILURE: (VR)(VRT)(VTK)
+            self.shared_data.result_message = f"{error}"
 
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)

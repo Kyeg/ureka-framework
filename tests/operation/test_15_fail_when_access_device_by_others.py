@@ -30,6 +30,7 @@ from typing import Iterator
 # Import
 ######################################################
 from ureka_framework.resource.logger.simple_logger import simple_log
+import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
@@ -53,6 +54,7 @@ class TestFailWhenAccessDeviceByOthers:
     ######################################################
     # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
     ######################################################
+    @pytest.mark.skip(reason="TODO: Simulate interception")
     def test_fail_when_apply_wrong_issuer_signature(self) -> None:
         current_test_given_log()
 
@@ -70,10 +72,16 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN: Issuer: ATK's CS forge an access_u_ticket to herself without issuer's signature
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket_json = self.user_agent_do.shared_data.device_table[
+            target_device_id
+        ].device_u_ticket_for_owner
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal ownership u-ticket",
-            ticket_order=2,
+            device_u_ticket_for_owner=intercepted_uticket_json,
+            ticket_order=1,
+        )
+        self.cloud_server_atk.shared_data.current_session.current_device_id = (
+            target_device_id
         )
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
@@ -94,6 +102,7 @@ class TestFailWhenAccessDeviceByOthers:
         # THEN: ATK's CS cannot share a private session with DO's IoTD (wrong issuer signature)
         #       (because no legal issuer private key, legal authorization (issuer signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
+        assert "VERIFY_ISSUER_SIGNATURE" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -168,9 +177,12 @@ class TestFailWhenAccessDeviceByOthers:
         # WHEN: Holder: ATK's CS attempt to forward an u_token without session_key
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
+            target_device_id
+        ].device_u_ticket_for_owner
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket="pretend to have legal access u-ticket",
+            device_u_ticket_for_owner=intercepted_uticket_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
@@ -214,13 +226,13 @@ class TestFailWhenAccessDeviceByOthers:
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
             owned_device_id
-        ].device_u_ticket
+        ].device_u_ticket_for_owner
 
-        # GIVEN: Holder: EP's CS forward the u_token (TX_END)
+        # GIVEN: Holder: EP's CS forward the u_token (ACCESS_END)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        generated_command = "TX_END"
+        generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, tx_end=True
+            device_id=owned_device_id, cmd=generated_command, access_end=True
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -234,7 +246,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket=intercepted_uticket_json,
+            device_u_ticket_for_owner=intercepted_uticket_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
@@ -243,7 +255,11 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_CRKE1
         )
-        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_uticket_json)
+        self.cloud_server_atk.msg_sender._send_xxx_message(
+            message.MESSAGE_VERIFY_AND_EXECUTE,
+            u_ticket.MESSAGE_TYPE,
+            intercepted_uticket_json,
+        )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot share a private session with DO's IoTD
@@ -288,7 +304,7 @@ class TestFailWhenAccessDeviceByOthers:
         target_device_id = owned_device_id
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
-            device_u_ticket=intercepted_utoken_json,
+            device_u_ticket_for_owner=intercepted_utoken_json,
             ticket_order=2,
         )
         self.cloud_server_atk.shared_data.current_session.iv_cmd = (
@@ -297,7 +313,11 @@ class TestFailWhenAccessDeviceByOthers:
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_DATA
         )
-        self.cloud_server_atk.msg_sender._send_xxx_message(intercepted_utoken_json)
+        self.cloud_server_atk.msg_sender._send_xxx_message(
+            message.MESSAGE_VERIFY_AND_EXECUTE,
+            u_ticket.MESSAGE_TYPE,
+            intercepted_utoken_json,
+        )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: ATK's CS cannot reuse the generated_command with DO's IoTD

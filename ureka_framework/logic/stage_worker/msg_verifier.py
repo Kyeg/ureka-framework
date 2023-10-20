@@ -2,7 +2,11 @@
 from ureka_framework.model.shared_data import SharedData
 
 # Data Model (Message)
+import ureka_framework.model.message_model.message as message
+from ureka_framework.model.message_model.message import Message, message_to_jsonstr
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
+import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
@@ -14,6 +18,7 @@ from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
 from ureka_framework.logic.stage_worker.msg_verifier_r_ticket import RTicketVerifier
+from ureka_framework.logic.stage_worker.msg_verifier_message import MessageVerifier
 
 
 class MsgVerifier:
@@ -37,6 +42,28 @@ class MsgVerifier:
             f"+ {self.shared_data.this_device.device_name} is classifying message...",
         )
 
+        # [STAGE: (VR: UTicket)]
+        message_verifier = MessageVerifier(this_device=None)
+        try:
+            message_in = message_verifier.verify_json_schema(arbitrary_json)
+            message_in = message_verifier.verify_message_operation(message_in)
+            message_in = message_verifier.verify_message_type(message_in)
+            message_in = message_verifier.verify_message_str(message_in)
+        except RuntimeError as error:  # pragma: no cover -> Weird Message
+            simple_log("error", f"{error}")
+            raise RuntimeError(error)
+
+        if message_in.message_type == u_ticket.MESSAGE_TYPE:
+            return self._classify_u_ticket_is_defined_type(message_in.message_str)
+        elif message_in.message_type == r_ticket.MESSAGE_TYPE:
+            return self._classify_r_ticket_is_defined_type(message_in.message_str)
+
+    def _classify_u_ticket_is_defined_type(self, arbitrary_json: str) -> UTicket:
+        simple_log(
+            "info",
+            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+        )
+
         # Notice that Pydantic can classify message type by json schema,
         #   while other implementation may need classify message type by message_type field
         try:
@@ -45,42 +72,41 @@ class MsgVerifier:
 
             u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
             u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
-            u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.has_device_id(u_ticket_in)
 
             return u_ticket_in
         except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
-            try:
-                # [STAGE: (VR: RTicket)]
-                r_ticket_verifier = RTicketVerifier(
-                    this_device=None,
-                    device_table=None,
-                    audit_start_ticket=None,
-                    audit_end_ticket=None,
-                    current_session=None,
-                )
+            raise RuntimeError(error)
 
-                r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
-                r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
-                r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
+    def _classify_r_ticket_is_defined_type(self, arbitrary_json: str) -> RTicket:
+        simple_log(
+            "info",
+            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+        )
 
-                return r_ticket_in
-            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
-                # "NOT VALID JSON or VALID UTICKET/RTICKET SCHEMA"
-                failure_msg = "-> FAILURE: VERIFY_JSON_SCHEMA"
-                simple_log("error", f"{failure_msg}: {error}")
-                raise RuntimeError(error)
-            except:  # pragma: no cover -> Unpredicted Error
-                failure_msg = f"FAILURE: UNPREDICTED ERROR"
-                simple_log("error", failure_msg)
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        # Notice that Pydantic can classify message type by json schema,
+        #   while other implementation may need classify message type by message_type field
+        try:
+            # [STAGE: (VR: RTicket)]
+            r_ticket_verifier = RTicketVerifier(
+                this_device=None,
+                device_table=None,
+                audit_start_ticket=None,
+                audit_end_ticket=None,
+                current_session=None,
+            )
+
+            r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
+            r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
+            r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
+
+            return r_ticket_in
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+            raise RuntimeError(error)
 
     def verify_u_ticket_can_execute(self, u_ticket_in: UTicket) -> None:
         simple_log(
@@ -95,7 +121,6 @@ class MsgVerifier:
 
             # u_ticket_in = u_ticket_verifier.verify_json_schema(arbitrary_json)
             # u_ticket_in = u_ticket_verifier.verify_protocol_version(u_ticket_in)
-            # u_ticket_in = u_ticket_verifier.verify_message_type(u_ticket_in)
             # u_ticket_in = u_ticket_verifier.verify_u_ticket_id(u_ticket_in)
             # u_ticket_in = u_ticket_verifier.verify_u_ticket_type(u_ticket_in)
             u_ticket_in = u_ticket_verifier.verify_device_id(u_ticket_in)
@@ -108,7 +133,7 @@ class MsgVerifier:
         except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def verify_u_ticket_has_successfully_executed_through_r_ticket(
@@ -133,7 +158,6 @@ class MsgVerifier:
 
             # r_ticket_in = r_ticket_verifier.verify_json_schema(arbitrary_json)
             # r_ticket_in = r_ticket_verifier.verify_protocol_version(r_ticket_in)
-            # r_ticket_in = r_ticket_verifier.verify_message_type(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_r_ticket_id(r_ticket_in)
             # r_ticket_in = r_ticket_verifier.verify_r_ticket_type(r_ticket_in)
             r_ticket_in = r_ticket_verifier.verify_device_id(r_ticket_in)
@@ -150,7 +174,7 @@ class MsgVerifier:
         except RuntimeError as error:
             raise RuntimeError(error)
         except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"FAILURE: UNPREDICTED ERROR"
+            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
             simple_log("error", failure_msg)
 
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
