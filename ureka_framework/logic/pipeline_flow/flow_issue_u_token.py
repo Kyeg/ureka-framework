@@ -54,17 +54,19 @@ class FlowIssueUToken:
     #                           ...
     #                       ..repeated..
     #                           ...
-    #       holder_send_cmd(tx_end) -> _device_recv_cmd(tx_end)
+    #       holder_send_cmd(access_end) -> _device_recv_cmd(access_end)
     #       _holder_recv_r_ticket() <- _device_send_r_ticket()
     ######################################################
-    def holder_send_cmd(self, device_id: str, cmd: str, tx_end: bool = False) -> None:
+    def holder_send_cmd(
+        self, device_id: str, cmd: str, access_end: bool = False
+    ) -> None:
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
                 # [STAGE: (E)]
                 self.executor._execute_ps(executing_case="send-utoken", plaintext=cmd)
 
-                if tx_end == False:
+                if access_end == False:
                     # [STAGE: (C)]
                     self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_DATA)
                     # [STAGE: (G)]
@@ -73,7 +75,7 @@ class FlowIssueUToken:
                     # [STAGE: (C)]
                     self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_RT)
                     # [STAGE: (G)]
-                    u_ticket_type = f"{u_ticket.TYPE_TX_END_UTOKEN}"
+                    u_ticket_type = f"{u_ticket.TYPE_ACCESS_END_UTOKEN}"
 
                 # [STAGE: (G)]
                 generated_request: dict = {
@@ -124,7 +126,7 @@ class FlowIssueUToken:
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
-            elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif received_u_token.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
@@ -145,7 +147,7 @@ class FlowIssueUToken:
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
                 # [STAGE: (G)(S)]
                 self._device_send_data(self.shared_data.result_message)
-            elif received_u_token.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif received_u_token.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (G)(S)]
                 self.flow_apply_u_ticket._device_send_r_ticket(
                     received_u_token.u_ticket_type,

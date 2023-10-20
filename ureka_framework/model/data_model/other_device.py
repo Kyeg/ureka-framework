@@ -25,7 +25,7 @@ class OtherDevice:
     # URequest, RTicket, etc.
     device_r_ticket_for_owner: None | str = None
     device_ownership_r_ticket_for_others: None | str = None
-    device_tx_end_r_ticket_for_others: None | str = None
+    device_access_end_r_ticket_for_others: None | str = None
 
 
 ################################################################################

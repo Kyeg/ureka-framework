@@ -228,11 +228,11 @@ class TestFailWhenAccessDeviceByOthers:
             owned_device_id
         ].device_u_ticket_for_owner
 
-        # GIVEN: Holder: EP's CS forward the u_token (TX_END)
+        # GIVEN: Holder: EP's CS forward the u_token (ACCESS_END)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
-        generated_command = "TX_END"
+        generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, tx_end=True
+            device_id=owned_device_id, cmd=generated_command, access_end=True
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 

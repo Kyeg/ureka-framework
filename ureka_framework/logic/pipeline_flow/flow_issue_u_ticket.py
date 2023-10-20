@@ -152,7 +152,7 @@ class FlowIssueUTicket:
             stored_r_ticket_json: str = self.shared_data.device_table[
                 device_id
             ].device_r_ticket_for_owner
-            # simple_log("debug", f"Stored UTicket: {stored_r_ticket_json}")
+            # simple_log("debug", f"Stored RTicket: {stored_r_ticket_json}")
 
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
@@ -180,14 +180,10 @@ class FlowIssueUTicket:
             # [STAGE: (SR)]
             self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
 
-            # if (
-            #     received_r_ticket.audit_end == None
-            #     or received_r_ticket.audit_end == "TX_END"
-            # ):
             if (
                 received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
             ):
                 # Query Corresponding UTicket(s)
                 #   Notice that even Initialization UTicket is copied in the device_table["device_id"]
@@ -196,7 +192,7 @@ class FlowIssueUTicket:
                     stored_u_ticket_json: str = self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_ownership_u_ticket_for_others
-                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                     stored_u_ticket_json: str = self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_u_ticket_for_others
@@ -220,14 +216,14 @@ class FlowIssueUTicket:
                 if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
                     # Now owner anymore, delete this device in table
                     self.shared_data.device_table.pop(received_r_ticket.device_id)
-                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                     # Still owner, but keep/delete device_access_u_ticket_for_others in table
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_u_ticket_for_others = None
                     self.shared_data.device_table[
                         received_r_ticket.device_id
-                    ].device_tx_end_r_ticket_for_others = None
+                    ].device_access_end_r_ticket_for_others = None
                 else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                     simple_log("error", "weird ticket type")
 

@@ -68,7 +68,7 @@ class UTicketGenerator:
             new_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
             or new_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             or new_u_ticket.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN
-            or new_u_ticket.u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+            or new_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
         ):
             # No ISSUER_SIGNATURE
             simple_log("info", success_msg)

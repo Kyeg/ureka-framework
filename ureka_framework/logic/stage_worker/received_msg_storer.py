@@ -98,7 +98,7 @@ class ReceivedMsgStorer:
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_ownership_r_ticket_for_others = received_r_ticket_json
-            elif received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # Holder (for Owner)
                 if (
                     self.shared_data.device_table[
@@ -115,7 +115,7 @@ class ReceivedMsgStorer:
                     # Not create new table, just add r_ticket to existing table
                     self.shared_data.device_table[
                         received_r_ticket.device_id
-                    ].device_tx_end_r_ticket_for_others = received_r_ticket_json
+                    ].device_access_end_r_ticket_for_others = received_r_ticket_json
             else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
                 simple_log("error", "weird ticket type")
 

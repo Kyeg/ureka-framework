@@ -195,7 +195,7 @@ class FlowApplyUTicket:
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                         "result": f"{result_message}",
                     }
-            elif u_ticket_type == u_ticket.TYPE_TX_END_UTOKEN:
+            elif u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 if "SUCCESS" in result_message:
                     # audit_start has already stored when receiving Access UTicket
                     r_ticket_request: dict = {
@@ -203,7 +203,7 @@ class FlowApplyUTicket:
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                         "result": f"{result_message}",
                         "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
-                        "audit_end": f"TX_END",
+                        "audit_end": f"ACCESS_END",
                     }
                 else:  # pragma: no cover -> Weird U-Token
                     r_ticket_request: dict = {
@@ -239,14 +239,10 @@ class FlowApplyUTicket:
             # [STAGE: (SR)]
             self.received_msg_storer._store_received_xxx_r_ticket(received_r_ticket)
 
-            # if (
-            #     received_r_ticket.audit_end == None
-            #     or received_r_ticket.audit_end == "TX_END"
-            # ):
             if (
                 received_r_ticket.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
                 or received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-                or received_r_ticket.r_ticket_type == u_ticket.TYPE_TX_END_UTOKEN
+                or received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
             ):
                 # Query Corresponding UTicket(s)
                 #   Notice that even Initialization UTicket is copied in the device_table["device_id"]

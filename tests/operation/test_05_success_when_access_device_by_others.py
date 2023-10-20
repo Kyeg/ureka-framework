@@ -172,16 +172,16 @@ class TestSuccessWhenAccessDeviceByOthers:
             != "DATA: " + generated_command
         )
 
-        # WHEN: Holder: EP's CS forward the u_token (TX_END)
+        # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)
         create_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         original_device_order = self.iot_device.shared_data.this_device.ticket_order
         original_agent_order = self.cloud_server_ep.shared_data.device_table[
             owned_device_id
         ].ticket_order
-        generated_command = "TX_END"
+        generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, tx_end=True
+            device_id=owned_device_id, cmd=generated_command, access_end=True
         )
         wait_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -197,7 +197,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
 
-        # WHEN: Holder: DO's UA return the tx_end_r_ticket to DM's CS
+        # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
 
         create_comm_connection(self.cloud_server_ep, self.user_agent_do)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
