@@ -37,7 +37,7 @@ class ReceivedMsgStorer:
             if (
                 received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
-                or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+                # or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 self.shared_data.device_table[
                     received_u_ticket.device_id

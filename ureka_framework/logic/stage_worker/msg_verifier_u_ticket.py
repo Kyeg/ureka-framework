@@ -136,7 +136,9 @@ class UTicketVerifier:
                     simple_log("error", failure_msg)
                     raise RuntimeError(f"{failure_msg}")
             elif self.this_device.ticket_order > 0:
-                failure_msg = "-> FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                failure_msg = (
+                    "-> FAILURE: VERIFY_TICKET_ORDER: IOT_DEVICE ALREADY INITIALIZED"
+                )
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
             else:  # pragma: no cover -> Order should never be negative

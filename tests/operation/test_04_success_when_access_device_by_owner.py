@@ -48,7 +48,7 @@ class TestSuccessWhenAccessDeviceByOwner:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_success_when_apply_self_access_u_ticket(self) -> None:
+    def test_success_when_apply_self_access_u_ticket_on_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -105,7 +105,7 @@ class TestSuccessWhenAccessDeviceByOwner:
             != "{}"
         )
 
-    def test_success_when_reboot(self) -> None:
+    def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized EP's CS can limitedly access DO's IoTD

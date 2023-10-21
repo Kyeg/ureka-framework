@@ -48,7 +48,7 @@ class TestSuccessWhenIntializeDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_success_when_apply_initialization_u_ticket(self) -> None:
+    def test_success_when_apply_initialization_u_ticket_on_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
@@ -98,7 +98,7 @@ class TestSuccessWhenIntializeDevice:
         assert self.iot_device.shared_data.this_person.person_priv_key_str == None
         assert self.iot_device.shared_data.this_person.person_pub_key_str == None
 
-    def test_success_when_reboot(self) -> None:
+    def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS and DM's IoTD

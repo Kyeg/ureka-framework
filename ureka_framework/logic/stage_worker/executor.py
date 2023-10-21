@@ -112,7 +112,7 @@ class Executor:
         if (
             self.shared_data.this_device.ticket_order != 0
         ):  # pragma: no cover -> FAILURE: (VR), because of verify_ticket_order()
-            failure_msg = "-> FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            failure_msg = "-> FAILURE: VERIFY_TICKET_ORDER: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 

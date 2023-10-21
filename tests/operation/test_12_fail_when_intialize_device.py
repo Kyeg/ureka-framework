@@ -49,6 +49,9 @@ class TestFailWhenInitializeDevice:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
+    ######################################################
+    # Threat: Reset
+    ######################################################
     def test_fail_when_re_initialize_device(self) -> None:
         current_test_given_log()
 
@@ -81,9 +84,12 @@ class TestFailWhenInitializeDevice:
             if value.device_id != "no_id":
                 assert (
                     jsonstr_to_r_ticket(value.device_r_ticket_for_owner).result
-                    == "-> FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                    == "-> FAILURE: VERIFY_TICKET_ORDER: IOT_DEVICE ALREADY INITIALIZED"
                 )
 
+    ######################################################
+    # Function: Wrong API
+    ######################################################
     def test_fail_when_initialize_device_by_intializing_agent_or_server(self) -> None:
         current_test_given_log()
 

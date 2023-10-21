@@ -49,10 +49,12 @@ class TestFailWhenTransferDeviceOwnership:
         SimpleStorage.delete_storage_in_test()
 
     ######################################################
-    # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
+    # Threat: (S) Spoofing, (T) Tampering, (E) Elevation of Privilege
     ######################################################
     @pytest.mark.skip(reason="TODO: Simulate interception")
-    def test_fail_when_apply_wrong_issuer_signature(self) -> None:
+    def test_fail_when_forge_holder_id_and_issuer_sig_and_apply_the_uticket(
+        self,
+    ) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -94,3 +96,11 @@ class TestFailWhenTransferDeviceOwnership:
         #       (because no legal issuer private key, legal authorization (issuer signature) cannot be generated)
         assert "FAILURE" in self.iot_device.shared_data.result_message
         assert "VERIFY_ISSUER_SIGNATURE" in self.iot_device.shared_data.result_message
+
+    @pytest.mark.skip(reason="TODO: To be tested")
+    def test_fail_when_intercept_and_preempt_to_apply_the_uticket(self) -> None:
+        current_test_given_log()
+
+    @pytest.mark.skip(reason="TODO: To be tested")
+    def test_fail_when_intercept_and_reuse_the_uticket(self) -> None:
+        current_test_given_log()

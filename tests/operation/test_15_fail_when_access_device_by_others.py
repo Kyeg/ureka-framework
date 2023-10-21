@@ -52,10 +52,12 @@ class TestFailWhenAccessDeviceByOthers:
         SimpleStorage.delete_storage_in_test()
 
     ######################################################
-    # (S) Spoofing, (T) Tampering, (E) Elevation of privilege
+    # Threat: (S) Spoofing, (T) Tampering, (E) Elevation of Privilege
     ######################################################
     @pytest.mark.skip(reason="TODO: Simulate interception")
-    def test_fail_when_apply_wrong_issuer_signature(self) -> None:
+    def test_fail_when_forge_holder_id_and_issuer_sig_and_apply_the_uticket(
+        self,
+    ) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -108,7 +110,7 @@ class TestFailWhenAccessDeviceByOthers:
             != generated_command
         )
 
-    def test_fail_when_apply_wrong_holder_signature(self) -> None:
+    def test_fail_when_intercept_and_preempt_to_apply_the_uticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -158,58 +160,7 @@ class TestFailWhenAccessDeviceByOthers:
             != generated_command
         )
 
-    def test_fail_when_apply_wrong_hmac(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
-        (
-            self.user_agent_do,
-            self.cloud_server_ep,
-            self.iot_device,
-        ) = enterprise_provider_server_and_her_session()
-
-        # GIVEN: Initialized ATK's CS
-        self.cloud_server_atk = attacker_server()
-
-        # WHEN:
-        current_test_when_and_then_log()
-
-        # WHEN: Holder: ATK's CS attempt to forward an u_token without session_key
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
-        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
-        intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
-            target_device_id
-        ].device_u_ticket_for_owner
-        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
-            device_id=target_device_id,
-            device_u_ticket_for_owner=intercepted_uticket_json,
-            ticket_order=2,
-        )
-        self.cloud_server_atk.shared_data.current_session.current_device_id = (
-            target_device_id
-        )
-        self.cloud_server_atk.shared_data.current_session.current_session_key_str = (
-            "TkVqlRZLmNoBwaso0I04jwMFPEIT0kQu1hJZWK9S90E="
-        )
-        self.cloud_server_atk.shared_data.current_session.iv_cmd = (
-            self.cloud_server_ep.shared_data.current_session.iv_cmd
-        )
-
-        generated_command = "HELLO-2"
-        self.cloud_server_atk.flow_issue_u_token.holder_send_cmd(
-            device_id=target_device_id, cmd=generated_command
-        )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
-
-        # THEN: ATK's CS cannot share a private session with DO's IoTD
-        #       (because no legal session key, legal u-token (& its hmac) cannot be generated)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
-        assert (
-            self.iot_device.shared_data.current_session.plaintext_cmd
-            != generated_command
-        )
-
-    def test_fail_when_reuse_the_same_uticket(self) -> None:
+    def test_fail_when_intercept_and_reuse_the_uticket(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
@@ -269,78 +220,3 @@ class TestFailWhenAccessDeviceByOthers:
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
         )
-
-    def test_fail_when_reuse_the_same_utoken(self) -> None:
-        current_test_given_log()
-
-        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
-        (
-            self.user_agent_do,
-            self.cloud_server_ep,
-            self.iot_device,
-        ) = enterprise_provider_server_and_her_session()
-
-        # GIVEN: Initialized ATK's CS
-        self.cloud_server_atk = attacker_server()
-
-        # GIVEN: Holder: EP's CS forward the u_token
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
-        generated_command = "HELLO-2"
-        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
-        )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
-
-        # WHEN:
-        current_test_when_and_then_log()
-
-        # WHEN: ATK's CS intercept the DO's u_token
-        intercepted_utoken_json = self.iot_device.shared_data.received_message_json
-        simple_log("debug", f"Intercepted UToken: {intercepted_utoken_json}")
-
-        # WHEN: ATK's CS reuse the u_token on IoTD
-        create_comm_connection(self.iot_device, self.cloud_server_atk)
-        target_device_id = owned_device_id
-        self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
-            device_id=target_device_id,
-            device_u_ticket_for_owner=intercepted_utoken_json,
-            ticket_order=2,
-        )
-        self.cloud_server_atk.shared_data.current_session.iv_cmd = (
-            self.cloud_server_ep.shared_data.current_session.iv_cmd
-        )
-        self.cloud_server_atk.executor._change_state(
-            this_device.STATE_AGENT_WAIT_FOR_DATA
-        )
-        self.cloud_server_atk.msg_sender._send_xxx_message(
-            message.MESSAGE_VERIFY_AND_EXECUTE,
-            u_ticket.MESSAGE_TYPE,
-            intercepted_utoken_json,
-        )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
-
-        # THEN: ATK's CS cannot reuse the generated_command with DO's IoTD
-        #       (because iv is different after the u-token is used, the same u-token (& its hmac) cannot be reused)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
-
-    ######################################################
-    # (R) Repudiation
-    ######################################################
-    @pytest.mark.skip(reason="TODO: More complete Tx")
-    def test_fail_when_double_issuing_or_double_spending(self) -> None:
-        current_test_given_log()
-
-    ######################################################
-    # (I) Information Disclosure
-    ######################################################
-    @pytest.mark.skip(reason="TODO: Not sure how to test")
-    def test_fail_when_eavesdropping(self) -> None:
-        current_test_given_log()
-
-    ######################################################
-    # (D) Denial of Service
-    ######################################################
-    @pytest.mark.skip(reason="TODO: Not implement yet")
-    def test_fail_when_flooding(self) -> None:
-        current_test_given_log()

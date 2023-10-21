@@ -45,18 +45,32 @@ class TestFailWhenApplyArbitraryInput:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    @pytest.mark.skip(reason="Better to be tested")
+    ######################################################
+    # Function: Weird UI Input
+    ######################################################
+    @pytest.mark.skip(reason="TODO: Weird UI Input: Better to be tested")
+    def test_fail_when_apply_wrong_format_ticket_request(self) -> None:
+        current_test_given_log()
+
+    @pytest.mark.skip(reason="TODO: Weird UI Input: Better to be tested")
+    def test_fail_when_apply_wrong_format_token_request(self) -> None:
+        current_test_given_log()
+
+    ######################################################
+    # Function: Weird COMM Input
+    ######################################################
+    @pytest.mark.skip(reason="TODO: Weird COMM Input: Better to be tested")
     def test_fail_when_apply_wrong_format_u_ticket(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Better to be tested")
+    @pytest.mark.skip(reason="TODO: Weird COMM Input: Better to be tested")
     def test_fail_when_apply_wrong_format_r_ticket(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Better to be tested")
+    @pytest.mark.skip(reason="TODO: Weird COMM Input: Better to be tested")
     def test_fail_when_apply_wrong_format_u_token(self) -> None:
         current_test_given_log()
 
-    @pytest.mark.skip(reason="Better to be tested")
+    @pytest.mark.skip(reason="TODO: Weird COMM Input: Better to be tested")
     def test_fail_when_apply_wrong_format_r_token(self) -> None:
         current_test_given_log()
