@@ -80,9 +80,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _holder_recv_cr_ke_1(self, received_r_ticket: RTicket) -> None:
         try:
@@ -113,9 +112,8 @@ class FlowOpenSession:
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
@@ -147,9 +145,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
         try:
@@ -178,9 +175,8 @@ class FlowOpenSession:
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         finally:
             # [STAGE: (G)(S)]
@@ -219,9 +215,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _holder_recv_cr_ke_3(self, received_r_ticket: RTicket) -> None:
         try:
@@ -244,7 +239,7 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VRT)(VTK)
+        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VRT)(VTK)
             self.shared_data.result_message = f"{error}"
 
             # [STAGE: (C)]
@@ -254,8 +249,7 @@ class FlowOpenSession:
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")

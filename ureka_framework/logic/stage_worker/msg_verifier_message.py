@@ -22,7 +22,7 @@ class MessageVerifier:
             message_in: Message = jsonstr_to_message(arbitrary_json)
             simple_log("info", success_msg)
             return message_in
-        except RuntimeError as error:  # pragma: no cover -> Weird U-Ticket
+        except RuntimeError as error:  # pragm: no cover -> Weird U-Ticket
             # simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(f"{failure_msg}: {error}")
 
@@ -36,7 +36,7 @@ class MessageVerifier:
         ):
             simple_log("info", success_msg)
             return message_in
-        else:  # pragma: no cover -> Weird U-Ticket
+        else:  # pragm: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -50,7 +50,7 @@ class MessageVerifier:
         ):
             simple_log("info", success_msg)
             return message_in
-        else:  # pragma: no cover -> Weird U-Ticket
+        else:  # pragm: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -61,6 +61,6 @@ class MessageVerifier:
         if message_in.message_str != None:
             simple_log("info", success_msg)
             return message_in
-        else:  # pragma: no cover -> Weird U-Ticket
+        else:  # pragm: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")

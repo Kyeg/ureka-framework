@@ -49,18 +49,18 @@ class MsgSender:
                 new_message = Message(**message_request)
                 new_message_json = message_to_jsonstr(new_message)
                 # simple_log("debug", f"sent_message_json: {new_message_json}")
-            except ValidationError as error:  # pragma: no cover -> Weird M-Request
+            except ValidationError as error:  # pragm: no cover -> Weird M-Request
                 raise RuntimeError(f"Weird M-Request: {error}")
-        else:  # pragma: no cover -> Weird M-Request
+        else:  # pragm: no cover -> Weird M-Request
             raise RuntimeError("Weird M-Request")
 
         # Simulate Network Delay
         for i in range(3):
             for i in range(3):
                 simple_log("info", f"+ network delay")
-            if Environment.DEPLOYMENT_ENV == "PRODUCTION":  # pragma: no cover
+            if Environment.DEPLOYMENT_ENV == "PRODUCTION":  # pragm: no cover
                 time.sleep(0.5)
-            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover
+            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragm: no cover
                 time.sleep(0.5)
 
         # self.comm_channel.sender_queue.put(sent_message_json)

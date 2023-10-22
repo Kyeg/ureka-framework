@@ -83,8 +83,8 @@ class FlowApplyUTicket:
                 )
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE1)
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
 
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
@@ -93,16 +93,15 @@ class FlowApplyUTicket:
                 stored_u_ticket_json,
             )
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+        except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
             self.shared_data.result_message = f"{error}"
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -133,8 +132,8 @@ class FlowApplyUTicket:
                 self.executor._execute_xxx_u_ticket(received_u_ticket)
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CRKE2)
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
 
         except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
@@ -145,9 +144,8 @@ class FlowApplyUTicket:
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         finally:
             # UT-RT
@@ -170,8 +168,8 @@ class FlowApplyUTicket:
                 self.flow_open_session._device_send_cr_ke_1(
                     self.shared_data.result_message
                 )
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _device_send_r_ticket(
         self, u_ticket_type: str, u_ticket_id: str, result_message: str
@@ -205,14 +203,14 @@ class FlowApplyUTicket:
                         "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                         "audit_end": f"ACCESS_END",
                     }
-                else:  # pragma: no cover -> Weird U-Token
+                else:  # pragm: no cover -> Weird U-Token
                     r_ticket_request: dict = {
                         "r_ticket_type": f"{u_ticket_type}",
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",
                         "result": f"{result_message}",
                     }
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
             generated_r_ticket_json: str = self.msg_generator._generate_xxx_r_ticket(
                 r_ticket_request
             )
@@ -228,9 +226,8 @@ class FlowApplyUTicket:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _holder_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -271,21 +268,20 @@ class FlowApplyUTicket:
                     this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 )
 
-            else:  # pragma: no cover -> TODO: Revocation UTicket
+            else:  # pragm: no cover -> TODO: Revocation UTicket
                 # Query Corresponding UTicket(s)
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+        except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
         except RuntimeError as error:  # FAILURE: (VR)(VRT)
             self.shared_data.result_message = f"{error}"
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")

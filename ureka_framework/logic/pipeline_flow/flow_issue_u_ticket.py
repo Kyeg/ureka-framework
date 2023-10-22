@@ -78,13 +78,12 @@ class FlowIssueUTicket:
                     jsonstr_to_u_ticket(generated_u_ticket_json),
                 )
 
-        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
+        except RuntimeError:  # pragm: no cover -> Weird U-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -114,17 +113,16 @@ class FlowIssueUTicket:
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
                 self.executor.complete_comm()
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+        except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragma: no cover -> Weird U-Request (ValidationError)
+        except RuntimeError:  # pragm: no cover -> Weird U-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -140,9 +138,8 @@ class FlowIssueUTicket:
                 "holder-generate-or-receive-uticket", received_u_ticket
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         finally:
             # [STAGE: (G)(S)]
@@ -168,13 +165,12 @@ class FlowIssueUTicket:
             simple_log("debug", f"+ Finish RT-RT~~ (holder)")
             self.executor.complete_comm()
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+        except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -199,8 +195,8 @@ class FlowIssueUTicket:
                     stored_u_ticket_json: str = self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_u_ticket_for_others
-                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                    simple_log("error", "weird ticket type")
+                else:  # pragma: no cover -> Shouldn’t Reach Here
+                    raise RuntimeError(f"Shouldn’t Reach Here")
                 simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
                 # [STAGE: (VR)]
                 stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
@@ -227,30 +223,29 @@ class FlowIssueUTicket:
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_end_r_ticket_for_others = None
-                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                    simple_log("error", "weird ticket type")
+                else:  # pragma: no cover -> Shouldn’t Reach Here
+                    raise RuntimeError(f"Shouldn’t Reach Here")
 
                 # [STAGE: (C)]
                 self.executor._change_state(
                     this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 )
 
-            else:  # pragma: no cover -> TODO: Revocation UTicket
+            else:  # pragm: no cover -> TODO: Revocation UTicket
                 # Query Corresponding UTicket(s)
                 failure_msg = f"Not implemented yet"
                 simple_log("error", failure_msg)
 
-        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+        except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)(VRT)
+        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)(VRT)
             # TODO: test_fail_when_double_issuing_or_double_spending
             self.shared_data.result_message = f"{error}"
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")

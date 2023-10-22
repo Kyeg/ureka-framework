@@ -49,7 +49,7 @@ class MsgVerifier:
             message_in = message_verifier.verify_message_operation(message_in)
             message_in = message_verifier.verify_message_type(message_in)
             message_in = message_verifier.verify_message_str(message_in)
-        except RuntimeError as error:  # pragma: no cover -> Weird Message
+        except RuntimeError as error:  # pragm: no cover -> Weird Message
             simple_log("error", f"{error}")
             raise RuntimeError(error)
 
@@ -77,7 +77,7 @@ class MsgVerifier:
             u_ticket_in = u_ticket_verifier.has_device_id(u_ticket_in)
 
             return u_ticket_in
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
             raise RuntimeError(error)
 
     def _classify_r_ticket_is_defined_type(self, arbitrary_json: str) -> RTicket:
@@ -105,7 +105,7 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.has_device_id(r_ticket_in)
 
             return r_ticket_in
-        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
             raise RuntimeError(error)
 
     def verify_u_ticket_can_execute(self, u_ticket_in: UTicket) -> None:
@@ -132,9 +132,8 @@ class MsgVerifier:
             u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
         except RuntimeError as error:
             raise RuntimeError(error)
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def verify_u_ticket_has_successfully_executed_through_r_ticket(
         self,
@@ -173,9 +172,8 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
         except RuntimeError as error:
             raise RuntimeError(error)
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
         success_msg = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
@@ -195,7 +193,7 @@ class MsgVerifier:
             simple_log("info", success_msg)
         elif (
             cmd == "HELLO-3" and task_scope.get("SAY-HELLO-3") == "allow"
-        ):  # pragma: no cover -> FAILURE: (VTS)
+        ):  # pragm: no cover -> FAILURE: (VTS)
             simple_log("info", success_msg)
         else:
             simple_log("error", f"{failure_msg}: Undefined or Forbidden Command: {cmd}")

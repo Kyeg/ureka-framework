@@ -42,7 +42,7 @@ class RTicketGenerator:
         ######################################################
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
-        except ValidationError as error:  # pragma: no cover -> Weird R-Ticket
+        except ValidationError as error:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 
@@ -61,8 +61,8 @@ class RTicketGenerator:
             new_r_ticket.ticket_order = self.device_table[
                 new_r_ticket.device_id
             ].ticket_order
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
-            simple_log("error", failure_msg)
+        else:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         # Generate UTicket Id (Hash-based)
         new_r_ticket.r_ticket_id = ecdh.generate_sha256_hash_str(
@@ -95,8 +95,8 @@ class RTicketGenerator:
         elif new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # NO Signature
             simple_log("info", success_msg)
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
-            simple_log("error", failure_msg)
+        else:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         return new_r_ticket
 

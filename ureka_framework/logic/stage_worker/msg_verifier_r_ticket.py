@@ -49,7 +49,7 @@ class RTicketVerifier:
             r_ticket_in: RTicket = jsonstr_to_r_ticket(arbitrary_json)
             simple_log("info", success_msg)
             return r_ticket_in
-        except RuntimeError as error:  # pragma: no cover -> Weird R-Ticket
+        except RuntimeError as error:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(f"{failure_msg}: {error}")
 
@@ -64,7 +64,7 @@ class RTicketVerifier:
         if r_ticket_in.protocol_verision == u_ticket.PROTOCOL_VERSION:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Weird R-Ticket
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -82,7 +82,7 @@ class RTicketVerifier:
         if generated_hash == r_ticket_in.r_ticket_id:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Weird R-Ticket
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -93,7 +93,7 @@ class RTicketVerifier:
         if r_ticket_in.r_ticket_type in r_ticket.LEGAL_RTICKET_TYPES:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -105,7 +105,7 @@ class RTicketVerifier:
         if r_ticket_in.device_id != None:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Weird U-Ticket
+        else:  # pragm: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -130,17 +130,17 @@ class RTicketVerifier:
             if r_ticket_in.device_id == self.audit_start_ticket.device_id:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
             if r_ticket_in.device_id == self.current_session.current_device_id:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -151,7 +151,7 @@ class RTicketVerifier:
         if "SUCCESS" in r_ticket_in.result:
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Weird R-Ticket
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -165,7 +165,7 @@ class RTicketVerifier:
             if r_ticket_in.ticket_order == 1:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif (
@@ -178,7 +178,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         # If TX is not finished, the ticket_order should be the same
@@ -194,7 +194,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         # "device"
@@ -202,10 +202,10 @@ class RTicketVerifier:
             if r_ticket_in.ticket_order == self.this_device.ticket_order:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -222,17 +222,17 @@ class RTicketVerifier:
             if r_ticket_in.audit_start == self.audit_start_ticket.u_ticket_id:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type in r_ticket.LEGAL_CRKE_TYPES:
             if r_ticket_in.audit_start == self.current_session.current_u_ticket_id:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -248,10 +248,10 @@ class RTicketVerifier:
             if r_ticket_in.audit_end == "ACCESS_END":
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:
             simple_log("info", success_msg)
             return r_ticket_in
 
@@ -275,7 +275,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
@@ -286,17 +286,17 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
             if r_ticket_in.challenge_2 != None:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -316,7 +316,7 @@ class RTicketVerifier:
             if r_ticket_in.iv_cmd != None:
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
@@ -328,7 +328,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
@@ -340,7 +340,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
@@ -352,10 +352,10 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -380,7 +380,7 @@ class RTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return r_ticket_in
-            else:  # pragma: no cover -> Weird R-Ticket
+            else:  # pragm: no cover -> Weird R-Ticket
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
@@ -399,7 +399,7 @@ class RTicketVerifier:
             # No DEVICE_SIGNATURE
             simple_log("info", success_msg)
             return r_ticket_in
-        else:  # pragma: no cover -> Never reach here: Because of verify_r_ticket_type()
+        else:  # pragm: no cover -> Weird R-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 

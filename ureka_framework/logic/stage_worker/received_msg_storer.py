@@ -46,8 +46,8 @@ class ReceivedMsgStorer:
                     device_u_ticket_for_owner=received_u_ticket_json,
                 )
             # Normally, we do not forward Initialization UTicket
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
 
             ######################################################
             # Storage
@@ -59,9 +59,8 @@ class ReceivedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
     def _store_received_xxx_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -116,8 +115,8 @@ class ReceivedMsgStorer:
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_end_r_ticket_for_others = received_r_ticket_json
-            else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                simple_log("error", "weird ticket type")
+            else:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")
 
             ######################################################
             # Storage
@@ -129,6 +128,5 @@ class ReceivedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except:  # pragma: no cover -> Unpredicted Error
-            failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-            simple_log("error", failure_msg)
+        except:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
