@@ -33,9 +33,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import jsonstr_to_u_ticket
+from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
-from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 
 class TestFailWhenAccessDeviceByOthers:
@@ -69,7 +69,7 @@ class TestFailWhenAccessDeviceByOthers:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: Forge & Apply
+        # WHEN: Intercept, Forge, & Apply
         current_test_when_and_then_log()
 
         # WHEN: Interception (Know Latest State)
@@ -126,8 +126,9 @@ class TestFailWhenAccessDeviceByOthers:
             in self.cloud_server_atk.shared_data.result_message
         )
 
-    # @pytest.mark.skip(reason="TODO: Simulate interception")
-    def test_fail_when_intercept_and_preempt_to_apply_the_uticket(self) -> None:
+    def test_fail_when_intercept_and_preempt_to_apply_the_uticket(
+        self,
+    ) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -142,12 +143,13 @@ class TestFailWhenAccessDeviceByOthers:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN:
+        # WHEN: Intercept & Preempt
         current_test_when_and_then_log()
 
-        # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS,
-        #       but ATK's CS intercept the u_ticket & pretend to be EP's CS
-        create_comm_connection(self.user_agent_do, self.cloud_server_atk)
+        # WHEN: Interception (TYPE_ACCESS_UTICKET)
+        #         Indeed, because TYPE_ACCESS_UTICKET has sent on BC, & maybe have been sent in WPAN (Reopen Session)
+        #           the attacker can intercept & preempt it.
+        create_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
@@ -159,24 +161,37 @@ class TestFailWhenAccessDeviceByOthers:
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
-        wait_comm_completed(self.cloud_server_atk, self.user_agent_do)
+        wait_comm_completed(self.cloud_server_ep, self.user_agent_do)
 
-        # WHEN: Holder: ATK's CS forward the access_u_ticket
+        # WHEN: Pretend Holder: Other
+        # WHEN: Interception (_holder_recv_u_ticket)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        intercepted_uticket = jsonstr_to_u_ticket(
+            self.cloud_server_ep.shared_data.received_message_json
+        )
+        self.cloud_server_atk.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
+            intercepted_uticket
+        )
+
+        # WHEN: Preempt (holder_apply_u_ticket)
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
-            owned_device_id, generated_command
+            target_device_id, generated_command
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD
-        #       (because no legal holder private key, legal challenge-response (holder signature) cannot be generated)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
+        # THEN: Because no legal holder private key, legal authentication (holder signature) cannot be generated
         assert (
-            self.iot_device.shared_data.current_session.plaintext_cmd
-            != generated_command
+            "-> FAILURE: VERIFY_HOLDER_SIGNATURE"
+            in self.iot_device.shared_data.result_message
+        )
+        assert (
+            "-> FAILURE: VERIFY_RESULT"
+            in self.cloud_server_atk.shared_data.result_message
         )
 
+    # @pytest.mark.skip(reason="TODO: Simulate interception")
     def test_fail_when_intercept_and_reuse_the_uticket(self) -> None:
         current_test_given_log()
 

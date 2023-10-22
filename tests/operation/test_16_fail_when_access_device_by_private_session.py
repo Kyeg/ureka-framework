@@ -32,9 +32,10 @@ from typing import Iterator
 from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import jsonstr_to_u_ticket
+from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
-from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 
 class TestFailWhenAccessDeviceByPrivateSession:
@@ -76,7 +77,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN: Forge & Apply
+        # WHEN: Intercept, Forge, & Apply
         current_test_when_and_then_log()
 
         # WHEN: Interception (Know Latest State)
@@ -121,10 +122,30 @@ class TestFailWhenAccessDeviceByPrivateSession:
             in self.cloud_server_atk.shared_data.result_message
         )
 
-    @pytest.mark.skip(reason="TODO: To be tested")
-    def test_fail_when_intercept_and_preempt_to_apply_the_utoken(self) -> None:
+    @pytest.mark.skip(reason="Not a valid attack pattern")
+    def test_fail_when_intercept_and_preempt_to_apply_the_utoken(
+        self,
+    ) -> None:
         current_test_given_log()
 
+        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        (
+            self.user_agent_do,
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_session()
+
+        # GIVEN: Initialized ATK's CS
+        self.cloud_server_atk = attacker_server()
+
+        # WHEN: Intercept & Preempt
+        current_test_when_and_then_log()
+
+        # WHEN: Interception (TYPE_CMD_UTOKEN)
+        #         Indeed, because TYPE_CMD_UTOKEN has NOT on BC & has NOT been Sent in WPAN (only used once),
+        #           the attacker cannot intercept & preempt it.
+
+    # @pytest.mark.skip(reason="TODO: Simulate interception")
     def test_fail_when_intercept_and_reuse_the_utoken(self) -> None:
         current_test_given_log()
 
