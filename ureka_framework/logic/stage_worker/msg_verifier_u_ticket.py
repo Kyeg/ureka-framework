@@ -276,7 +276,7 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TODO: Simulate interception
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
         else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()

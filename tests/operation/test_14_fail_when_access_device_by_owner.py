@@ -31,6 +31,7 @@ from typing import Iterator
 ######################################################
 from ureka_framework.resource.logger.simple_logger import simple_log
 import ureka_framework.model.message_model.u_ticket as u_ticket
+from ureka_framework.model.message_model.u_ticket import jsonstr_to_u_ticket
 from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
@@ -66,19 +67,26 @@ class TestFailWhenAccessDeviceByOwner:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN:
+        # WHEN: Forge & Apply
         current_test_when_and_then_log()
 
-        # WHEN: Issuer: ATK's CS generate the self_access_u_ticket to herself
+        # WHEN: Interception (Know Latest State)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         intercepted_uticket_json = self.user_agent_do.shared_data.device_table[
             target_device_id
         ].device_u_ticket_for_owner
+        intercepted_rticket_json = self.user_agent_do.shared_data.device_table[
+            target_device_id
+        ].device_r_ticket_for_owner
+
+        # WHEN: Pretend Holder: Owner
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
             device_u_ticket_for_owner=intercepted_uticket_json,
+            device_r_ticket_for_owner=intercepted_rticket_json,
             ticket_order=2,
         )
+        # WHEN: Forge Flow (issuer_issue_u_ticket_to_herself)
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{target_device_id}",
@@ -90,7 +98,7 @@ class TestFailWhenAccessDeviceByOwner:
             device_id=target_device_id, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: ATK's CS forward the self_access_u_ticket
+        # WHEN: Apply Flow (holder_apply_u_ticket)
         create_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
@@ -98,12 +106,13 @@ class TestFailWhenAccessDeviceByOwner:
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD
-        #       (because only device owner can be the ticket holder of self-access ticket)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
+        # THEN: Because no legal holder private key, legal authentication (holder id + signature) cannot be generated
         assert (
-            self.iot_device.shared_data.current_session.plaintext_cmd
-            != generated_command
+            "-> FAILURE: VERIFY_HOLDER_ID" in self.iot_device.shared_data.result_message
+        )
+        assert (
+            "-> FAILURE: VERIFY_RESULT"
+            in self.cloud_server_atk.shared_data.result_message
         )
 
     @pytest.mark.skip(reason="TODO: Simulate interception")

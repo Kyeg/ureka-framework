@@ -76,20 +76,23 @@ class TestFailWhenAccessDeviceByPrivateSession:
         # GIVEN: Initialized ATK's CS
         self.cloud_server_atk = attacker_server()
 
-        # WHEN:
+        # WHEN: Forge & Apply
         current_test_when_and_then_log()
 
-        # WHEN: Holder: ATK's CS attempt to forward an u_token without session_key
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        # WHEN: Interception (Know Latest State)
         target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
             target_device_id
         ].device_u_ticket_for_owner
+
+        # WHEN: Pretend Holder: Other
         self.cloud_server_atk.shared_data.device_table[target_device_id] = OtherDevice(
             device_id=target_device_id,
             device_u_ticket_for_owner=intercepted_uticket_json,
             ticket_order=2,
         )
+        # WHEN: Pretend Holder: Session
+        # WHEN: Forge Flow (holder_apply_u_ticket + _execute_cr_ke + _execute_ps)
         self.cloud_server_atk.shared_data.current_session.current_device_id = (
             target_device_id
         )
@@ -100,18 +103,22 @@ class TestFailWhenAccessDeviceByPrivateSession:
             self.cloud_server_ep.shared_data.current_session.iv_cmd
         )
 
+        # WHEN: Apply Flow (holder_send_cmd)
+        create_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-2"
         self.cloud_server_atk.flow_issue_u_token.holder_send_cmd(
             device_id=target_device_id, cmd=generated_command
         )
         wait_comm_completed(self.cloud_server_atk, self.iot_device)
 
-        # THEN: ATK's CS cannot share a private session with DO's IoTD
-        #       (because no legal session key, legal u-token (& its hmac) cannot be generated)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
+        # THEN: Because no legal session key, legal authentication (iv+hmac) cannot be generated
         assert (
-            self.iot_device.shared_data.current_session.plaintext_cmd
-            != generated_command
+            "-> FAILURE: VERIFY_IV_AND_HMAC"
+            in self.iot_device.shared_data.result_message
+        )
+        assert (
+            "-> FAILURE: VERIFY_RESULT"
+            in self.cloud_server_atk.shared_data.result_message
         )
 
     @pytest.mark.skip(reason="TODO: To be tested")
