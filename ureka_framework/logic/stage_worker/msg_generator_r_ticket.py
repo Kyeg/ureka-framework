@@ -42,7 +42,7 @@ class RTicketGenerator:
         ######################################################
         try:
             new_r_ticket = RTicket(**arbitrary_dict)
-        except ValidationError as error:  # pragm: no cover -> Weird R-Ticket
+        except ValidationError as error:  # pragma: no cover -> Weird Ticket-Request
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 

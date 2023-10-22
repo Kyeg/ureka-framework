@@ -78,7 +78,9 @@ class FlowIssueUTicket:
                     jsonstr_to_u_ticket(generated_u_ticket_json),
                 )
 
-        except RuntimeError:  # pragm: no cover -> Weird U-Request (ValidationError)
+        except (
+            RuntimeError
+        ):  # pragma: no cover -> Weird Ticket-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
@@ -117,7 +119,9 @@ class FlowIssueUTicket:
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragm: no cover -> Weird U-Request (ValidationError)
+        except (
+            RuntimeError
+        ):  # pragma: no cover -> Weird Ticket-Request (ValidationError)
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 

@@ -41,9 +41,7 @@ class UTicketGenerator:
         ######################################################
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
-        except (
-            ValidationError
-        ) as error:  # pragm: no cover -> Weird U-Request (ValidationError)
+        except ValidationError as error:  # pragma: no cover -> Weird Ticket-Request
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 

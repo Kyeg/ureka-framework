@@ -203,7 +203,7 @@ class FlowApplyUTicket:
                         "audit_start": f"{self.shared_data.current_session.current_u_ticket_id}",
                         "audit_end": f"ACCESS_END",
                     }
-                else:  # pragm: no cover -> Weird U-Token
+                else:  # pragma: no cover -> Weird U-Token
                     r_ticket_request: dict = {
                         "r_ticket_type": f"{u_ticket_type}",
                         "device_id": f"{self.shared_data.this_device.device_pub_key_str}",

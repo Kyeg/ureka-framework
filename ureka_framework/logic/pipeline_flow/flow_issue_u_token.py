@@ -102,7 +102,7 @@ class FlowIssueUToken:
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
             simple_log("error", failure_msg)
 
-        except RuntimeError:  # pragm: no cover -> Weird TK-Request (ValidationError)
+        except RuntimeError:  # pragma: no cover -> Weird TK-Request (ValidationError)
             failure_msg = f"FAILURE: (VTKREQ)"
             simple_log("error", failure_msg)
 

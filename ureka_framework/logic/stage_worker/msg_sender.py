@@ -49,9 +49,9 @@ class MsgSender:
                 new_message = Message(**message_request)
                 new_message_json = message_to_jsonstr(new_message)
                 # simple_log("debug", f"sent_message_json: {new_message_json}")
-            except ValidationError as error:  # pragm: no cover -> Weird M-Request
+            except ValidationError as error:  # pragma: no cover -> Weird M-Request
                 raise RuntimeError(f"Weird M-Request: {error}")
-        else:  # pragm: no cover -> Weird M-Request
+        else:  # pragma: no cover -> Weird M-Request
             raise RuntimeError("Weird M-Request")
 
         # Simulate Network Delay
