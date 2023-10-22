@@ -115,9 +115,10 @@ class FlowIssueUTicket:
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
                 self.executor.complete_comm()
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except (
             RuntimeError
@@ -169,9 +170,10 @@ class FlowIssueUTicket:
             simple_log("debug", f"+ Finish RT-RT~~ (holder)")
             self.executor.complete_comm()
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except:  # pragma: no cover -> Shouldn’t Reach Here
             raise RuntimeError(f"Shouldn’t Reach Here")
@@ -239,13 +241,16 @@ class FlowIssueUTicket:
                 # Query Corresponding UTicket(s)
                 raise RuntimeError(f"Not implemented yet")
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
-
-        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)(VRT)
-            # TODO: test_fail_when_double_issuing_or_double_spending
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
+
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)(VRT)
+            # TODO: (VRT) test_fail_when_double_issuing_or_double_spending
+            error = "FAILURE: (VR)(VRT)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except:  # pragma: no cover -> Shouldn’t Reach Here
             raise RuntimeError(f"Shouldn’t Reach Here")

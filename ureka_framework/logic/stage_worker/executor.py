@@ -104,14 +104,14 @@ class Executor:
         if (
             self.shared_data.this_device.device_type
             != this_device.USER_AGENT_OR_CLOUD_SERVER
-        ):  # pragm: no cover -> FAILURE: (VRESET)
+        ):
+            # FAILURE: (VRESET)
             failure_msg = "-> FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
 
-        if (
-            self.shared_data.this_device.ticket_order != 0
-        ):  # pragm: no cover -> FAILURE: (VR), because of verify_ticket_order()
+        if self.shared_data.this_device.ticket_order != 0:
+            # FAILURE: (VUT)
             failure_msg = "-> FAILURE: VERIFY_TICKET_ORDER: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
@@ -165,7 +165,9 @@ class Executor:
                 self._execute_one_time_initialize_iot_device(u_ticket_in)
                 # [STAGE: (O)]
                 self._execute_update_ticket_order("device-verify-uticket", u_ticket_in)
-            except RuntimeError as error:  # pragm: no cover -> FAILURE: (VRESET)
+            except (
+                RuntimeError
+            ) as error:  # pragma: no cover -> TODO: New way for _execute_one_time_intialize_agent_or_server()
                 simple_log("error", f"{error}")
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             # [STAGE: (E)]
@@ -207,7 +209,7 @@ class Executor:
                     self._execute_update_ticket_order(
                         "device-verify-uticket", u_ticket_in
                     )
-                else:  # pragm: no cover -> FAILURE: (VTK)
+                else:  # pragma: no cover -> FAILURE: (VTK)
                     self.shared_data.result_message = f"-> FAILURE: VERIFY_ACCESS_END"
                     simple_log("error", self.shared_data.result_message)
                     raise RuntimeError(self.shared_data.result_message)
@@ -245,9 +247,11 @@ class Executor:
             f"+ {self.shared_data.this_device.device_name} is intializing...",
         )
 
-        if self.shared_data.this_device.device_type != this_device.IOT_DEVICE:
+        if (
+            self.shared_data.this_device.device_type != this_device.IOT_DEVICE
+        ):  # pragma: no cover -> TODO: New way for _execute_one_time_intialize_agent_or_server()
             failure_msg = (
-                "FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
+                "-> FAILURE: ONLY IOT_DEVICE CAN DO THIS INITIALIZATION OPERATION"
             )
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)

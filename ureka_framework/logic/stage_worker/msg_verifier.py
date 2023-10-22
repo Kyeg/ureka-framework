@@ -193,7 +193,7 @@ class MsgVerifier:
             simple_log("info", success_msg)
         elif (
             cmd == "HELLO-3" and task_scope.get("SAY-HELLO-3") == "allow"
-        ):  # pragm: no cover -> FAILURE: (VTS)
+        ):  # pragma: no cover -> FAILURE: (VTS)
             simple_log("info", success_msg)
         else:
             simple_log("error", f"{failure_msg}: Undefined or Forbidden Command: {cmd}")

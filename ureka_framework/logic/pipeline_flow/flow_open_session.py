@@ -239,7 +239,7 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VRT)(VTK)
+        except RuntimeError as error:  # pragm: no cover -> ???
             self.shared_data.result_message = f"{error}"
 
             # [STAGE: (C)]

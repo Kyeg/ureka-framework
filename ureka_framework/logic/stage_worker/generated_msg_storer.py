@@ -72,8 +72,9 @@ class GeneratedMsgStorer:
                 self.shared_data.current_session,
             )
 
-        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
             self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except:  # pragma: no cover -> Shouldn’t Reach Here
             raise RuntimeError(f"Shouldn’t Reach Here")

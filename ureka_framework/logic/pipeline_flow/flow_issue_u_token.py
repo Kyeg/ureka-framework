@@ -98,9 +98,10 @@ class FlowIssueUToken:
                     generated_u_ticket_json,
                 )
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except RuntimeError:  # pragma: no cover -> Weird TK-Request (ValidationError)
             failure_msg = f"FAILURE: (VTKREQ)"
@@ -224,9 +225,10 @@ class FlowIssueUToken:
 
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except RuntimeError as error:  # FAILURE: (VR)(VRT)(VTK)
             self.shared_data.result_message = f"{error}"

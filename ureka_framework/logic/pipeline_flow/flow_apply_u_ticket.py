@@ -93,12 +93,14 @@ class FlowApplyUTicket:
                 stored_u_ticket_json,
             )
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
-
-        except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
+
+        except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except:  # pragma: no cover -> Shouldn’t Reach Here
             raise RuntimeError(f"Shouldn’t Reach Here")
@@ -272,9 +274,10 @@ class FlowApplyUTicket:
                 # Query Corresponding UTicket(s)
                 raise RuntimeError(f"Not implemented yet")
 
-        except KeyError:  # pragm: no cover -> FAILURE: (VL)
-            failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"
-            simple_log("error", failure_msg)
+        except KeyError:  # pragma: no cover -> FAILURE: (VL)
+            error = "FAILURE: (VL)"
+            self.shared_data.result_message = f"{error}"
+            raise RuntimeError(f"{error}")
 
         except RuntimeError as error:  # FAILURE: (VR)(VRT)
             self.shared_data.result_message = f"{error}"

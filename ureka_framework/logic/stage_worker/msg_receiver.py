@@ -171,9 +171,10 @@ class MsgReceiver:
                 else:  # pragma: no cover -> Shouldn’t Reach Here
                     raise RuntimeError(f"Shouldn’t Reach Here")
 
-            except RuntimeError as error:  # pragm: no cover -> FAILURE: (VR)
+            except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
                 # TODO: device_send_error_r_ticket (Sterilization)
-                simple_log("error", f"{error}")
+                self.shared_data.result_message = f"{error}"
+                raise RuntimeError(f"{error}")
 
             except:  # pragma: no cover -> Shouldn’t Reach Here
                 raise RuntimeError(f"Shouldn’t Reach Here")
