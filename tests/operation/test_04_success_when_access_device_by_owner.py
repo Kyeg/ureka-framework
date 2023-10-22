@@ -108,7 +108,7 @@ class TestSuccessWhenAccessDeviceByOwner:
     def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        # GIVEN: Initialized EP's CS open a seesion on DO's IoTD
         (
             self.user_agent_do,
             self.iot_device,
