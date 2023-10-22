@@ -235,10 +235,9 @@ class FlowIssueUTicket:
                     this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 )
 
-            else:  # pragm: no cover -> TODO: Revocation UTicket
+            else:  # pragma: no cover -> TODO: Revocation UTicket
                 # Query Corresponding UTicket(s)
-                failure_msg = f"Not implemented yet"
-                simple_log("error", failure_msg)
+                raise RuntimeError(f"Not implemented yet")
 
         except KeyError:  # pragm: no cover -> FAILURE: (VL)
             failure_msg = f"-> FAILURE: (VL): has_u_ticket_in_device_table"

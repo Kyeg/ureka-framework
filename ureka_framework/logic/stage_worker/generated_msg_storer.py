@@ -59,9 +59,8 @@ class GeneratedMsgStorer:
                 self.shared_data.device_table[
                     device_id_for_u_ticket
                 ].device_access_u_ticket_for_others = generated_u_ticket_json
-            else:  # pragm: no cover -> TODO: Revocation UTicket
-                failure_msg = f"Not implemented yet"
-                simple_log("error", failure_msg)
+            else:  # pragma: no cover -> TODO: Revocation UTicket
+                raise RuntimeError(f"Not implemented yet")
 
             ######################################################
             # Storage

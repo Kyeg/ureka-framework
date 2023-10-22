@@ -104,7 +104,7 @@ class Executor:
         if (
             self.shared_data.this_device.device_type
             != this_device.USER_AGENT_OR_CLOUD_SERVER
-        ):  # pragm: no cover -> Failure: (VRESET)
+        ):  # pragm: no cover -> FAILURE: (VRESET)
             failure_msg = "-> FAILURE: ONLY USER-AGENT-OR-CLOUD-SERVER CAN DO THIS INITIALIZATION OPERATION"
             simple_log("error", failure_msg)
             raise RuntimeError(failure_msg)
@@ -165,7 +165,7 @@ class Executor:
                 self._execute_one_time_initialize_iot_device(u_ticket_in)
                 # [STAGE: (O)]
                 self._execute_update_ticket_order("device-verify-uticket", u_ticket_in)
-            except RuntimeError as error:  # pragm: no cover -> Failure: (VRESET)
+            except RuntimeError as error:  # pragm: no cover -> FAILURE: (VRESET)
                 simple_log("error", f"{error}")
         elif u_ticket_in.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
             # [STAGE: (E)]

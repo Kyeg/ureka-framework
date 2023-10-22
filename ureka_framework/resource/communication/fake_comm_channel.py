@@ -3,7 +3,7 @@ from queue import Queue
 from typing import TYPE_CHECKING
 
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
-if TYPE_CHECKING:  # pragm: no cover
+if TYPE_CHECKING:  # pragma: no cover -> TYPE_CHECKING
     from ureka_framework.logic.device_controller import DeviceController
 
 

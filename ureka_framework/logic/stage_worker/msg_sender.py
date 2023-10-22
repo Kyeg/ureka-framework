@@ -58,9 +58,11 @@ class MsgSender:
         for i in range(3):
             for i in range(3):
                 simple_log("info", f"+ network delay")
-            if Environment.DEPLOYMENT_ENV == "PRODUCTION":  # pragm: no cover
+            if (
+                Environment.DEPLOYMENT_ENV == "PRODUCTION"
+            ):  # pragma: no cover -> PRODUCTION
                 time.sleep(0.5)
-            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragm: no cover
+            elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
                 time.sleep(0.5)
 
         # self.comm_channel.sender_queue.put(sent_message_json)
