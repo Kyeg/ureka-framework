@@ -21,7 +21,6 @@ from tests.conftest import (
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
-    device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator

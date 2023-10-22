@@ -21,7 +21,6 @@ from tests.conftest import (
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
-    device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -100,14 +99,21 @@ class TestSuccessWhenAccessDeviceByOthers:
 
         # THEN: EP's CS can share a private session with DO's IoTD
         #   (but Forbidden command is not executed)
-        assert "FAILURE" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
-            != generated_command
+            == generated_command
         )
         assert (
             self.iot_device.shared_data.current_session.plaintext_data
-            != "DATA: " + generated_command
+            == "DATA: " + generated_command
+        )
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == current_session_to_jsonstr(
+                self.cloud_server_ep.shared_data.current_session
+            )
+            != "{}"
         )
 
         # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)

@@ -51,6 +51,9 @@ class FlowIssueUTicket:
     # TODO: More complete Tx (with DID, etc.))
     # TODO: Rollback (e.g., delete the temporary stored state and stored message) if fail
     #         execution only change state after success, but need pay attention to (SR)
+    # TODO: QoS Testing - Re-transmission, & Timeout
+    #       (e.g., if RTicket is not returned, holder can request backup RTicket)
+    #       (e.g., if CR or PS is Timeout, device can revert to the WAIT_FOR_UT state)
     ######################################################
     def issuer_issue_u_ticket_to_herself(
         self, device_id: str, arbitrary_dict: dict

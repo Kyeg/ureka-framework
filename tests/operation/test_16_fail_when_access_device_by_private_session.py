@@ -20,8 +20,8 @@ from tests.conftest import (
     device_owner_agent_and_her_session,
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
+    enterprise_provider_server_and_her_limited_session,
     attacker_server,
-    device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -34,6 +34,7 @@ import ureka_framework.model.message_model.message as message
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import jsonstr_to_u_ticket
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
+from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
 from ureka_framework.model.data_model.other_device import OtherDevice
 import ureka_framework.model.data_model.this_device as this_device
 
@@ -55,9 +56,103 @@ class TestFailWhenAccessDeviceByPrivateSession:
     ######################################################
     # Threat: (E) Elevation of Privilege
     ######################################################
-    @pytest.mark.skip(reason="TODO: Gather the failed test cases")
     def test_fail_when_apply_wrong_task_scope(self) -> None:
         current_test_given_log()
+
+        # GIVEN: Initialized EP's CS open a seesion on DO's IoTD
+        (
+            self.user_agent_do,
+            self.cloud_server_ep,
+            self.iot_device,
+        ) = enterprise_provider_server_and_her_limited_session()
+
+        # WHEN:
+        current_test_when_and_then_log()
+
+        # WHEN: Holder: EP's CS forward the u_token
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        generated_command = "HELLO-2"
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            == generated_command
+        )
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_data
+            == "DATA: " + generated_command
+        )
+        assert (
+            current_session_to_jsonstr(self.iot_device.shared_data.current_session)
+            == current_session_to_jsonstr(
+                self.cloud_server_ep.shared_data.current_session
+            )
+            != "{}"
+        )
+
+        # WHEN: Holder: EP's CS forward the u_token
+        #   (with Forbidden command)
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        generated_command = "HELLO-3"
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can share a private session with DO's IoTD
+        #   (but Forbidden command is not executed)
+        assert "FAILURE" in self.iot_device.shared_data.result_message
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_cmd
+            != generated_command
+        )
+        assert (
+            self.iot_device.shared_data.current_session.plaintext_data
+            != "DATA: " + generated_command
+        )
+
+        # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)
+        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        original_device_order = self.iot_device.shared_data.this_device.ticket_order
+        original_agent_order = self.cloud_server_ep.shared_data.device_table[
+            owned_device_id
+        ].ticket_order
+        generated_command = "ACCESS_END"
+        self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
+            device_id=owned_device_id, cmd=generated_command, access_end=True
+        )
+        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+
+        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert (
+            self.iot_device.shared_data.this_device.ticket_order
+            == original_device_order + 1
+        )
+        assert (
+            self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
+            == original_agent_order + 1
+        )
+        # THEN: EP's CS cannot access DO's IoTD anymore
+
+        # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
+
+        create_comm_connection(self.cloud_server_ep, self.user_agent_do)
+        self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
+            owned_device_id
+        )
+        wait_comm_completed(self.user_agent_do, self.cloud_server_ep)
+
+        # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
 
     ######################################################
     # Threat: (S) Spoofing, (T) Tampering, (E) Elevation of Privilege
