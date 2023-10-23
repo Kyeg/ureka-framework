@@ -155,7 +155,7 @@ class DeviceController:
     ######################################################
     def wait_comm_completed(self) -> None:
         while not self.shared_data.comm_done_flag:
-            time.sleep(0.01)
+            time.sleep(Environment.INTERRUPT_CYCLE_TIME)
         # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
 
     # def complete_comm(self) -> None:

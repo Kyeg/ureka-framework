@@ -1,5 +1,4 @@
 from ureka_framework.environment import Environment
-from ureka_framework.resource.logger.simple_logger import simple_log
 from tests.conftest import (
     current_setup_log,
     current_teardown_log,
@@ -11,6 +10,11 @@ from tests.conftest import (
     device_owner_agent_and_her_device,
     enterprise_provider_server,
     attacker_server,
+)
+from ureka_framework.resource.logger.simple_logger import simple_log
+from ureka_framework.resource.logger.simple_timer import (
+    start_simple_timer,
+    get_process_time,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.model.message_model.u_ticket as u_ticket
@@ -110,29 +114,38 @@ def test_computing_and_print_time():
 
 def test_script():
     current_test_given_log()
+
     simple_log("demo", "*" * 50)
     simple_log("demo", f"Preparing for the demo...")
     simple_log("demo", "*" * 50)
 
-    input("\nPress Enter to continue...")
-
+    ######################################################
     # GIVEN: Initialized DO's UA and DO's IoTD
-    (
-        user_agent_do,
-        iot_device,
-    ) = device_owner_agent_and_her_device()
+    ######################################################
+    input("\nPress Enter to continue...")
+    start_simple_timer()
+    (user_agent_do, iot_device) = device_owner_agent_and_her_device()
+    process_time_init_agent_and_device: float = get_process_time()
     simple_log("demo", f"\n+++DO's UA and DO's IoTD are Initialized+++")
-    input("\nPress Enter to continue...")
 
+    ######################################################
     # GIVEN: Initialized EP's CS
-    cloud_server_ep = enterprise_provider_server()
-    simple_log("demo", f"\n+++EP's CS is Initialized+++")
+    ######################################################
     input("\nPress Enter to continue...")
+    start_simple_timer()
+    cloud_server_ep = enterprise_provider_server()
+    process_time_init_agent: float = get_process_time()
+    simple_log("demo", f"\n+++EP's CS is Initialized+++")
 
+    ######################################################
     # WHEN:
+    ######################################################
+    input("\nPress Enter to continue...")
     current_test_when_and_then_log()
 
+    ######################################################
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
+    ######################################################
     create_comm_connection(user_agent_do, cloud_server_ep)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
@@ -142,43 +155,82 @@ def test_script():
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
+    start_simple_timer()
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
     wait_comm_completed(cloud_server_ep, user_agent_do)
+    process_time_issuer_issue_u_ticket_to_holder: float = get_process_time()
     simple_log("demo", f"\n+++EP's CS get an access ticket from DO's UA+++")
 
+    ######################################################
     # WHEN: Holder: EP's CS forward the access_u_ticket
+    ######################################################
     create_comm_connection(cloud_server_ep, iot_device)
     # generated_command = "HELLO-1"
     generated_command = input("\nEP's CS enter 1st command to DO's IoTD: ")
+    start_simple_timer()
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
         owned_device_id, generated_command
     )
     wait_comm_completed(cloud_server_ep, iot_device)
+    process_time_holder_apply_u_ticket: float = get_process_time()
 
-    # WHEN:
-    current_test_when_and_then_log()
-
+    ######################################################
     # WHEN: Holder: EP's CS forward the u_token
+    ######################################################
     create_comm_connection(cloud_server_ep, iot_device)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-2"
     generated_command = input("\nEP's CS enter 2nd command to DO's IoTD: ")
+    start_simple_timer()
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
     wait_comm_completed(cloud_server_ep, iot_device)
+    process_time_holder_send_cmd_2: float = get_process_time()
 
+    ######################################################
     # WHEN: Holder: EP's CS forward the u_token
+    ######################################################
     create_comm_connection(cloud_server_ep, iot_device)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-3"
     generated_command = input("\nEP's CS enter 3rd command to DO's IoTD: ")
+    start_simple_timer()
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
     wait_comm_completed(cloud_server_ep, iot_device)
+    process_time_holder_send_cmd_3: float = get_process_time()
+
+    simple_log("demo", "*" * 50)
+    simple_log("demo", f"Measurement result for demo...")
+    simple_log("demo", "*" * 50)
+    simple_log(
+        "demo",
+        f"process_time_init_agent_and_device = {process_time_init_agent_and_device}",
+    )
+    simple_log(
+        "demo",
+        f"process_time_init_agent = {process_time_init_agent}",
+    )
+    simple_log(
+        "demo",
+        f"process_time_issuer_issue_u_ticket_to_holder = {process_time_issuer_issue_u_ticket_to_holder}",
+    )
+    simple_log(
+        "demo",
+        f"process_time_holder_apply_u_ticket = {process_time_holder_apply_u_ticket}",
+    )
+    simple_log(
+        "demo",
+        f"process_time_holder_send_cmd_2 = {process_time_holder_send_cmd_2}",
+    )
+    simple_log(
+        "demo",
+        f"process_time_holder_send_cmd_3 = {process_time_holder_send_cmd_3}",
+    )
 
 
 if __name__ == "__main__":
@@ -187,12 +239,12 @@ if __name__ == "__main__":
 
     setup()
 
-    # Print cost is little, but it is not zero
-    simple_log(
-        "demo",
-        f"Print cost = {test_computing_time() - test_computing_and_print_time()}",
-    )
+    # # Print cost is little, but it is not zero
+    # simple_log(
+    #     "demo",
+    #     f"Print cost = {test_computing_time() - test_computing_and_print_time()}",
+    # )
 
-    # test_script()
+    test_script()
 
     teardown()
