@@ -15,6 +15,7 @@ from tests.conftest import (
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
+import time, timeit
 
 
 def setup():
@@ -29,11 +30,90 @@ def teardown():
     SimpleStorage.delete_storage_in_test()
 
 
+def test_computing_time():
+    simple_log("demo", f"\n\n\n")
+
+    start_timer = timeit.default_timer()
+    simple_log("demo", f"start_timer: {start_timer}")
+    start_perf_counter = time.perf_counter()
+    simple_log("demo", f"start_perf_counter: {start_perf_counter}")
+    start_process_time = time.process_time()
+    simple_log("demo", f"start_process_time: {start_process_time}")
+
+    simple_log("demo", f"\nsleeping...")
+    time.sleep(3)
+    simple_log("demo", f"wake up...\n")
+
+    simple_log("demo", f"\ncomputing...")
+    result = sum(i**2**3 for i in range(1, 3 * 10**7))
+    simple_log("demo", f"computing result = {result}...\n")
+
+    end_timer = timeit.default_timer()
+    simple_log("demo", f"end_timer: {end_timer}")
+    end_perf_counter = time.perf_counter()
+    simple_log("demo", f"end_perf_counter: {end_perf_counter}")
+    end_process_time = time.process_time()
+    simple_log("demo", f"end_process_time: {end_process_time}")
+
+    simple_log("demo", f"elapsed_timer (with sleep) = {end_timer - start_timer}")
+    simple_log(
+        "demo",
+        f"elapsed_perf_counter (with sleep) = {end_perf_counter - start_perf_counter}",
+    )
+    simple_log(
+        "demo",
+        f"elapsed_process_time (without sleep) = {end_process_time - start_process_time}",
+    )
+
+    return end_process_time - start_process_time
+
+
+def test_computing_and_print_time():
+    simple_log("demo", f"\n\n\n")
+
+    start_timer = timeit.default_timer()
+    simple_log("demo", f"start_timer: {start_timer}")
+    start_perf_counter = time.perf_counter()
+    simple_log("demo", f"start_perf_counter: {start_perf_counter}")
+    start_process_time = time.process_time()
+    simple_log("demo", f"start_process_time: {start_process_time}")
+
+    simple_log("demo", f"\nsleeping...")
+    time.sleep(3)
+    simple_log("demo", f"wake up...\n")
+
+    simple_log("demo", f"\ncomputing...")
+    result = sum(i**2**3 for i in range(1, 3 * 10**7))
+    for i in range(1, 10**6):
+        print(f"P", end="")
+    simple_log("demo", f"computing result = {result}...\n")
+
+    end_timer = timeit.default_timer()
+    simple_log("demo", f"end_timer: {end_timer}")
+    end_perf_counter = time.perf_counter()
+    simple_log("demo", f"end_perf_counter: {end_perf_counter}")
+    end_process_time = time.process_time()
+    simple_log("demo", f"end_process_time: {end_process_time}")
+
+    simple_log("demo", f"elapsed_timer (with sleep) = {end_timer - start_timer}")
+    simple_log(
+        "demo",
+        f"elapsed_perf_counter (with sleep) = {end_perf_counter - start_perf_counter}",
+    )
+    simple_log(
+        "demo",
+        f"elapsed_process_time (without sleep) = {end_process_time - start_process_time}",
+    )
+
+    return end_process_time - start_process_time
+
+
 def test_script():
     current_test_given_log()
     simple_log("demo", "*" * 50)
     simple_log("demo", f"Preparing for the demo...")
     simple_log("demo", "*" * 50)
+
     input("\nPress Enter to continue...")
 
     # GIVEN: Initialized DO's UA and DO's IoTD
@@ -106,5 +186,13 @@ if __name__ == "__main__":
     Environment.DEPLOYMENT_ENV = "DEMO"
 
     setup()
-    test_script()
+
+    # Print cost is little, but it is not zero
+    simple_log(
+        "demo",
+        f"Print cost = {test_computing_time() - test_computing_and_print_time()}",
+    )
+
+    # test_script()
+
     teardown()
