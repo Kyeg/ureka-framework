@@ -119,7 +119,7 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -136,10 +136,12 @@ class UTicketVerifier:
                     simple_log("error", failure_msg)
                     raise RuntimeError(f"{failure_msg}")
             elif self.this_device.ticket_order > 0:
-                failure_msg = "-> FAILURE: IOT_DEVICE ALREADY INITIALIZED"
+                failure_msg = (
+                    "-> FAILURE: VERIFY_TICKET_ORDER: IOT_DEVICE ALREADY INITIALIZED"
+                )
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-            else:  # pragma: no cover -> Order should never be negative
+            else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
         else:
@@ -181,7 +183,7 @@ class UTicketVerifier:
             # No HOLDER_ID
             simple_log("info", success_msg)
             return u_ticket_in
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -212,7 +214,7 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -244,7 +246,7 @@ class UTicketVerifier:
             else:  # pragma: no cover -> Weird U-Ticket
                 simple_log("error", failure_msg)
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 
@@ -274,10 +276,10 @@ class UTicketVerifier:
             ):
                 simple_log("info", success_msg)
                 return u_ticket_in
-            else:  # pragma: no cover -> TODO: Simulate interception
+            else:
                 simple_log("error", f"{failure_msg}")
                 raise RuntimeError(f"{failure_msg}")
-        else:  # pragma: no cover -> Never reach here: Because of verify_u_ticket_type()
+        else:  # pragma: no cover -> Weird U-Ticket
             simple_log("error", failure_msg)
             raise RuntimeError(f"{failure_msg}")
 

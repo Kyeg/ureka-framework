@@ -21,7 +21,6 @@ from tests.conftest import (
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
-    device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -48,7 +47,7 @@ class TestSuccessWhenAccessDeviceByOwner:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
-    def test_success_when_apply_self_access_u_ticket(self) -> None:
+    def test_success_when_apply_self_access_u_ticket_on_device(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DO's UA and DO's IoTD
@@ -105,10 +104,10 @@ class TestSuccessWhenAccessDeviceByOwner:
             != "{}"
         )
 
-    def test_success_when_reboot(self) -> None:
+    def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized EP's CS can limitedly access DO's IoTD
+        # GIVEN: Initialized EP's CS open a seesion on DO's IoTD
         (
             self.user_agent_do,
             self.iot_device,

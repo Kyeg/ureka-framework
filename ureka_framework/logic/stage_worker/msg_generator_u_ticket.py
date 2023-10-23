@@ -41,9 +41,7 @@ class UTicketGenerator:
         ######################################################
         try:
             new_u_ticket = UTicket(**arbitrary_dict)
-        except (
-            ValidationError
-        ) as error:  # pragma: no cover -> Weird U-Request (ValidationError)
+        except ValidationError as error:  # pragma: no cover -> Weird Ticket-Request
             simple_log("error", f"{failure_msg}: {error}")
             raise RuntimeError(failure_msg)
 
@@ -80,8 +78,8 @@ class UTicketGenerator:
                 new_u_ticket, self.this_person.person_priv_key
             )
             simple_log("info", success_msg)
-        else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-            simple_log("error", failure_msg)
+        else:  # pragma: no cover -> Shouldn’t Reach Here
+            raise RuntimeError(f"Shouldn’t Reach Here")
 
         return new_u_ticket
 

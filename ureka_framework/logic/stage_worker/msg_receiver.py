@@ -27,7 +27,7 @@ from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUTok
 from typing import TYPE_CHECKING
 
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:  # pragma: no cover -> TYPE_CHECKING
     from ureka_framework.logic.device_controller import DeviceController
 
 
@@ -168,13 +168,13 @@ class MsgReceiver:
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.executor.complete_comm()
-                else:  # pragma: no cover -> Never reach here: Because of verify_ticket_type()
-                    simple_log("error", "weird ticket type")
+                else:  # pragma: no cover -> Shouldn’t Reach Here
+                    raise RuntimeError(f"Shouldn’t Reach Here")
 
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
                 # TODO: device_send_error_r_ticket (Sterilization)
-                simple_log("error", f"{error}")
+                self.shared_data.result_message = f"{error}"
+                raise RuntimeError(f"{error}")
 
-            except:  # pragma: no cover -> Unpredicted Error
-                failure_msg = f"-> FAILURE: UNPREDICTED ERROR"
-                simple_log("error", failure_msg)
+            except:  # pragma: no cover -> Shouldn’t Reach Here
+                raise RuntimeError(f"Shouldn’t Reach Here")

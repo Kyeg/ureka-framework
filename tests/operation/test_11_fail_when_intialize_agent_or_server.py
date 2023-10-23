@@ -21,7 +21,6 @@ from tests.conftest import (
     enterprise_provider_server,
     enterprise_provider_server_and_her_session,
     attacker_server,
-    device_owner_agent_and_her_device_and_attacker,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from typing import Iterator
@@ -48,6 +47,9 @@ class TestFailWhenInitializeAgentOrServer:
         current_teardown_log()
         SimpleStorage.delete_storage_in_test()
 
+    ######################################################
+    # Threat: Reset
+    ######################################################
     def test_fail_when_re_initialize_agent_or_server(self) -> None:
         current_test_given_log()
 
@@ -62,10 +64,15 @@ class TestFailWhenInitializeAgentOrServer:
         # THEN: Fail to re-initialize CS
         assert (
             str(error_info.value)
-            == "-> FAILURE: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
+            == "-> FAILURE: VERIFY_TICKET_ORDER: USER-AGENT-OR-CLOUD-SERVER ALREADY INITIALIZED"
         )
 
-    @pytest.mark.skip(reason="TODO: Access Agent")
+    ######################################################
+    # Function: Wrong API
+    ######################################################
+    @pytest.mark.skip(
+        reason="TODO: New way for _execute_one_time_intialize_agent_or_server()"
+    )
     def test_fail_when_initialize_agent_or_server_by_intializing_device(self) -> None:
         current_test_given_log()
         current_test_when_and_then_log()
