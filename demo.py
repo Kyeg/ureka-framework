@@ -12,9 +12,10 @@ from tests.conftest import (
     attacker_server,
 )
 from ureka_framework.resource.logger.simple_logger import simple_log
-from ureka_framework.resource.logger.simple_timer import (
+from ureka_framework.resource.logger.simple_measurer import (
     start_simple_timer,
     get_process_time,
+    simple_size_calculator,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 import ureka_framework.model.message_model.u_ticket as u_ticket
@@ -115,9 +116,14 @@ def test_computing_and_print_time():
 def test_script():
     current_test_given_log()
 
+    ######################################################
+    # GIVEN:
+    ######################################################
+    simple_log("demo", "\n")
     simple_log("demo", "*" * 50)
     simple_log("demo", f"Preparing for the demo...")
     simple_log("demo", "*" * 50)
+    simple_log("demo", "\n")
 
     ######################################################
     # GIVEN: Initialized DO's UA and DO's IoTD
@@ -140,6 +146,12 @@ def test_script():
     ######################################################
     # WHEN:
     ######################################################
+    simple_log("demo", "\n")
+    simple_log("demo", "*" * 50)
+    simple_log("demo", f"Demo...")
+    simple_log("demo", "*" * 50)
+    simple_log("demo", "\n")
+
     input("\nPress Enter to continue...")
     current_test_when_and_then_log()
 
@@ -203,33 +215,54 @@ def test_script():
     )
     wait_comm_completed(cloud_server_ep, iot_device)
     process_time_holder_send_cmd_3: float = get_process_time()
+    message_size_holder_send_cmd_3: int = simple_size_calculator(
+        iot_device.shared_data.received_message_json
+    )
 
+    ######################################################
+    # THEN: Response Time + Data Size Measurement
+    ######################################################
+    simple_log("demo", "\n")
     simple_log("demo", "*" * 50)
     simple_log("demo", f"Measurement result for demo...")
     simple_log("demo", "*" * 50)
+    simple_log("demo", "\n")
+
+    # THEN: Response Time Measurement
     simple_log(
         "demo",
-        f"process_time_init_agent_and_device = {process_time_init_agent_and_device}",
+        f"process_time_init_agent_and_device = {process_time_init_agent_and_device:.4f} seconds",
     )
     simple_log(
         "demo",
-        f"process_time_init_agent = {process_time_init_agent}",
+        f"process_time_init_agent = {process_time_init_agent:.4f} seconds",
     )
     simple_log(
         "demo",
-        f"process_time_issuer_issue_u_ticket_to_holder = {process_time_issuer_issue_u_ticket_to_holder}",
+        f"process_time_issuer_issue_u_ticket_to_holder = {process_time_issuer_issue_u_ticket_to_holder:.4f} seconds",
     )
     simple_log(
         "demo",
-        f"process_time_holder_apply_u_ticket = {process_time_holder_apply_u_ticket}",
+        f"process_time_holder_apply_u_ticket = {process_time_holder_apply_u_ticket:.4f} seconds",
     )
     simple_log(
         "demo",
-        f"process_time_holder_send_cmd_2 = {process_time_holder_send_cmd_2}",
+        f"process_time_holder_send_cmd_2 = {process_time_holder_send_cmd_2:.4f} seconds",
     )
     simple_log(
         "demo",
-        f"process_time_holder_send_cmd_3 = {process_time_holder_send_cmd_3}",
+        f"process_time_holder_send_cmd_3 = {process_time_holder_send_cmd_3:.4f} seconds",
+    )
+
+    # THEN: Data Size Measurement
+    simple_log("demo", "\n")
+    simple_log(
+        "demo",
+        f"message_holder_send_cmd_3 = \n{iot_device.shared_data.received_message_json}",
+    )
+    simple_log(
+        "demo",
+        f"message_size_holder_send_cmd_3 = {message_size_holder_send_cmd_3} bytes",
     )
 
 
