@@ -168,13 +168,13 @@ class MsgReceiver:
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.executor.complete_comm()
-                else:  # pragma: no cover -> Shouldn’t Reach Here
-                    raise RuntimeError(f"Shouldn’t Reach Here")
+                else:  # pragma: no cover -> Shouldn't Reach Here
+                    raise RuntimeError(f"Shouldn't Reach Here")
 
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
                 # TODO: device_send_error_r_ticket (Sterilization)
                 self.shared_data.result_message = f"{error}"
                 raise RuntimeError(f"{error}")
 
-            except:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            except:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")

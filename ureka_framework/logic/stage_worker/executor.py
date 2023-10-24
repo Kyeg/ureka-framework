@@ -213,8 +213,8 @@ class Executor:
                     self.shared_data.result_message = f"-> FAILURE: VERIFY_ACCESS_END"
                     simple_log("error", self.shared_data.result_message)
                     raise RuntimeError(self.shared_data.result_message)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute RTicket (Update Session, & Ticket Order)
     def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
@@ -237,8 +237,8 @@ class Executor:
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # [STAGE: (E)]
             self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Ownership
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
@@ -355,8 +355,8 @@ class Executor:
                 )
                 # Update Session: PS-Cmd
                 self._execute_ps(executing_case="recv-ut-and-send-crke1")
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
@@ -431,8 +431,8 @@ class Executor:
         ):
             # Update Session: PS-Data
             self._execute_ps(executing_case="recv-crke3", ticket_in=ticket_in)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
         # Storage (Persistent vs. RAM-only)
@@ -700,8 +700,8 @@ class Executor:
             )
             # Update Session: PS-Data (Output: Plaintext)
             self.shared_data.current_session.plaintext_data = plaintext_data
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         # simple_log(
         #     "debug",
@@ -774,8 +774,8 @@ class Executor:
             simple_log("error", self.shared_data.result_message)
             raise RuntimeError(self.shared_data.result_message)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute Application & Data Processing
     def _execute_data_processing(
@@ -829,8 +829,8 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Predicted ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif updating_case == "device-verify-uticket":
             # Execute UTicket
             if type(ticket_in) == UTicket and (
@@ -845,8 +845,8 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.this_device.ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif updating_case == "holder-verify-rticket":
             # Execute UTicket
             if type(ticket_in) == RTicket and (
@@ -861,10 +861,10 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
         # Storage

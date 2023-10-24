@@ -132,8 +132,8 @@ class MsgVerifier:
             u_ticket_in = u_ticket_verifier.verify_issuer_signature(u_ticket_in)
         except RuntimeError as error:
             raise RuntimeError(error)
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def verify_u_ticket_has_successfully_executed_through_r_ticket(
         self,
@@ -172,8 +172,8 @@ class MsgVerifier:
             r_ticket_in = r_ticket_verifier.verify_device_signature(r_ticket_in)
         except RuntimeError as error:
             raise RuntimeError(error)
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
         success_msg = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
