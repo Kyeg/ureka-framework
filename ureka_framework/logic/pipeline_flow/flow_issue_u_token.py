@@ -60,6 +60,11 @@ class FlowIssueUToken:
     def holder_send_cmd(
         self, device_id: str, cmd: str, access_end: bool = False
     ) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
@@ -109,6 +114,11 @@ class FlowIssueUToken:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:

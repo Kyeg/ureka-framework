@@ -29,6 +29,13 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import (
+    start_simple_timer,
+    get_process_time,
+    simple_size_calculator,
+)
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 
@@ -88,6 +95,11 @@ class Executor:
         )
 
     def _execute_one_time_intialize_agent_or_server(self) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self._start_timer()
+
         simple_log(
             "info",
             f"+ {self.shared_data.this_device.device_name} is initializing...",
@@ -156,6 +168,11 @@ class Executor:
             self.shared_data.this_person,
             self.shared_data.current_session,
         )
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self._measure_cli_input_flow("_execute_one_time_intialize_agent_or_server")
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
@@ -881,6 +898,35 @@ class Executor:
     ######################################################
     def _change_state(self, new_state: str) -> None:
         self.shared_data.state = new_state
+
+    ######################################################
+    # Measurement Helper:
+    #   Data Size + Response Time
+    ######################################################
+    def _start_timer(self) -> None:
+        start_simple_timer()
+
+    def _measure_cli_input_flow(self, cli_name: str) -> float:
+        # Response Time
+        process_time_xxx: float = get_process_time()
+
+        # Print
+        simple_log("demo", f"+ Receive UI Input: {cli_name}")
+        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+        simple_log("demo", f"")
+
+    def _measure_comm_input_flow(self, received_message_json) -> float:
+        # Data Size
+        message_size_xxx: int = simple_size_calculator(received_message_json)
+
+        # Response Time
+        process_time_xxx: float = get_process_time()
+
+        # Print
+        simple_log("demo", f"+ Received Message: {received_message_json}")
+        simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
+        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+        simple_log("demo", f"")
 
     ######################################################
     # [TEST ONLY] Function

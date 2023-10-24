@@ -5,13 +5,8 @@ import ureka_framework.model.data_model.this_device as this_device
 # Resource (Comm)
 from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
 
-# Resource (Logger + Measurer)
+# Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
-from ureka_framework.resource.logger.simple_measurer import (
-    start_simple_timer,
-    get_process_time,
-    simple_size_calculator,
-)
 
 # Threading
 import threading
@@ -58,27 +53,6 @@ class MsgReceiver:
         self.flow_issue_u_token = flow_issue_u_token
 
     ######################################################
-    # Measurement Helper: Data Size + Response Time
-    ######################################################
-    def _print_measurement_result(self) -> float:
-        # Data Size
-        message_size_xxx: int = simple_size_calculator(
-            self.shared_data.received_message_json
-        )
-
-        # Response Time
-        process_time_xxx: float = get_process_time()
-
-        # Print
-        simple_log(
-            "demo",
-            f"Received Message: {self.shared_data.received_message_json}",
-        )
-        simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
-        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
-        simple_log("demo", f"")
-
-    ######################################################
     # [STAGE: (R)] Receive Message
     ######################################################
     def _connect(self, end: "DeviceController") -> None:
@@ -102,7 +76,7 @@ class MsgReceiver:
                 ######################################################
                 # Start Measurement
                 ######################################################
-                start_simple_timer()
+                self.executor._start_timer()
 
                 simple_log(
                     "info",
@@ -132,7 +106,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################
@@ -143,7 +119,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################
@@ -161,7 +139,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################
@@ -187,7 +167,9 @@ class MsgReceiver:
                         ######################################################
                         # End Measurement
                         ######################################################
-                        self._print_measurement_result()
+                        self.executor._measure_comm_input_flow(
+                            self.shared_data.received_message_json
+                        )
                         ######################################################
                         # End Comm
                         ######################################################
@@ -203,7 +185,9 @@ class MsgReceiver:
                         ######################################################
                         # End Measurement
                         ######################################################
-                        self._print_measurement_result()
+                        self.executor._measure_comm_input_flow(
+                            self.shared_data.received_message_json
+                        )
                         ######################################################
                         # End Comm
                         ######################################################
@@ -217,7 +201,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################
@@ -231,7 +217,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
                     ######################################################
                     # Flow
@@ -240,7 +228,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################
@@ -262,7 +252,9 @@ class MsgReceiver:
                     ######################################################
                     # End Measurement
                     ######################################################
-                    self._print_measurement_result()
+                    self.executor._measure_comm_input_flow(
+                        self.shared_data.received_message_json
+                    )
                     ######################################################
                     # End Comm
                     ######################################################

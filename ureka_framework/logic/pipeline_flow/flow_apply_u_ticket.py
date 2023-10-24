@@ -53,6 +53,11 @@ class FlowApplyUTicket:
     #       _holder_recv_r_ticket() <- _device_send_r_ticket()
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)(L)]
             stored_u_ticket_json: str = self.shared_data.device_table[
@@ -104,6 +109,11 @@ class FlowApplyUTicket:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("holder_apply_u_ticket")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
