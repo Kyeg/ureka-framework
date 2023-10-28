@@ -5,7 +5,7 @@
 ## Environment
 + Platform: MacOS (Darwin) or Linux (+ zsh/oh-my-zsh)
 + Python: 3.9.2 (default Python version on Raspberry Pi OS, until 2023.10)
-+ Package Management: venv + pip
++ Package Management: venv/pyenv + pip
 + Formatter: Black
 + Testing: Pytest
 
@@ -18,7 +18,7 @@ Install the environment through **venv**
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
-pip3 install -r requirements-top.txt
+pip3 install -r requirements_platform_python-version.txt
 ```
 
 Test the source code through **pytest** (& the log in the pytest.log)
@@ -43,7 +43,7 @@ Always update the dependency files if you install new packages:
 
 ```
 vim requirements-top.txt
-pip3 freeze > requirements.txt
+pip3 freeze > requirements_platform_python-version.txt
 ```
 
 ## Optional Tools
