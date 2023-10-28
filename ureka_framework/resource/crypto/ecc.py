@@ -1,3 +1,6 @@
+# Data Model (RAM)
+from typing import Tuple
+
 # ECC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -5,8 +8,6 @@ from cryptography.hazmat.primitives.asymmetric import ec
 # ECDSA
 from cryptography.hazmat.primitives import hashes
 from cryptography.exceptions import InvalidSignature
-
-from typing import Tuple
 
 
 ######################################################

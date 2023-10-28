@@ -23,10 +23,8 @@ from ureka_framework.logic.pipeline_flow.flow_apply_u_ticket import FlowApplyUTi
 from ureka_framework.logic.pipeline_flow.flow_open_session import FlowOpenSession
 from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUToken
 
-
-from typing import TYPE_CHECKING
-
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:  # pragma: no cover -> TYPE_CHECKING
     from ureka_framework.logic.device_controller import DeviceController
 

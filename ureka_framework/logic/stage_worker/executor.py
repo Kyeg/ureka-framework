@@ -1,4 +1,5 @@
 # Data Model (RAM)
+from typing import Union, Optional, Tuple
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
@@ -8,7 +9,6 @@ import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
-from typing import Tuple
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -327,7 +327,7 @@ class Executor:
 
     # CR-KE
     def _execute_cr_ke(
-        self, ticket_in: UTicket | RTicket, comm_end: str, cmd: str = ""
+        self, ticket_in: Union[UTicket, RTicket], comm_end: str, cmd: str = ""
     ) -> None:
         simple_log(
             "info",
@@ -493,9 +493,9 @@ class Executor:
     def _execute_ps(
         self,
         executing_case: str,
-        ticket_in: None | UTicket | RTicket = None,
-        plaintext: None | str = None,
-        associated_plaintext: None | str = None,
+        ticket_in: Union[None, UTicket, RTicket] = None,
+        plaintext: Optional[str] = None,
+        associated_plaintext: Optional[str] = None,
     ) -> None:
         simple_log(
             "info",
@@ -818,7 +818,7 @@ class Executor:
     #       "holder-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
     def _execute_update_ticket_order(
-        self, updating_case: str, ticket_in: UTicket | RTicket = None
+        self, updating_case: str, ticket_in: Union[UTicket, RTicket] = None
     ) -> None:
         simple_log(
             "info",

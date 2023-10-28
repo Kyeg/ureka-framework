@@ -1,9 +1,5 @@
-# File I/O
-from pathlib import Path
-import shutil
-
+# Data Model (RAM)
 from typing import Tuple
-from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.model.data_model.this_device import (
     ThisDevice,
     jsonstr_to_this_device,
@@ -24,6 +20,13 @@ from ureka_framework.model.data_model.current_session import (
     jsonstr_to_current_session,
     current_session_to_jsonstr,
 )
+
+# File I/O
+from pathlib import Path
+import shutil
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 
 class SimpleStorage:

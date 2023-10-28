@@ -3,7 +3,8 @@
 > The Ureka framework is a user-centric security framework that prioritizes the protection of user devices and data through comprehensive authentication, authorization, and auditing functions.
 
 ## Environment
-+ Python: 3.11.4
++ Platform: MacOS (Darwin) or Linux (+ zsh/oh-my-zsh)
++ Python: 3.9.2 (default Python version on Raspberry Pi OS, until 2023.10)
 + Package Management: venv + pip
 + Formatter: Black
 + Testing: Pytest

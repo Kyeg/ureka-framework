@@ -1,3 +1,6 @@
+######################################################
+# Test Fixtures
+######################################################
 import pytest
 from tests.conftest import (
     create_comm_connection,
@@ -7,12 +10,16 @@ from tests.conftest import (
     current_test_when_and_then_log,
     device_manufacturer_server,
 )
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
+from typing import Iterator
+
+######################################################
+# Import
+######################################################
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.message_model.message as message
 from ureka_framework.model.message_model import u_ticket
 import ureka_framework.model.data_model.this_device as this_device
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-from typing import Iterator
 
 
 class TestStorage:

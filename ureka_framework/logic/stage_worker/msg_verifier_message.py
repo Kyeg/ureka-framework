@@ -1,5 +1,6 @@
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+from typing import Optional
 from ureka_framework.model.data_model.this_device import ThisDevice
 import ureka_framework.model.message_model.message as message
 from ureka_framework.model.message_model.message import Message, jsonstr_to_message
@@ -8,7 +9,7 @@ import ureka_framework.model.message_model.r_ticket as r_ticket
 
 
 class MessageVerifier:
-    def __init__(self, this_device: None | ThisDevice) -> None:
+    def __init__(self, this_device: Optional[ThisDevice]) -> None:
         self.this_device = this_device
 
     ######################################################

@@ -16,17 +16,17 @@ from ureka_framework.resource.crypto.serialization_util import (
 @dataclass
 class ThisPerson:
     # Generate Person Key after Intialization (UA or CS only)
-    person_priv_key: None | ec.EllipticCurvePrivateKey = None
-    person_pub_key: None | ec.EllipticCurvePublicKey = None
+    person_priv_key: Optional[ec.EllipticCurvePrivateKey] = None
+    person_pub_key: Optional[ec.EllipticCurvePublicKey] = None
 
     @property
-    def person_priv_key_str(self) -> None | str:
+    def person_priv_key_str(self) -> Optional[str]:
         if self.person_priv_key is None:
             return None
         return key_to_str(self.person_priv_key, key_type="ecc-private-key")
 
     @property
-    def person_pub_key_str(self) -> None | str:
+    def person_pub_key_str(self) -> Optional[str]:
         if self.person_pub_key is None:
             return None
         return key_to_str(self.person_pub_key, key_type="ecc-public-key")

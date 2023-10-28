@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import json
 import copy
-from typing import Union, Dict
+from typing import Union, Optional, Dict
 
 
 ######################################################
@@ -10,22 +10,22 @@ from typing import Union, Dict
 @dataclass
 class OtherDevice:
     # Use device public key as Primary key in Table
-    device_id: None | str = None
+    device_id: Optional[str] = None
 
-    ticket_order: None | int = None
+    ticket_order: Optional[int] = None
 
-    # role: None | str = None
-    # pending_role: None | str = None
+    # role: Optional[str] = None
+    # pending_role: Optional[str] = None
 
     # URequest, UTicket, UReject, etc.
-    device_u_ticket_for_owner: None | str = None
-    device_ownership_u_ticket_for_others: None | str = None
-    device_access_u_ticket_for_others: None | str = None
+    device_u_ticket_for_owner: Optional[str] = None
+    device_ownership_u_ticket_for_others: Optional[str] = None
+    device_access_u_ticket_for_others: Optional[str] = None
 
     # URequest, RTicket, etc.
-    device_r_ticket_for_owner: None | str = None
-    device_ownership_r_ticket_for_others: None | str = None
-    device_access_end_r_ticket_for_others: None | str = None
+    device_r_ticket_for_owner: Optional[str] = None
+    device_ownership_r_ticket_for_others: Optional[str] = None
+    device_access_end_r_ticket_for_others: Optional[str] = None
 
 
 ################################################################################
