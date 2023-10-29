@@ -8,7 +8,7 @@ cryptography # ==3.3.2 in legacy systems
 pyclean
 monkeytype # Needs libcst
 mypy
-pygal
+pylint
 
 # Considering
 pytest-mock
