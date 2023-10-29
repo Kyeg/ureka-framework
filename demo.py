@@ -1,3 +1,6 @@
+######################################################
+# Test Fixtures
+######################################################
 from ureka_framework.environment import Environment
 from tests.conftest import (
     current_setup_log,
@@ -11,16 +14,20 @@ from tests.conftest import (
     enterprise_provider_server,
     attacker_server,
 )
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
+
+######################################################
+# Import
+######################################################
 from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.resource.logger.simple_measurer import (
     start_simple_timer,
     get_process_time,
     simple_size_calculator,
 )
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
+import time, timeit
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
-import time, timeit
 
 
 def setup():

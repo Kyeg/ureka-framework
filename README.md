@@ -7,44 +7,61 @@
 + Python: 3.9.2 (default Python version on Raspberry Pi OS, until 2023.10)
 + Package Management: venv/pyenv + pip
 + Formatter: Black
-+ Testing: Pytest
++ Testing: pytest + pytest-cover
 
 
 ## Get Started
 
-Install the environment through **venv**
+Install the environment through **pyenv** (for multiple versions)
+```
+pyenv install 3.9.2
+pyenv virtualenv 3.9.2 project-name-version
+pyenv activate project-name-version
+pip3 install --upgrade pip
+pip3 install -r requirements_platform_python_version.txt
 
+pyenv deactivate
+```
+
+Install the environment through **venv** (for single version)
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
-pip3 install -r requirements_platform_python-version.txt
+pip3 install -r requirements_platform_python_version.txt
+
+deactivate
 ```
+
+Always update the dependency files (Edit: top + Freeze: locked) if you install new packages:
+```
+vim requirements-top.txt
+pip3 freeze > requirements_platform_python_version.txt
+```
+
+## PIP Note
+Latest versions (after 3.4) may need Rust, use ==3.3.2 in legacy systems
+<Ref> https://cryptography.io/en/latest/changelog/#v3-4
+
+
+## Test & Experiment
 
 Test the source code through **pytest** (& the log in the pytest.log)
-
 ```
-pytest
+pytest 
+or pytest -v
 ```
 
 or with more testing parameters (& the log in the pytest.log)
-
 ```
 python3 run_tests.py
 ```
 
 Experiment other source code
+```
+python3 demo.py
+```
 
-```
-python3 run_exp.py
-```
-
-Always update the dependency files if you install new packages:
-
-```
-vim requirements-top.txt
-pip3 freeze > requirements_platform_python-version.txt
-```
 
 ## Optional Tools
 

@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # For example, select test case by selecting marker
     # pytest.main(["-m", "mark_name"])
-    # pytest.main(["-m", "not mark_name"])5
+    # pytest.main(["-m", "not mark_name"])
 
     # For example, add histogram from pytest-benchmark
     # pytest.main(["-m", "benchmark", "--benchmark-histogram"])

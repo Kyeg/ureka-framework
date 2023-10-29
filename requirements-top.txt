@@ -1,10 +1,15 @@
+# Required
 pytest
-pytest-mock
 pytest-cover
-pytest-benchmark
-pygal
-pyclean
-monkeytype
-mypy
 pydantic
-cryptography
+cryptography # ==3.3.2 in legacy systems
+
+# Optional
+pyclean
+monkeytype # Needs libcst
+mypy
+pygal
+
+# Considering
+pytest-mock
+pytest-benchmark
