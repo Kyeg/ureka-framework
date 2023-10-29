@@ -80,8 +80,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def _holder_recv_cr_ke_1(self, received_r_ticket: RTicket) -> None:
         try:
@@ -112,8 +112,8 @@ class FlowOpenSession:
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
@@ -145,8 +145,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
         try:
@@ -175,8 +175,8 @@ class FlowOpenSession:
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.executor.complete_comm()
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         finally:
             # [STAGE: (G)(S)]
@@ -215,8 +215,8 @@ class FlowOpenSession:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def _holder_recv_cr_ke_3(self, received_r_ticket: RTicket) -> None:
         try:
@@ -249,7 +249,7 @@ class FlowOpenSession:
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.executor.complete_comm()
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")

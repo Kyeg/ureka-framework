@@ -1,5 +1,5 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
-
+# Data Model (RAM)
+from typing import Optional
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.message_model.u_ticket import (
     UTicket,
@@ -7,20 +7,23 @@ from ureka_framework.model.message_model.u_ticket import (
     u_ticket_to_jsonstr,
 )
 import ureka_framework.model.message_model.u_ticket as u_ticket
-
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
     dict_to_jsonstr,
 )
+
+# Resource (Cyrpto)
 from cryptography.hazmat.primitives.asymmetric import ec
 import ureka_framework.resource.crypto.ecc as ecc
 from ureka_framework.resource.crypto import ecdh
 import copy
 
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 class UTicketVerifier:
-    def __init__(self, this_device: None | ThisDevice) -> None:
+    def __init__(self, this_device: Optional[ThisDevice]) -> None:
         self.this_device = this_device
 
     ######################################################

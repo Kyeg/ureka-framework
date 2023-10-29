@@ -1,7 +1,10 @@
+# Data Model (RAM)
+from typing import Dict, Union
 import json
 import binascii
 import base64
-from typing import Dict, Union
+
+# ECC
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import (

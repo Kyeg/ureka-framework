@@ -60,6 +60,11 @@ class FlowIssueUToken:
     def holder_send_cmd(
         self, device_id: str, cmd: str, access_end: bool = False
     ) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
@@ -107,8 +112,13 @@ class FlowIssueUToken:
             failure_msg = f"FAILURE: (VTKREQ)"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
@@ -129,8 +139,8 @@ class FlowIssueUToken:
             elif received_u_token.u_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                 # [STAGE: (C)]
                 self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
 
         except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
@@ -138,8 +148,8 @@ class FlowIssueUToken:
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_CMD)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         finally:
             # PS
@@ -153,8 +163,8 @@ class FlowIssueUToken:
                     received_u_token.u_ticket_id,
                     self.shared_data.result_message,
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
 
     def _device_send_data(self, result_message: str) -> None:
         try:
@@ -188,8 +198,8 @@ class FlowIssueUToken:
                 generated_r_ticket_json,
             )
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     def _holder_recv_data(self, received_r_token: RTicket) -> None:
         try:
@@ -233,5 +243,5 @@ class FlowIssueUToken:
         except RuntimeError as error:  # FAILURE: (VR)(VRT)(VTK)
             self.shared_data.result_message = f"{error}"
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")

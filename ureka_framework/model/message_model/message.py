@@ -1,4 +1,7 @@
+# Data Model (Message)
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, ValidationError
+
 
 ######################################################
 # Message Operation
@@ -12,9 +15,9 @@ MESSAGE_VERIFY_AND_EXECUTE: str = "MESSAGE_VERIFY_AND_EXECUTE"
 ######################################################
 class Message(BaseModel):
     # Message
-    message_operation: None | str = None
-    message_type: None | str = None
-    message_str: None | str = None
+    message_operation: Optional[str] = None
+    message_type: Optional[str] = None
+    message_str: Optional[str] = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema

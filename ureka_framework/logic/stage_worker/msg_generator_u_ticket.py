@@ -78,8 +78,8 @@ class UTicketGenerator:
                 new_u_ticket, self.this_person.person_priv_key
             )
             simple_log("info", success_msg)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         return new_u_ticket
 

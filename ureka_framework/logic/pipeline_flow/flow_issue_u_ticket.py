@@ -58,6 +58,11 @@ class FlowIssueUTicket:
     def issuer_issue_u_ticket_to_herself(
         self, device_id: str, arbitrary_dict: dict
     ) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table or device_id == "no_id":
@@ -84,12 +89,22 @@ class FlowIssueUTicket:
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("issuer_issue_u_ticket_to_herself")
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
     ) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)]
             if device_id in self.shared_data.device_table:
@@ -126,8 +141,13 @@ class FlowIssueUTicket:
             failure_msg = f"FAILURE: (VUREQ)"
             simple_log("error", failure_msg)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("issuer_issue_u_ticket_to_holder")
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -143,8 +163,8 @@ class FlowIssueUTicket:
                 "holder-generate-or-receive-uticket", received_u_ticket
             )
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         finally:
             # [STAGE: (G)(S)]
@@ -152,6 +172,11 @@ class FlowIssueUTicket:
             pass
 
     def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self.executor._start_timer()
+
         try:
             # [STAGE: (VL)(L)]
             stored_r_ticket_json: str = self.shared_data.device_table[
@@ -175,8 +200,13 @@ class FlowIssueUTicket:
             self.shared_data.result_message = f"{error}"
             raise RuntimeError(f"{error}")
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
+
+        ######################################################
+        # End Measurement
+        ######################################################
+        self.executor._measure_cli_input_flow("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -201,8 +231,8 @@ class FlowIssueUTicket:
                     stored_u_ticket_json: str = self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_u_ticket_for_others
-                else:  # pragma: no cover -> Shouldn’t Reach Here
-                    raise RuntimeError(f"Shouldn’t Reach Here")
+                else:  # pragma: no cover -> Shouldn't Reach Here
+                    raise RuntimeError(f"Shouldn't Reach Here")
                 simple_log("debug", f"Corresponding UTicket: {stored_u_ticket_json}")
                 # [STAGE: (VR)]
                 stored_u_ticket = self.msg_verifier._classify_u_ticket_is_defined_type(
@@ -229,8 +259,8 @@ class FlowIssueUTicket:
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_end_r_ticket_for_others = None
-                else:  # pragma: no cover -> Shouldn’t Reach Here
-                    raise RuntimeError(f"Shouldn’t Reach Here")
+                else:  # pragma: no cover -> Shouldn't Reach Here
+                    raise RuntimeError(f"Shouldn't Reach Here")
 
                 # [STAGE: (C)]
                 self.executor._change_state(
@@ -252,8 +282,8 @@ class FlowIssueUTicket:
             self.shared_data.result_message = f"{error}"
             raise RuntimeError(f"{error}")
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")

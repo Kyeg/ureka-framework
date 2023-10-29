@@ -1,5 +1,9 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
+# Data Model (RAM)
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, ValidationError
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 
 ######################################################
@@ -7,31 +11,31 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 ######################################################
 class CurrentSession(BaseModel):
     # Access UT
-    current_u_ticket_id: None | str = None
-    current_device_id: None | str = None
-    current_holder_id: None | str = None
-    current_task_scope: None | str = None
+    current_u_ticket_id: Optional[str] = None
+    current_device_id: Optional[str] = None
+    current_holder_id: Optional[str] = None
+    current_task_scope: Optional[str] = None
 
     # CR-KE
-    challenge_1: None | str = None
-    challenge_2: None | str = None
-    key_exchange_salt_1: None | str = None
-    key_exchange_salt_2: None | str = None
+    challenge_1: Optional[str] = None
+    challenge_2: Optional[str] = None
+    key_exchange_salt_1: Optional[str] = None
+    key_exchange_salt_2: Optional[str] = None
 
     # PS
-    current_session_key_str: None | str = None
+    current_session_key_str: Optional[str] = None
 
-    plaintext_cmd: None | str = None
-    associated_plaintext_cmd: None | str = None
-    iv_cmd: None | str = None
-    ciphertext_cmd: None | str = None
-    gcm_authentication_tag_cmd: None | str = None
+    plaintext_cmd: Optional[str] = None
+    associated_plaintext_cmd: Optional[str] = None
+    iv_cmd: Optional[str] = None
+    ciphertext_cmd: Optional[str] = None
+    gcm_authentication_tag_cmd: Optional[str] = None
 
-    plaintext_data: None | str = None
-    associated_plaintext_data: None | str = None
-    iv_data: None | str = None
-    ciphertext_data: None | str = None
-    gcm_authentication_tag_data: None | str = None
+    plaintext_data: Optional[str] = None
+    associated_plaintext_data: Optional[str] = None
+    iv_data: Optional[str] = None
+    ciphertext_data: Optional[str] = None
+    gcm_authentication_tag_data: Optional[str] = None
 
     # By default, Pydantic "ignore" extra input fields not defined in model schema
     # Moreover, we can explicitly "allow" or "forbid (with Error)" extra input fields not defined in model schema

@@ -1,4 +1,5 @@
 # Data Model (RAM)
+from typing import Union, Optional, Tuple
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 from ureka_framework.model.data_model.current_session import current_session_to_jsonstr
@@ -8,7 +9,6 @@ import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
 from ureka_framework.model.message_model.r_ticket import RTicket
-from typing import Tuple
 
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
@@ -28,6 +28,13 @@ from ureka_framework.resource.crypto.serialization_util import (
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import (
+    start_simple_timer,
+    get_process_time,
+    simple_size_calculator,
+)
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -88,6 +95,11 @@ class Executor:
         )
 
     def _execute_one_time_intialize_agent_or_server(self) -> None:
+        ######################################################
+        # Start Measurement
+        ######################################################
+        self._start_timer()
+
         simple_log(
             "info",
             f"+ {self.shared_data.this_device.device_name} is initializing...",
@@ -157,6 +169,11 @@ class Executor:
             self.shared_data.current_session,
         )
 
+        ######################################################
+        # End Measurement
+        ######################################################
+        self._measure_cli_input_flow("_execute_one_time_intialize_agent_or_server")
+
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
@@ -213,8 +230,8 @@ class Executor:
                     self.shared_data.result_message = f"-> FAILURE: VERIFY_ACCESS_END"
                     simple_log("error", self.shared_data.result_message)
                     raise RuntimeError(self.shared_data.result_message)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute RTicket (Update Session, & Ticket Order)
     def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
@@ -237,8 +254,8 @@ class Executor:
         elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # [STAGE: (E)]
             self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Ownership
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
@@ -310,7 +327,7 @@ class Executor:
 
     # CR-KE
     def _execute_cr_ke(
-        self, ticket_in: UTicket | RTicket, comm_end: str, cmd: str = ""
+        self, ticket_in: Union[UTicket, RTicket], comm_end: str, cmd: str = ""
     ) -> None:
         simple_log(
             "info",
@@ -355,8 +372,8 @@ class Executor:
                 )
                 # Update Session: PS-Cmd
                 self._execute_ps(executing_case="recv-ut-and-send-crke1")
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif (
             type(ticket_in) == RTicket
             and ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET
@@ -431,8 +448,8 @@ class Executor:
         ):
             # Update Session: PS-Data
             self._execute_ps(executing_case="recv-crke3", ticket_in=ticket_in)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
         # Storage (Persistent vs. RAM-only)
@@ -476,9 +493,9 @@ class Executor:
     def _execute_ps(
         self,
         executing_case: str,
-        ticket_in: None | UTicket | RTicket = None,
-        plaintext: None | str = None,
-        associated_plaintext: None | str = None,
+        ticket_in: Union[None, UTicket, RTicket] = None,
+        plaintext: Optional[str] = None,
+        associated_plaintext: Optional[str] = None,
     ) -> None:
         simple_log(
             "info",
@@ -700,8 +717,8 @@ class Executor:
             )
             # Update Session: PS-Data (Output: Plaintext)
             self.shared_data.current_session.plaintext_data = plaintext_data
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         # simple_log(
         #     "debug",
@@ -774,8 +791,8 @@ class Executor:
             simple_log("error", self.shared_data.result_message)
             raise RuntimeError(self.shared_data.result_message)
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute Application & Data Processing
     def _execute_data_processing(
@@ -801,7 +818,7 @@ class Executor:
     #       "holder-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
     def _execute_update_ticket_order(
-        self, updating_case: str, ticket_in: UTicket | RTicket = None
+        self, updating_case: str, ticket_in: Union[UTicket, RTicket] = None
     ) -> None:
         simple_log(
             "info",
@@ -829,8 +846,8 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Predicted ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif updating_case == "device-verify-uticket":
             # Execute UTicket
             if type(ticket_in) == UTicket and (
@@ -845,8 +862,8 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.this_device.ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
         elif updating_case == "holder-verify-rticket":
             # Execute UTicket
             if type(ticket_in) == RTicket and (
@@ -861,10 +878,10 @@ class Executor:
                     "debug",
                     f"{self.shared_data.this_device.device_name}: Updated ticket_order={self.shared_data.device_table[ticket_in.device_id].ticket_order}",
                 )
-            else:  # pragma: no cover -> Shouldn’t Reach Here
-                raise RuntimeError(f"Shouldn’t Reach Here")
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
         # Storage
@@ -881,6 +898,35 @@ class Executor:
     ######################################################
     def _change_state(self, new_state: str) -> None:
         self.shared_data.state = new_state
+
+    ######################################################
+    # Measurement Helper:
+    #   Data Size + Response Time
+    ######################################################
+    def _start_timer(self) -> None:
+        start_simple_timer()
+
+    def _measure_cli_input_flow(self, cli_name: str) -> float:
+        # Response Time
+        process_time_xxx: float = get_process_time()
+
+        # Print
+        simple_log("demo", f"+ Receive UI Input: {cli_name}")
+        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+        simple_log("demo", f"")
+
+    def _measure_comm_input_flow(self, received_message_json) -> float:
+        # Data Size
+        message_size_xxx: int = simple_size_calculator(received_message_json)
+
+        # Response Time
+        process_time_xxx: float = get_process_time()
+
+        # Print
+        simple_log("demo", f"+ Received Message: {received_message_json}")
+        simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
+        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+        simple_log("demo", f"")
 
     ######################################################
     # [TEST ONLY] Function

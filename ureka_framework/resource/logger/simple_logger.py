@@ -7,9 +7,11 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
         if log_level == "demo":
             logging.debug(log_info)
         elif log_level == "debug":
-            logging.debug(log_info)
+            # logging.debug(log_info)
+            pass
         elif log_level == "info":
-            logging.info(log_info)
+            # logging.info(log_info)
+            pass
         elif log_level == "warning":
             logging.warning(log_info)
         elif log_level == "error":
@@ -21,7 +23,7 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
     elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
         # Can omit debug logs, or even omit all logs
         if log_level == "demo":
-            print(f"[   DEBUG] : {log_info}")
+            print(f"[    DEMO] : {log_info}")
         elif log_level == "debug":
             print(f"[   DEBUG] : {log_info}")
         elif log_level == "info":

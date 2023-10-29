@@ -61,8 +61,8 @@ class RTicketGenerator:
             new_r_ticket.ticket_order = self.device_table[
                 new_r_ticket.device_id
             ].ticket_order
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         # Generate UTicket Id (Hash-based)
         new_r_ticket.r_ticket_id = ecdh.generate_sha256_hash_str(
@@ -95,8 +95,8 @@ class RTicketGenerator:
         elif new_r_ticket.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
             # NO Signature
             simple_log("info", success_msg)
-        else:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        else:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")
 
         return new_r_ticket
 

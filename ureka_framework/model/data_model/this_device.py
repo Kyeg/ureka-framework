@@ -1,6 +1,7 @@
+# Data Model (RAM)
+from typing import Optional, Union, Dict
 from dataclasses import dataclass
 import json
-from typing import Optional, Union, Dict
 
 # Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -10,6 +11,8 @@ from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_key,
 )
+
+# Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 ######################################################
@@ -39,34 +42,35 @@ STATE_AGENT_WAIT_FOR_DATA: str = "STATE_AGENT_WAIT_FOR_DATA"
 @dataclass
 class ThisDevice:
     # Device Type (Device can be User Agent, Cloud Server, or IoT Device...)
-    device_type: None | str = None
-    device_name: None | str = None
-    has_device_type: None | bool = False
+
+    device_type: Optional[str] = None
+    device_name: Optional[str] = None
+    has_device_type: bool = False
 
     # Ticket Order
-    ticket_order: None | int = None
+    ticket_order: Optional[int] = None
 
     # Generate Device Key after Intialization
-    device_priv_key: None | ec.EllipticCurvePrivateKey = None
-    device_pub_key: None | ec.EllipticCurvePublicKey = None
+    device_priv_key: Optional[ec.EllipticCurvePrivateKey] = None
+    device_pub_key: Optional[ec.EllipticCurvePublicKey] = None
 
     # Generate Owner Key after Intialization
-    owner_pub_key: None | ec.EllipticCurvePublicKey = None
+    owner_pub_key: Optional[ec.EllipticCurvePublicKey] = None
 
     @property
-    def device_priv_key_str(self) -> None | str:
+    def device_priv_key_str(self) -> Optional[str]:
         if self.device_priv_key is None:
             return None
         return key_to_str(self.device_priv_key, key_type="ecc-private-key")
 
     @property
-    def device_pub_key_str(self) -> None | str:
+    def device_pub_key_str(self) -> Optional[str]:
         if self.device_pub_key is None:
             return None
         return key_to_str(self.device_pub_key, key_type="ecc-public-key")
 
     @property
-    def owner_pub_key_str(self) -> None | str:
+    def owner_pub_key_str(self) -> Optional[str]:
         if self.owner_pub_key is None:
             return None
         return key_to_str(self.owner_pub_key, key_type="ecc-public-key")

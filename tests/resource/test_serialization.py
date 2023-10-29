@@ -1,6 +1,6 @@
-import copy
-from ureka_framework.model.message_model.message import jsonstr_to_message
-from ureka_framework.resource.logger.simple_logger import simple_log
+######################################################
+# Test Fixtures
+######################################################
 import pytest
 from tests.conftest import (
     current_setup_log,
@@ -10,6 +10,15 @@ from tests.conftest import (
     device_manufacturer_server,
     device_manufacturer_server_and_her_device,
 )
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
+from typing import Iterator
+
+######################################################
+# Import
+######################################################
+import copy
+from ureka_framework.model.message_model.message import jsonstr_to_message
+from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.model.message_model import u_ticket
 from ureka_framework.model.message_model.r_ticket import (
     RTicket,
@@ -35,7 +44,6 @@ from ureka_framework.model.data_model.this_person import (
 from ureka_framework.model.data_model.current_session import (
     jsonstr_to_current_session,
 )
-from ureka_framework.resource.crypto import ecdh
 from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     byte_backto_str,
@@ -44,8 +52,7 @@ from ureka_framework.resource.crypto.serialization_util import (
     str_to_key,
 )
 from cryptography.hazmat.primitives.asymmetric import ec
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-from typing import Iterator
+from ureka_framework.resource.crypto import ecdh
 
 
 class TestSerialization:

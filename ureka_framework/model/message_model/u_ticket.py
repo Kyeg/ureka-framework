@@ -1,6 +1,9 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
+# Data Model (Message)
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 ######################################################
 # Protocol Version
@@ -41,27 +44,27 @@ LEGAL_UTICKET_TYPES: {str} = {
 ######################################################
 class UTicket(BaseModel):
     # UT
-    protocol_verision: None | str = PROTOCOL_VERSION
+    protocol_verision: Optional[str] = PROTOCOL_VERSION
 
-    u_ticket_id: None | str = None
-    u_ticket_type: None | str = None
+    u_ticket_id: Optional[str] = None
+    u_ticket_type: Optional[str] = None
 
-    device_id: None | str = None
+    device_id: Optional[str] = None
 
-    ticket_order: None | int = None
+    ticket_order: Optional[int] = None
 
-    holder_id: None | str = None
-    task_scope: None | str = None
+    holder_id: Optional[str] = None
+    task_scope: Optional[str] = None
 
-    issuer_signature: None | str = None
+    issuer_signature: Optional[str] = None
 
     # PS-Cmd
-    associated_plaintext_cmd: None | str = None
-    ciphertext_cmd: None | str = None
-    gcm_authentication_tag_cmd: None | str = None
+    associated_plaintext_cmd: Optional[str] = None
+    ciphertext_cmd: Optional[str] = None
+    gcm_authentication_tag_cmd: Optional[str] = None
 
     # PS-Data
-    iv_data: None | str = None
+    iv_data: Optional[str] = None
 
     def __eq__(self, other):
         if type(other) == UTicket:

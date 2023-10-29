@@ -76,5 +76,5 @@ class GeneratedMsgStorer:
             self.shared_data.result_message = f"{error}"
             raise RuntimeError(f"{error}")
 
-        except:  # pragma: no cover -> Shouldn’t Reach Here
-            raise RuntimeError(f"Shouldn’t Reach Here")
+        except:  # pragma: no cover -> Shouldn't Reach Here
+            raise RuntimeError(f"Shouldn't Reach Here")

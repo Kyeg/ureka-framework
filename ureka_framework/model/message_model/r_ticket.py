@@ -1,6 +1,7 @@
 from ureka_framework.resource.logger.simple_logger import simple_log
 from pydantic import BaseModel, ConfigDict, ValidationError
 import ureka_framework.model.message_model.u_ticket as u_ticket
+from typing import Optional
 
 ######################################################
 # Message Type
@@ -42,39 +43,39 @@ LEGAL_RTICKET_TYPES: {str} = {
 ######################################################
 class RTicket(BaseModel):
     # RT
-    protocol_verision: None | str = u_ticket.PROTOCOL_VERSION
+    protocol_verision: Optional[str] = u_ticket.PROTOCOL_VERSION
 
-    r_ticket_id: None | str = None
-    r_ticket_type: None | str = None
+    r_ticket_id: Optional[str] = None
+    r_ticket_type: Optional[str] = None
 
-    device_id: None | str = None
+    device_id: Optional[str] = None
 
-    result: None | str = None
-    ticket_order: None | int = None
+    result: Optional[str] = None
+    ticket_order: Optional[int] = None
 
-    audit_start: None | str = None
-    audit_end: None | str = None
+    audit_start: Optional[str] = None
+    audit_end: Optional[str] = None
 
     # CR-KE
-    challenge_1: None | str = None
-    challenge_2: None | str = None
-    key_exchange_salt_1: None | str = None
-    key_exchange_salt_2: None | str = None
+    challenge_1: Optional[str] = None
+    challenge_2: Optional[str] = None
+    key_exchange_salt_1: Optional[str] = None
+    key_exchange_salt_2: Optional[str] = None
 
     # PS-Cmd
-    associated_plaintext_cmd: None | str = None
-    ciphertext_cmd: None | str = None
-    iv_cmd: None | str = None
-    gcm_authentication_tag_cmd: None | str = None
+    associated_plaintext_cmd: Optional[str] = None
+    ciphertext_cmd: Optional[str] = None
+    iv_cmd: Optional[str] = None
+    gcm_authentication_tag_cmd: Optional[str] = None
 
     # PS-Data
-    associated_plaintext_data: None | str = None
-    ciphertext_data: None | str = None
-    iv_data: None | str = None
-    gcm_authentication_tag_data: None | str = None
+    associated_plaintext_data: Optional[str] = None
+    ciphertext_data: Optional[str] = None
+    iv_data: Optional[str] = None
+    gcm_authentication_tag_data: Optional[str] = None
 
     # RT
-    device_signature: None | str = None
+    device_signature: Optional[str] = None
 
     def __eq__(self, other):
         if type(other) == RTicket:

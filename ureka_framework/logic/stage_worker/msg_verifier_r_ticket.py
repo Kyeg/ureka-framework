@@ -1,8 +1,10 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
-
+# Data Model (RAM)
+from typing import Optional
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.data_model.current_session import CurrentSession
+
+# Data Model (Message)
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
@@ -17,20 +19,24 @@ from ureka_framework.resource.crypto.serialization_util import (
     base64str_backto_byte,
     str_to_byte,
 )
+
+# Resource (Cyrpto)
 from cryptography.hazmat.primitives.asymmetric import ec
 import ureka_framework.resource.crypto.ecc as ecc
 from ureka_framework.resource.crypto import ecdh
 import copy
 
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 class RTicketVerifier:
     def __init__(
         self,
-        this_device: None | ThisDevice,
-        device_table: None | dict[str, OtherDevice],
-        audit_start_ticket: None | UTicket,
-        audit_end_ticket: None | UTicket,
-        current_session: None | CurrentSession,
+        this_device: Optional[ThisDevice],
+        device_table: Optional[dict[str, OtherDevice]],
+        audit_start_ticket: Optional[UTicket],
+        audit_end_ticket: Optional[UTicket],
+        current_session: Optional[CurrentSession],
     ) -> None:
         self.this_device = this_device
         self.device_table = device_table
