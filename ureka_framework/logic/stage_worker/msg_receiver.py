@@ -3,7 +3,9 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Resource (Comm)
-from ureka_framework.resource.communication.fake_comm_channel import FakeCommChannel
+from ureka_framework.resource.communication.fake_comm.fake_comm_channel import (
+    FakeCommChannel,
+)
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -25,6 +27,7 @@ from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUTok
 
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:  # pragma: no cover -> TYPE_CHECKING
     from ureka_framework.logic.device_controller import DeviceController
 
