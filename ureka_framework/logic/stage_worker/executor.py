@@ -911,9 +911,9 @@ class Executor:
         process_time_xxx: float = get_process_time()
 
         # Print
+        simple_log("demo", f"")
         simple_log("demo", f"+ Receive UI Input: {cli_name}")
         simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
-        simple_log("demo", f"")
 
     def _measure_comm_input_flow(self, received_message_json) -> float:
         # Data Size
@@ -923,10 +923,10 @@ class Executor:
         process_time_xxx: float = get_process_time()
 
         # Print
+        simple_log("demo", f"")
         simple_log("demo", f"+ Received Message: {received_message_json}")
         simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
         simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
-        simple_log("demo", f"")
 
     ######################################################
     # [TEST ONLY] Function

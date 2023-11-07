@@ -5,7 +5,7 @@ import bluetooth
 import time
 
 # Resource (Logger)
-from bt_logger import simple_log
+from ureka_framework.resource.communication.bluetooth.bt_logger import simple_log
 
 ########################################################################
 # Program-specific Service Info
@@ -83,7 +83,7 @@ class ConnectionSocket:
 
         # Divide message into Chunks
         message_length = self._message_size(original_message_str)
-        simple_log("debug", f"Message Length: {message_length}")
+        # simple_log("debug", f"Message Length: {message_length}")
         sent_chunk_strs = []
         for i in range(0, len(original_message_str), MSG_MAX_SIZE):
             sent_chunk_str = original_message_str[i : i + MSG_MAX_SIZE]
