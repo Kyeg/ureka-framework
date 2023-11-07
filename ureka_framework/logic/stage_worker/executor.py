@@ -928,11 +928,3 @@ class Executor:
         simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
         simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
 
-    ######################################################
-    # [TEST ONLY] Function
-    #   Pytest finishes this test when main thread is finished
-    #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
-    #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
-    ######################################################
-    def complete_comm(self) -> None:
-        self.shared_data.comm_done_flag = True

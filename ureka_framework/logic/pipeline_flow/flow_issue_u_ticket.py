@@ -128,7 +128,7 @@ class FlowIssueUTicket:
 
                 # End Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
-                self.executor.complete_comm()
+                self.msg_sender.close_simulated_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
@@ -193,7 +193,7 @@ class FlowIssueUTicket:
 
             # End Comm
             simple_log("debug", f"+ Finish RT-RT~~ (holder)")
-            self.executor.complete_comm()
+            self.msg_sender.close_simulated_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"

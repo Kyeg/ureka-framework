@@ -154,7 +154,7 @@ class FlowApplyUTicket:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
-            self.executor.complete_comm()
+            self.msg_sender.close_simulated_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")

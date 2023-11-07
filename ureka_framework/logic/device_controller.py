@@ -16,8 +16,8 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
 # Resource (Comm)
-from ureka_framework.resource.communication.fake_comm.fake_comm_channel import (
-    FakeCommChannel
+from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
+    SimulatedCommChannel,
 )
 
 # Resource (Logger)
@@ -25,8 +25,8 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Threading
 import time
-from queue import Queue
 import threading
+from queue import Queue
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_receiver import MsgReceiver
@@ -59,7 +59,7 @@ class DeviceController:
         # Resource (Storage)
         self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
         # Resource (Communication)
-        self.comm_channel: FakeCommChannel = FakeCommChannel(
+        self.simulated_comm_channel: SimulatedCommChannel = SimulatedCommChannel(
             end=None, receiver_queue=Queue(), sender_queue=None
         )
 
@@ -78,7 +78,8 @@ class DeviceController:
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
         self.msg_sender = MsgSender(
-            shared_data=self.shared_data, comm_channel=self.comm_channel
+            shared_data=self.shared_data,
+            simulated_comm_channel=self.simulated_comm_channel,
         )
 
         # Flow
@@ -124,9 +125,10 @@ class DeviceController:
         # Stage Worker
         self.msg_receiver = MsgReceiver(
             shared_data=self.shared_data,
-            comm_channel=self.comm_channel,
+            simulated_comm_channel=self.simulated_comm_channel,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
+            msg_sender=self.msg_sender,
             flow_issuer_issue_u_ticket=self.flow_issuer_issue_u_ticket,
             flow_apply_u_ticket=self.flow_apply_u_ticket,
             flow_open_session=self.flow_open_session,
@@ -148,20 +150,6 @@ class DeviceController:
             )
 
         simple_log("info", f"+ Here is a {self.shared_data.this_device.device_name}...")
-
-    ######################################################
-    # [TEST ONLY] Function
-    #   Pytest finishes this test when main thread is finished
-    #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
-    #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
-    ######################################################
-    def wait_comm_completed(self) -> None:
-        while not self.shared_data.comm_done_flag:
-            time.sleep(Environment.INTERRUPT_CYCLE_TIME)
-        # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
-
-    # def complete_comm(self) -> None:
-    #     self.shared_data.comm_done_flag = True
 
     ######################################################
     # Device Activity Cycle

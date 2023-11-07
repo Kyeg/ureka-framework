@@ -10,8 +10,8 @@ import ureka_framework.model.message_model.u_ticket as u_ticket
 import ureka_framework.model.message_model.u_ticket as r_ticket
 
 # Resource (Comm)
-from ureka_framework.resource.communication.fake_comm.fake_comm_channel import (
-    FakeCommChannel,
+from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
+    SimulatedCommChannel,
 )
 
 # Resource (Logger)
@@ -22,9 +22,28 @@ import time
 
 
 class MsgSender:
-    def __init__(self, shared_data: SharedData, comm_channel: FakeCommChannel) -> None:
+    def __init__(
+        self, shared_data: SharedData, simulated_comm_channel: SimulatedCommChannel
+    ) -> None:
         self.shared_data = shared_data
-        self.comm_channel = comm_channel
+        self.simulated_comm_channel = simulated_comm_channel
+
+    ######################################################
+    # [Simulation Comm] Function
+    #   Pytest finishes this test when main thread is finished
+    #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
+    #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
+    ######################################################
+    def wait_simulated_comm_completed(self) -> None:
+        while not self.shared_data.comm_done_flag:
+            time.sleep(Environment.INTERRUPT_CYCLE_TIME)
+        # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
+
+    def close_simulated_comm(self) -> None:
+        self.shared_data.comm_done_flag = True
+
+    def re_open_simulated_comm(self) -> None:
+        self.shared_data.comm_done_flag = False
 
     ######################################################
     # [STAGE: (S)] Send Message
@@ -34,7 +53,7 @@ class MsgSender:
     ) -> None:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is sending message to {self.comm_channel.end.shared_data.this_device.device_name}...",
+            f"+ {self.shared_data.this_device.device_name} is sending message to {self.simulated_comm_channel.end.shared_data.this_device.device_name}...",
         )
 
         # Generate Message
@@ -67,5 +86,5 @@ class MsgSender:
             elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
                 time.sleep(Environment.NETWORK_DELAY)
 
-        # self.comm_channel.sender_queue.put(sent_message_json)
-        self.comm_channel.sender_queue.put(new_message_json)
+        # self.simulated_comm_channel.sender_queue.put(sent_message_json)
+        self.simulated_comm_channel.sender_queue.put(new_message_json)

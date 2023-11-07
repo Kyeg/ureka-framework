@@ -17,7 +17,7 @@ class SharedData:
     # Data Model (RAM-only)
     state: Optional[str] = None
 
-    # [TEST ONLY]
+    # [Simulation Comm]
     comm_done_flag: Optional[bool] = None
     received_message_json: Optional[str] = None
     result_message: Optional[str] = None

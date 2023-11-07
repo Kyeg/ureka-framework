@@ -3,8 +3,8 @@ from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
 # Resource (Comm)
-from ureka_framework.resource.communication.fake_comm.fake_comm_channel import (
-    FakeCommChannel,
+from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
+    SimulatedCommChannel,
 )
 
 # Resource (Logger)
@@ -16,6 +16,7 @@ import threading
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 from ureka_framework.logic.stage_worker.executor import Executor
+from ureka_framework.logic.stage_worker.msg_sender import MsgSender
 from ureka_framework.model.message_model.u_ticket import UTicket, u_ticket_to_jsonstr
 from ureka_framework.model.message_model.r_ticket import RTicket, r_ticket_to_jsonstr
 
@@ -36,43 +37,53 @@ class MsgReceiver:
     def __init__(
         self,
         shared_data: SharedData,
-        comm_channel: FakeCommChannel,
+        simulated_comm_channel: SimulatedCommChannel,
         msg_verifier: MsgVerifier,
         executor: Executor,
+        msg_sender: MsgSender,
         flow_issuer_issue_u_ticket: FlowIssueUTicket,
         flow_apply_u_ticket: FlowApplyUTicket,
         flow_open_session: FlowOpenSession,
         flow_issue_u_token: FlowIssueUToken,
     ) -> None:
         self.shared_data = shared_data
-        self.comm_channel = comm_channel
+        self.simulated_comm_channel = simulated_comm_channel
         self.msg_verifier = msg_verifier
         self.executor = executor
+        self.msg_sender = msg_sender
         self.flow_issuer_issue_u_ticket = flow_issuer_issue_u_ticket
         self.flow_apply_u_ticket = flow_apply_u_ticket
         self.flow_open_session = flow_open_session
         self.flow_issue_u_token = flow_issue_u_token
 
     ######################################################
-    # [STAGE: (R)] Receive Message
+    # [Simulation Comm] Function
+    #   Pytest finishes this test when main thread is finished
+    #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
+    #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
     ######################################################
-    def _connect(self, end: "DeviceController") -> None:
+    def create_simulated_comm_connection(self, end: "DeviceController") -> None:
         # simple_log("info",
         #     f"+ {self.shared_data.this_device.device_name} is connecting with {end.shared_data.this_device.device_name}..."
         # )
         # Set Sender (on Main Thread)
-        self.comm_channel.end = end
-        self.comm_channel.sender_queue = end.comm_channel.receiver_queue
+        self.simulated_comm_channel.end = end
+        self.simulated_comm_channel.sender_queue = (
+            end.simulated_comm_channel.receiver_queue
+        )
         # Start Reciever Thread
         receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
         receiver_thread.start()
 
+    ######################################################
+    # [STAGE: (R)] Receive Message
+    ######################################################
     def _recv_xxx_message(self):
         while True:
             try:
                 # [STAGE: (R)]
                 # This will block until message is received
-                message = self.comm_channel.receiver_queue.get()
+                message = self.simulated_comm_channel.receiver_queue.get()
 
                 ######################################################
                 # Start Measurement
@@ -81,7 +92,7 @@ class MsgReceiver:
 
                 simple_log(
                     "info",
-                    f"+ {self.shared_data.this_device.device_name} is receiving message from {self.comm_channel.end.shared_data.this_device.device_name}...",
+                    f"+ {self.shared_data.this_device.device_name} is receiving message from {self.simulated_comm_channel.end.shared_data.this_device.device_name}...",
                 )
 
                 # [STAGE: (VR)]
@@ -114,7 +125,7 @@ class MsgReceiver:
                     # End Comm
                     ######################################################
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
                     ######################################################
@@ -131,7 +142,7 @@ class MsgReceiver:
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     ######################################################
                     # Flow
@@ -151,7 +162,7 @@ class MsgReceiver:
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (device)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
 
                 # USER_AGENT_OR_CLOUD_SERVER
                 elif (
@@ -175,7 +186,7 @@ class MsgReceiver:
                         # End Comm
                         ######################################################
                         simple_log("debug", f"+ Finish UT-UT~~ (holder)")
-                        self.executor.complete_comm()
+                        self.msg_sender.close_simulated_comm()
                     elif type(received_message) == RTicket:
                         ######################################################
                         # Flow
@@ -193,7 +204,7 @@ class MsgReceiver:
                         # End Comm
                         ######################################################
                         simple_log("debug", f"+ Finish RT-RT~~ (issuer)")
-                        self.executor.complete_comm()
+                        self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     ######################################################
                     # Flow
@@ -209,7 +220,7 @@ class MsgReceiver:
                     # End Comm
                     ######################################################
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     ######################################################
                     # Flow
@@ -244,7 +255,7 @@ class MsgReceiver:
                         f"\n+++Session is Constucted+++",
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     ######################################################
                     # Flow
@@ -264,7 +275,7 @@ class MsgReceiver:
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (holder)")
-                    self.executor.complete_comm()
+                    self.msg_sender.close_simulated_comm()
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
 

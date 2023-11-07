@@ -122,7 +122,7 @@ Or with more testing parameters (& the log in the pytest.log) & Generate the cov
 python3 run_tests.py
 ```
 
-Open the coverage report locally or remotely (& the report in the htmlcov/ folder, e.g., the html/index.html)
+Open the coverage report through **pytest-cover** locally or remotely (& the report in the htmlcov/ folder, e.g., the html/index.html)
 
 Locally:
 ```
