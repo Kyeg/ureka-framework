@@ -15,57 +15,19 @@ import ureka_framework.model.data_model.this_device as this_device
 ######################################################
 # Test Fixtures
 ######################################################
-def setup_production_environment():
+def reset_production_environment():
     # RE-GIVEN: Reset the production environment
     SimpleStorage.delete_storage_in_test()
 
 
-# def device_event_loop(connection_socket: ConnectionSocket):
-#     try:
-#         while True:
-#             ########################################################################
-#             # Start Comm Measurement
-#             ########################################################################
-#             # measure_comm_start()
-#             # Connection Socket: Receive
-#             received_u_ticket_str: str = connection_socket.recv_message()
-#             simple_log("debug", f"")
-#             simple_log("debug", f"received_u_ticket_str = {received_u_ticket_str}")
-#             ########################################################################
-#             # End Comm Measurement
-#             ########################################################################
-#             # measure_comm_time("received_u_ticket_str", received_u_ticket_str)
-
-#             ########################################################################
-#             # Start Process Measurement
-#             ########################################################################
-#             measure_process_start()
-#             # Data Processing: TODO: Contoller, e.g., echo the message
-#             if received_u_ticket_str == "exit":
-#                 simple_log("info", f"")
-#                 simple_log("info", f"+ Connection is closed by peer.")
-#                 break
-#             sent_r_ticket_str: str = f"R<<<{received_u_ticket_str}>>>"
-#             simple_log("debug", f"")
-#             simple_log("debug", f"sent_r_ticket_str = {sent_r_ticket_str}")
-#             # Connection Socket: Send
-#             connection_socket.send_message(sent_r_ticket_str)
-#             ########################################################################
-#             # End Process Measurement
-#             ########################################################################
-#             measure_comm_process("device_send_r_ticket", sent_r_ticket_str)
-#     except OSError:
-#         simple_log("info", f"")
-#         simple_log("info", f"+ Connection is closed by peer.")
-
-
 if __name__ == "__main__":
-    Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    # Environment.DEPLOYMENT_ENV = "DEMO"
-
-    setup_production_environment()
-
     try:
+        # GIVEN: Environment
+        Environment.DEPLOYMENT_ENV = "PRODUCTION"
+
+        # GIVEN: Uninitialized Devices
+        reset_production_environment()
+
         # GIVEN: Uninitialized IoTD
         iot_device = DeviceController(
             device_type=this_device.IOT_DEVICE,
@@ -74,10 +36,10 @@ if __name__ == "__main__":
         assert iot_device.shared_data.this_device.ticket_order == 0
         assert iot_device.shared_data.this_device.device_priv_key_str == None
 
-        # GIVEN: Bluetooth Service Lifecycle: Accept New Connection
+        # WHEN: Bluetooth Service Lifecycle: Accept New Connection
         iot_device.msg_receiver.accept_bluetooth_comm()
 
-        # WHEN: Bluetooth Service Lifecycle: Receive & Send in Connection
+        # WHEN: Bluetooth Service Lifecycle: Receive U-Ticket & Send R-Ticket in Connection
         iot_device.msg_receiver._recv_xxx_message()
 
         # THEN: Succeed to initialize DM's IoTD

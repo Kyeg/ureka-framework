@@ -130,10 +130,17 @@ class MsgReceiver:
                 else:  # pragma: no cover -> PRODUCTION
                     # This will block until message is received
                     try:
+                        ########################################################################
+                        # Start Comm Measurement
+                        ########################################################################
+                        self.executor.measure_comm_start()
                         message = self.shared_data.connection_socket.recv_message()
-                        simple_log("debug", f"")
-                        simple_log("debug", f"received_u_ticket_str = {message}")
-
+                        ########################################################################
+                        # End Comm Measurement
+                        ########################################################################
+                        self.executor.measure_comm_time(
+                            "holder_or_device_recv_u_or_r_ticket", message
+                        )
                         simple_log(
                             "info",
                             f"+ {self.shared_data.this_device.device_name} is receiving message "
@@ -145,9 +152,9 @@ class MsgReceiver:
                         break
 
                 ######################################################
-                # Start Measurement
+                # Start Process Measurement
                 ######################################################
-                self.executor._start_timer()
+                self.executor.measure_process_start()
 
                 # [STAGE: (VR)]
                 received_message = self.msg_verifier._classify_message_is_defined_type(
@@ -161,36 +168,28 @@ class MsgReceiver:
                     self.shared_data.received_message_json = r_ticket_to_jsonstr(
                         received_message
                     )
-                # simple_log(
-                #     "demo",
-                #     f"Received Message: {self.shared_data.received_message_json}",
-                # )
+                simple_log(
+                    "demo",
+                    f"Received Message: {self.shared_data.received_message_json}",
+                )
 
                 # IOT_DEVICE
                 if self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_UT:
                     self.flow_apply_u_ticket._device_recv_u_ticket(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_device_recv_u_ticket")
+                    # End Simulated Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
                     self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_device_recv_cr_ke_2")
+                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
@@ -198,19 +197,13 @@ class MsgReceiver:
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
                     self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
-                    ######################################################
                     # Flow
-                    ######################################################
                     self.flow_issue_u_token._device_recv_cmd(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_device_recv_cmd")
+                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
@@ -224,82 +217,58 @@ class MsgReceiver:
                     == this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
                 ):
                     if type(received_message) == UTicket:
-                        ######################################################
                         # Flow
-                        ######################################################
                         self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
                             received_message
                         )
                         ######################################################
-                        # End Measurement
+                        # End Process Measurement
                         ######################################################
-                        self.executor._measure_comm_input_flow(
-                            self.shared_data.received_message_json
+                        self.executor.measure_comm_process(
+                            "_holder_recv_u_ticket",
                         )
-                        ######################################################
-                        # End Comm
-                        ######################################################
+                        # End Simulated Comm
                         simple_log("debug", f"+ Finish UT-UT~~ (holder)")
                         self.msg_sender.close_simulated_comm()
                     elif type(received_message) == RTicket:
-                        ######################################################
                         # Flow
-                        ######################################################
                         self.flow_issuer_issue_u_ticket._issuer_recv_r_ticket(
                             received_message
                         )
                         ######################################################
-                        # End Measurement
+                        # End Process Measurement
                         ######################################################
-                        self.executor._measure_comm_input_flow(
-                            self.shared_data.received_message_json
+                        self.executor.measure_comm_process(
+                            "_issuer_recv_r_ticket",
                         )
-                        ######################################################
-                        # End Comm
-                        ######################################################
+                        # End Simulated Comm
                         simple_log("debug", f"+ Finish RT-RT~~ (issuer)")
                         self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
-                    ######################################################
                     # Flow
-                    ######################################################
                     self.flow_apply_u_ticket._holder_recv_r_ticket(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_holder_recv_r_ticket")
+                    # End Simulated Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
                     self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
-                    ######################################################
                     # Flow
-                    ######################################################
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
+                    self.executor.measure_comm_process("_holder_recv_cr_ke_1")
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
-                    ######################################################
                     # Flow
-                    ######################################################
                     self.flow_open_session._holder_recv_cr_ke_3(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_holder_recv_cr_ke_3")
+                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
@@ -311,19 +280,13 @@ class MsgReceiver:
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.msg_sender.close_simulated_comm()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
-                    ######################################################
                     # Flow
-                    ######################################################
                     self.flow_issue_u_token._holder_recv_data(received_message)
                     ######################################################
-                    # End Measurement
+                    # End Process Measurement
                     ######################################################
-                    self.executor._measure_comm_input_flow(
-                        self.shared_data.received_message_json
-                    )
-                    ######################################################
-                    # End Comm
-                    ######################################################
+                    self.executor.measure_comm_process("_holder_recv_data")
+                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",

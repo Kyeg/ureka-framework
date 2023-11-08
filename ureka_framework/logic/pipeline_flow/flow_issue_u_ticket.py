@@ -59,9 +59,9 @@ class FlowIssueUTicket:
         self, device_id: str, arbitrary_dict: dict
     ) -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self.executor._start_timer()
+        self.executor.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -93,17 +93,17 @@ class FlowIssueUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self.executor._measure_cli_input_flow("issuer_issue_u_ticket_to_herself")
+        self.executor.measure_cli_process("issuer_issue_u_ticket_to_herself")
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
     ) -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self.executor._start_timer()
+        self.executor.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -126,7 +126,7 @@ class FlowIssueUTicket:
                     generated_u_ticket_json,
                 )
 
-                # End Comm
+                # End Simulated Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
                 self.msg_sender.close_simulated_comm()
 
@@ -145,9 +145,9 @@ class FlowIssueUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self.executor._measure_cli_input_flow("issuer_issue_u_ticket_to_holder")
+        self.executor.measure_cli_process("issuer_issue_u_ticket_to_holder")
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -173,9 +173,9 @@ class FlowIssueUTicket:
 
     def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self.executor._start_timer()
+        self.executor.measure_process_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -191,7 +191,7 @@ class FlowIssueUTicket:
                 stored_r_ticket_json,
             )
 
-            # End Comm
+            # End Simulated Comm
             simple_log("debug", f"+ Finish RT-RT~~ (holder)")
             self.msg_sender.close_simulated_comm()
 
@@ -204,9 +204,9 @@ class FlowIssueUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self.executor._measure_cli_input_flow("holder_send_r_ticket_to_issuer")
+        self.executor.measure_cli_process("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:

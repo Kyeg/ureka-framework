@@ -108,7 +108,7 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Comm
+            # End Simulated Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
 
@@ -171,7 +171,7 @@ class FlowOpenSession:
 
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # End Comm
+            # End Simulated Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             self.msg_sender.close_simulated_comm()
 
@@ -246,7 +246,7 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Comm
+            # End Simulated Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
         except:  # pragma: no cover -> Shouldn't Reach Here

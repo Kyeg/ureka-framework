@@ -61,9 +61,9 @@ class FlowIssueUToken:
         self, device_id: str, cmd: str, access_end: bool = False
     ) -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self.executor._start_timer()
+        self.executor.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -116,9 +116,9 @@ class FlowIssueUToken:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self.executor._measure_cli_input_flow("holder_send_cmd")
+        self.executor.measure_cli_process("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
