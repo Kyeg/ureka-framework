@@ -78,7 +78,7 @@ class TestSuccessWhenIntializeDevice:
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
 
-        # WHEN: Holder: DO's UA forward the access_u_ticket to Uninitialized IoTD
+        # WHEN: Holder: DM's CS forward the access_u_ticket to Uninitialized IoTD
         create_comm_connection(self.cloud_server_dm, self.iot_device)
         self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
             id_for_initialization_u_ticket

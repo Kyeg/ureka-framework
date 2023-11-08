@@ -72,11 +72,6 @@ class MsgSender:
     def _send_xxx_message(
         self, message_operation: str, message_type: str, sent_message_json: str
     ) -> None:
-        simple_log(
-            "info",
-            f"+ {self.shared_data.this_device.device_name} is sending message to {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
-        )
-
         # Generate Message
         if (
             message_operation == message.MESSAGE_RECV_AND_STORE
@@ -96,16 +91,31 @@ class MsgSender:
         else:  # pragma: no cover -> Weird M-Request
             raise RuntimeError("Weird M-Request")
 
-        # # Simulate Network Delay
-        # for i in range(3):
-        #     for i in range(3):
-        #         simple_log("info", f"+ network delay")
-        #     if (
-        #         Environment.DEPLOYMENT_ENV == "PRODUCTION"
-        #     ):  # pragma: no cover -> PRODUCTION
-        #         time.sleep(Environment.NETWORK_DELAY)
-        #     elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
-        #         time.sleep(Environment.NETWORK_DELAY)
+        if Environment.DEPLOYMENT_ENV == "TEST":
+            simple_log(
+                "info",
+                f"+ {self.shared_data.this_device.device_name} is sending message "
+                f"to {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
+            )
 
-        # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
-        self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)
+            # # Simulate Network Delay
+            # for i in range(3):
+            #     for i in range(3):
+            #         simple_log("info", f"+ network delay")
+            #     if (
+            #         Environment.DEPLOYMENT_ENV == "PRODUCTION"
+            #     ):  # pragma: no cover -> PRODUCTION
+            #         time.sleep(Environment.NETWORK_DELAY)
+            #     elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
+            #         time.sleep(Environment.NETWORK_DELAY)
+
+            # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
+            self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)
+        else:  # pragma: no cover -> PRODUCTION
+            simple_log(
+                "info",
+                f"+ {self.shared_data.this_device.device_name} is sending message "
+                f"to BT_address or BT_name...",
+            )
+
+            self.shared_data.connection_socket.send_message(new_message_json)

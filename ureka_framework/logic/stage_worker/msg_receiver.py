@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -95,6 +98,11 @@ class MsgReceiver:
             self.shared_data.accept_socket.accept()
         )
 
+    # def start_receiver_thread(self) -> None:
+    #     # Start Reciever Thread
+    #     receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
+    #     receiver_thread.start()
+
     def close_bluetooth_connection(self) -> None:
         self.shared_data.connection_socket.close()
 
@@ -108,18 +116,38 @@ class MsgReceiver:
         while True:
             try:
                 # [STAGE: (R)]
-                # This will block until message is received
-                message = self.shared_data.simulated_comm_channel.receiver_queue.get()
+                if Environment.DEPLOYMENT_ENV == "TEST":
+                    # This will block until message is received
+                    message = (
+                        self.shared_data.simulated_comm_channel.receiver_queue.get()
+                    )
+
+                    simple_log(
+                        "info",
+                        f"+ {self.shared_data.this_device.device_name} is receiving message "
+                        f"from {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
+                    )
+                else:  # pragma: no cover -> PRODUCTION
+                    # This will block until message is received
+                    try:
+                        message = self.shared_data.connection_socket.recv_message()
+                        simple_log("debug", f"")
+                        simple_log("debug", f"received_u_ticket_str = {message}")
+
+                        simple_log(
+                            "info",
+                            f"+ {self.shared_data.this_device.device_name} is receiving message "
+                            f"from BT_address or BT_name...",
+                        )
+                    except OSError:
+                        simple_log("info", f"")
+                        simple_log("info", f"+ Connection is closed by peer.")
+                        break
 
                 ######################################################
                 # Start Measurement
                 ######################################################
                 self.executor._start_timer()
-
-                simple_log(
-                    "info",
-                    f"+ {self.shared_data.this_device.device_name} is receiving message from {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
-                )
 
                 # [STAGE: (VR)]
                 received_message = self.msg_verifier._classify_message_is_defined_type(
