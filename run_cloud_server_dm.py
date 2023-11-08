@@ -4,30 +4,13 @@ from ureka_framework.environment import Environment
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
-# Resource (Bluetooth Comm)
-from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    ConnectionSocket,
-)
-
 # Resource (Logger)
-from ureka_framework.resource.communication.bluetooth.bt_logger import bt_simple_log
-
-# Resource (Measurer)
-from ureka_framework.resource.communication.bluetooth.bt_measure_executor import (
-    measure_process_start,
-    measure_cli_process,
-    measure_comm_process,
-    measure_comm_start,
-    measure_comm_time,
-)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Data Model
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 import ureka_framework.model.message_model.u_ticket as u_ticket
-from ureka_framework.resource.communication.bluetooth.bt_u_ticket import (
-    generate_arbitrary_u_ticket,
-)
 
 
 ######################################################
@@ -43,7 +26,7 @@ def setup_production_environment():
 # ######################################################
 # def input_next_message() -> str:
 #     while True:
-#         bt_simple_log("demo", "")
+#         simple_log("demo", "")
 #         data_content: str = input("[    DEMO] : Set Data in U-Ticket: ")
 #         data_size: str = input("[    DEMO] : Set Data Size (x N): ")
 
@@ -79,8 +62,8 @@ def setup_production_environment():
 #     measure_process_start()
 #     # Data Processing: TODO: Contoller, e.g., input next message
 #     sent_u_ticket_str = input_next_message()
-#     bt_simple_log("debug", f"")
-#     bt_simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
+#     simple_log("debug", f"")
+#     simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
 #     # Connection Socket: Send
 #     connection_socket.send_message(sent_u_ticket_str)
 #     ########################################################################
@@ -95,8 +78,8 @@ def setup_production_environment():
 #             measure_comm_start()
 #             # Connection Socket: Receive
 #             received_r_ticket_str: str = connection_socket.recv_message()
-#             bt_simple_log("debug", f"")
-#             bt_simple_log("debug", f"received_r_ticket_str = {received_r_ticket_str}")
+#             simple_log("debug", f"")
+#             simple_log("debug", f"received_r_ticket_str = {received_r_ticket_str}")
 #             ########################################################################
 #             # End Comm Measurement
 #             ########################################################################
@@ -108,8 +91,8 @@ def setup_production_environment():
 #             measure_process_start()
 #             # Data Processing: TODO: Contoller, e.g., input next message
 #             sent_u_ticket_str = input_next_message()
-#             bt_simple_log("debug", f"")
-#             bt_simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
+#             simple_log("debug", f"")
+#             simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
 #             # Connection Socket: Send
 #             connection_socket.send_message(sent_u_ticket_str)
 #             ########################################################################
@@ -117,8 +100,8 @@ def setup_production_environment():
 #             ########################################################################
 #             measure_cli_process("holder_apply_u_ticket")
 #     except OSError:
-#         bt_simple_log("info", f"")
-#         bt_simple_log("info", f"+ Connection is closed by peer.")
+#         simple_log("info", f"")
+#         simple_log("info", f"+ Connection is closed by peer.")
 
 
 if __name__ == "__main__":
@@ -168,4 +151,4 @@ if __name__ == "__main__":
         cloud_server_dm.msg_sender.close_bluetooth_connection()
 
     except RuntimeError as error:
-        bt_simple_log("error", f"{error}")
+        simple_log("error", f"{error}")
