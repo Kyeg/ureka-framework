@@ -1,10 +1,8 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Comm)
-import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+# Resource (Bluetooth Comm)
 from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    AcceptSocket,
     ConnectionSocket,
 )
 
@@ -77,15 +75,11 @@ if __name__ == "__main__":
         assert iot_device.shared_data.this_device.device_priv_key_str == None
 
         # GIVEN: Bluetooth Service Lifecycle: Accept New Connection
-        accept_socket = AcceptSocket(
-            service_uuid=bt_service.SERVICE_UUID,
-            service_name=bt_service.SERVICE_NAME,
-        )
-        connecting_socket = accept_socket.accept()
+        iot_device.msg_receiver.accept_bluetooth_comm()
 
         # WHEN: Bluetooth Service Lifecycle: Receive & Send in Connection
         # iot_device.msg_receiver._recv_xxx_message()
-        device_event_loop(connecting_socket)
+        device_event_loop(iot_device.shared_data.connection_socket)
 
         # # THEN: Succeed to initialize DM's IoTD
         # assert "SUCCESS" in iot_device.shared_data.result_message
@@ -93,10 +87,10 @@ if __name__ == "__main__":
         # assert iot_device.shared_data.this_device.device_priv_key_str != None
 
         # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
-        connecting_socket.close()
+        iot_device.msg_receiver.close_bluetooth_connection()
 
         # RE-GIVEN: Bluetooth Service Lifecycle: Stop Accepting New Connections
-        accept_socket.close()
+        iot_device.msg_receiver.close_bluetooth_acception()
 
     except RuntimeError as error:
         bt_simple_log("error", f"{error}")

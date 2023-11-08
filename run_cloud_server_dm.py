@@ -1,10 +1,8 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Comm)
-import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+# Resource (Bluetooth Comm)
 from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    ConnectingWorker,
     ConnectionSocket,
 )
 
@@ -127,13 +125,7 @@ if __name__ == "__main__":
         assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
 
         # GIVEN: Bluetooth Service Lifecycle: Connect New Connection
-        connecting_socket = ConnectingWorker(
-            service_uuid=bt_service.SERVICE_UUID,
-            service_name=bt_service.SERVICE_NAME,
-            reconnect_times=bt_service.RECONNECT_TIMES,
-            reconnect_interval=bt_service.RECONNECT_INTERVAL,
-        )
-        connection_socket = connecting_socket.connect()
+        cloud_server_dm.msg_sender.connect_bluetooth_comm()
 
         # WHEN: Issuer: DM's CS generate the intialization_u_ticket to herself
         # id_for_initialization_u_ticket = "no_id"
@@ -150,13 +142,13 @@ if __name__ == "__main__":
         # cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
         #     id_for_initialization_u_ticket
         # )
-        agent_event_loop(connection_socket)
+        agent_event_loop(cloud_server_dm.shared_data.connection_socket)
 
         # THEN: Succeed to initialize DM's IoTD
         # assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
-        connection_socket.close()
+        cloud_server_dm.msg_sender.close_bluetooth_connection()
 
     except RuntimeError as error:
         bt_simple_log("error", f"{error}")

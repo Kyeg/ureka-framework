@@ -67,7 +67,7 @@ def current_teardown_log() -> None:
 
 
 ######################################################
-# Helper Functions (Simulation Comm)
+# Helper Functions (Simulated Comm)
 ######################################################
 def create_comm_connection(end1: DeviceController, end2: DeviceController):
     end1.msg_receiver.create_simulated_comm_connection(end2)

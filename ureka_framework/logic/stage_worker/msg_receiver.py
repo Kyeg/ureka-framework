@@ -2,9 +2,16 @@
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
-# Resource (Comm)
+# Resource (Simulated Comm)
 from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
     SimulatedCommChannel,
+)
+
+# Resource (Bluetooth Comm)
+import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+    AcceptSocket,
+    ConnectionSocket,
 )
 
 # Resource (Logger)
@@ -12,6 +19,7 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Threading
 import threading
+from queue import Queue
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -37,7 +45,6 @@ class MsgReceiver:
     def __init__(
         self,
         shared_data: SharedData,
-        simulated_comm_channel: SimulatedCommChannel,
         msg_verifier: MsgVerifier,
         executor: Executor,
         msg_sender: MsgSender,
@@ -47,7 +54,6 @@ class MsgReceiver:
         flow_issue_u_token: FlowIssueUToken,
     ) -> None:
         self.shared_data = shared_data
-        self.simulated_comm_channel = simulated_comm_channel
         self.msg_verifier = msg_verifier
         self.executor = executor
         self.msg_sender = msg_sender
@@ -57,23 +63,43 @@ class MsgReceiver:
         self.flow_issue_u_token = flow_issue_u_token
 
     ######################################################
-    # [Simulation Comm] Function
-    #   Pytest finishes this test when main thread is finished
-    #       (& all daemon threads, e.g. all receiver_threads will also be terminated)
-    #   In production, we may need Ctrl+C or other shutdown method to stop this loop program
+    # Resource (Simulated Comm)
+    #   Threading Issue:
+    #       Pytest finishes this test when main thread is finished
+    #           (& all daemon threads, e.g. all receiver_threads will also be terminated)
+    #       In production, we may need Ctrl+C or other shutdown method to stop this loop program
     ######################################################
     def create_simulated_comm_connection(self, end: "DeviceController") -> None:
         # simple_log("info",
         #     f"+ {self.shared_data.this_device.device_name} is connecting with {end.shared_data.this_device.device_name}..."
         # )
+
         # Set Sender (on Main Thread)
-        self.simulated_comm_channel.end = end
-        self.simulated_comm_channel.sender_queue = (
-            end.simulated_comm_channel.receiver_queue
+        self.shared_data.simulated_comm_channel.end = end
+        self.shared_data.simulated_comm_channel.sender_queue = (
+            end.shared_data.simulated_comm_channel.receiver_queue
         )
         # Start Reciever Thread
         receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
         receiver_thread.start()
+
+    ######################################################
+    # Resource (Bluetooth Comm)
+    ######################################################
+    def accept_bluetooth_comm(self) -> None:
+        self.shared_data.accept_socket = AcceptSocket(
+            service_uuid=bt_service.SERVICE_UUID,
+            service_name=bt_service.SERVICE_NAME,
+        )
+        self.shared_data.connection_socket: ConnectionSocket = (
+            self.shared_data.accept_socket.accept()
+        )
+
+    def close_bluetooth_connection(self) -> None:
+        self.shared_data.connection_socket.close()
+
+    def close_bluetooth_acception(self) -> None:
+        self.shared_data.accept_socket.close()
 
     ######################################################
     # [STAGE: (R)] Receive Message
@@ -83,7 +109,7 @@ class MsgReceiver:
             try:
                 # [STAGE: (R)]
                 # This will block until message is received
-                message = self.simulated_comm_channel.receiver_queue.get()
+                message = self.shared_data.simulated_comm_channel.receiver_queue.get()
 
                 ######################################################
                 # Start Measurement
@@ -92,7 +118,7 @@ class MsgReceiver:
 
                 simple_log(
                     "info",
-                    f"+ {self.shared_data.this_device.device_name} is receiving message from {self.simulated_comm_channel.end.shared_data.this_device.device_name}...",
+                    f"+ {self.shared_data.this_device.device_name} is receiving message from {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
                 )
 
                 # [STAGE: (VR)]

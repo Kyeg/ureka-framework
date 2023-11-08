@@ -15,7 +15,7 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
-# Resource (Comm)
+# Resource (Simulated Comm)
 from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
     SimulatedCommChannel,
 )
@@ -47,7 +47,7 @@ from ureka_framework.logic.pipeline_flow.flow_issue_u_token import FlowIssueUTok
 class DeviceController:
     def __init__(self, device_type: str = None, device_name: str = None) -> None:
         # Data Model (RAM)
-        self.shared_data: SharedData = SharedData(
+        self.shared_data = SharedData(
             this_device=ThisDevice(),
             current_session=CurrentSession(),
             this_person=ThisPerson(),
@@ -57,29 +57,37 @@ class DeviceController:
         )
 
         # Resource (Storage)
-        self.simple_storage: SimpleStorage = SimpleStorage(device_name=device_name)
-        # Resource (Communication)
-        self.simulated_comm_channel: SimulatedCommChannel = SimulatedCommChannel(
+        self.simple_storage = SimpleStorage(device_name=device_name)
+
+        # Resource (Simulated Comm)
+        self.shared_data.simulated_comm_channel = SimulatedCommChannel(
             end=None, receiver_queue=Queue(), sender_queue=None
         )
+        # Resource (Bluetooth Comm)
+        self.shared_data.accept_socket = None
+        self.shared_data.connecting_worker = None
+        self.shared_data.connection_socket = None
 
         # Stage Worker
         self.received_msg_storer = ReceivedMsgStorer(
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
-        self.msg_verifier = MsgVerifier(shared_data=self.shared_data)
+        self.msg_verifier = MsgVerifier(
+            shared_data=self.shared_data,
+        )
         self.executor = Executor(
             shared_data=self.shared_data,
             simple_storage=self.simple_storage,
             msg_verifier=self.msg_verifier,
         )
-        self.msg_generator = MsgGenerator(shared_data=self.shared_data)
+        self.msg_generator = MsgGenerator(
+            shared_data=self.shared_data,
+        )
         self.generated_msg_storer = GeneratedMsgStorer(
             shared_data=self.shared_data, simple_storage=self.simple_storage
         )
         self.msg_sender = MsgSender(
             shared_data=self.shared_data,
-            simulated_comm_channel=self.simulated_comm_channel,
         )
 
         # Flow
@@ -125,7 +133,6 @@ class DeviceController:
         # Stage Worker
         self.msg_receiver = MsgReceiver(
             shared_data=self.shared_data,
-            simulated_comm_channel=self.simulated_comm_channel,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
             msg_sender=self.msg_sender,
