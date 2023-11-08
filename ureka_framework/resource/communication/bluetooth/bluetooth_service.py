@@ -5,7 +5,7 @@ import bluetooth
 import time
 
 # Resource (Logger)
-from ureka_framework.resource.communication.bluetooth.bt_logger import simple_log
+from ureka_framework.resource.communication.bluetooth.bt_logger import bt_simple_log
 
 ########################################################################
 # Program-specific Service Info
@@ -103,7 +103,7 @@ class ConnectionSocket:
         # Connection Socket: Closed
         ########################################################################
         self.connection_socket.close()
-        simple_log("info", "+ Connection is closed.")
+        bt_simple_log("info", "+ Connection is closed.")
 
 
 class ConnectingWorker:
@@ -129,13 +129,13 @@ class ConnectingWorker:
         ########################################################################
         addr = None
         if len(sys.argv) < 2:
-            simple_log(
+            bt_simple_log(
                 "info",
                 f"+ No device specified. Searching for {self.service_name} from all nearby bluetooth devices...",
             )
         else:
             addr = sys.argv[1]
-            simple_log(
+            bt_simple_log(
                 "info", f"+ Searching for {self.service_name} on address {addr}..."
             )
 
@@ -148,7 +148,7 @@ class ConnectingWorker:
                 address=addr,
             )
             if len(service_matches) == 0:
-                simple_log(
+                bt_simple_log(
                     "info",
                     f"+ Re-connecting {self.service_name} services : {reconnect_num} attempt",
                 )
@@ -169,12 +169,12 @@ class ConnectingWorker:
         ########################################################################
         # Connection Socket: Connect to Device/Service
         ########################################################################
-        simple_log(
+        bt_simple_log(
             "info", f"+ Connecting to {name} through port {port} on address {host}..."
         )
         self.connection_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
         self.connection_socket.connect((host, port))
-        simple_log("info", f"+ Connection is generated with {host}.")
+        bt_simple_log("info", f"+ Connection is generated with {host}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -214,9 +214,11 @@ class AcceptSocket:
         ########################################################################
         # Connection Socket: Created through Server Socket
         ########################################################################
-        simple_log("info", f"+ Waiting for connection on RFCOMM port {service_port}...")
+        bt_simple_log(
+            "info", f"+ Waiting for connection on RFCOMM port {service_port}..."
+        )
         self.connection_socket, client_info = self.accept_socket.accept()
-        simple_log("info", f"+ Connection is generated with {client_info}.")
+        bt_simple_log("info", f"+ Connection is generated with {client_info}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -225,4 +227,4 @@ class AcceptSocket:
         # Accept Socket: Closed
         ########################################################################
         self.accept_socket.close()
-        simple_log("info", "+ Stop accepting new connections.")
+        bt_simple_log("info", "+ Stop accepting new connections.")

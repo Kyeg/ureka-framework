@@ -9,7 +9,7 @@ from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
 )
 
 # Resource (Logger)
-from ureka_framework.resource.communication.bluetooth.bt_logger import simple_log
+from ureka_framework.resource.communication.bluetooth.bt_logger import bt_simple_log
 
 # Resource (Measurer)
 from ureka_framework.resource.communication.bluetooth.bt_measure_executor import (
@@ -21,6 +21,9 @@ from ureka_framework.resource.communication.bluetooth.bt_measure_executor import
 )
 
 # Data Model
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
+import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.communication.bluetooth.bt_u_ticket import (
     generate_arbitrary_u_ticket,
 )
@@ -31,7 +34,7 @@ from ureka_framework.resource.communication.bluetooth.bt_u_ticket import (
 ######################################################
 def input_next_message() -> str:
     while True:
-        simple_log("demo", "")
+        bt_simple_log("demo", "")
         data_content: str = input("[    DEMO] : Set Data in U-Ticket: ")
         data_size: str = input("[    DEMO] : Set Data Size (x N): ")
 
@@ -67,8 +70,8 @@ def agent_event_loop(connection_socket: ConnectionSocket):
     measure_process_start()
     # Data Processing: TODO: Contoller, e.g., input next message
     sent_u_ticket_str = input_next_message()
-    simple_log("debug", f"")
-    simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
+    bt_simple_log("debug", f"")
+    bt_simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
     # Connection Socket: Send
     connection_socket.send_message(sent_u_ticket_str)
     ########################################################################
@@ -83,8 +86,8 @@ def agent_event_loop(connection_socket: ConnectionSocket):
             measure_comm_start()
             # Connection Socket: Receive
             received_r_ticket_str: str = connection_socket.recv_message()
-            simple_log("debug", f"")
-            simple_log("debug", f"received_r_ticket_str = {received_r_ticket_str}")
+            bt_simple_log("debug", f"")
+            bt_simple_log("debug", f"received_r_ticket_str = {received_r_ticket_str}")
             ########################################################################
             # End Comm Measurement
             ########################################################################
@@ -96,8 +99,8 @@ def agent_event_loop(connection_socket: ConnectionSocket):
             measure_process_start()
             # Data Processing: TODO: Contoller, e.g., input next message
             sent_u_ticket_str = input_next_message()
-            simple_log("debug", f"")
-            simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
+            bt_simple_log("debug", f"")
+            bt_simple_log("debug", f"sent_u_ticket_str = {sent_u_ticket_str}")
             # Connection Socket: Send
             connection_socket.send_message(sent_u_ticket_str)
             ########################################################################
@@ -105,17 +108,25 @@ def agent_event_loop(connection_socket: ConnectionSocket):
             ########################################################################
             measure_cli_process("holder_apply_u_ticket")
     except OSError:
-        simple_log("info", f"")
-        simple_log("info", f"+ Connection is closed by peer.")
+        bt_simple_log("info", f"")
+        bt_simple_log("info", f"+ Connection is closed by peer.")
 
 
 if __name__ == "__main__":
-    # Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    Environment.DEPLOYMENT_ENV = "DEMO"
+    Environment.DEPLOYMENT_ENV = "PRODUCTION"
+    # Environment.DEPLOYMENT_ENV = "DEMO"
     try:
-        ########################################################################
-        # Bluetooth Service Lifecycle: Connect New Connection
-        ########################################################################
+        # GIVEN: Initialized DM's CS
+        cloud_server_dm = DeviceController(
+            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
+            device_name="cloud_server_dm",
+        )
+        if cloud_server_dm.shared_data.this_device.ticket_order == 0:
+            cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
+        assert cloud_server_dm.shared_data.this_device.ticket_order == 1
+        assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
+
+        # GIVEN: Bluetooth Service Lifecycle: Connect New Connection
         connecting_socket = ConnectingWorker(
             service_uuid=bt_service.SERVICE_UUID,
             service_name=bt_service.SERVICE_NAME,
@@ -124,15 +135,28 @@ if __name__ == "__main__":
         )
         connection_socket = connecting_socket.connect()
 
-        ########################################################################
-        # Bluetooth Service Lifecycle: Receive & Send in Connection
-        ########################################################################
+        # WHEN: Issuer: DM's CS generate the intialization_u_ticket to herself
+        # id_for_initialization_u_ticket = "no_id"
+        # generated_request: dict = {
+        #     "device_id": f"{id_for_initialization_u_ticket}",
+        #     "holder_id": f"{cloud_server_dm.shared_data.this_person.person_pub_key_str}",
+        #     "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
+        # }
+        # cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
+        #     device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
+        # )
+
+        # WHEN: Bluetooth Service Lifecycle: Receive & Send in Connection
+        # cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+        #     id_for_initialization_u_ticket
+        # )
         agent_event_loop(connection_socket)
 
-        ########################################################################
-        # Bluetooth Service Lifecycle: Close Connection
-        ########################################################################
+        # THEN: Succeed to initialize DM's IoTD
+        # assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+
+        # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
         connection_socket.close()
 
-    except Exception as error:
-        simple_log("error", f"{error}")
+    except RuntimeError as error:
+        bt_simple_log("error", f"{error}")

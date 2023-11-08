@@ -1,5 +1,5 @@
 # Resource (Logger)
-from ureka_framework.resource.communication.bluetooth.bt_logger import simple_log
+from ureka_framework.resource.communication.bluetooth.bt_logger import bt_simple_log
 
 # Resource (Measurer)
 from ureka_framework.resource.communication.bluetooth.bt_measurer import (
@@ -24,9 +24,9 @@ def measure_cli_process(cli_name: str) -> None:
     process_time_xxx: float = get_process_time()
 
     # Print
-    simple_log("debug", f"")
-    simple_log("debug", f"+ Receive UI Input: {cli_name}")
-    simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+    bt_simple_log("debug", f"")
+    bt_simple_log("debug", f"+ Receive UI Input: {cli_name}")
+    bt_simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
 
 
 def measure_comm_process(comm_name: str, sent_r_ticket_str) -> None:
@@ -37,11 +37,11 @@ def measure_comm_process(comm_name: str, sent_r_ticket_str) -> None:
     process_time_xxx: float = get_process_time()
 
     # Print
-    simple_log("debug", f"")
-    simple_log("debug", f"+ Receive Comm Input: {comm_name}")
+    bt_simple_log("debug", f"")
+    bt_simple_log("debug", f"+ Receive Comm Input: {comm_name}")
     # simple_log("debug", f"+ Received Message: {sent_r_ticket_str}")
-    simple_log("debug", f"message_size_xxx = {message_size_xxx} bytes")
-    simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+    bt_simple_log("debug", f"message_size_xxx = {message_size_xxx} bytes")
+    bt_simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
 
 
 ######################################################
@@ -60,8 +60,8 @@ def measure_comm_time(comm_name: str, received_message_json) -> None:
     comm_time_xxx: float = get_comm_time()
 
     # Print
-    simple_log("debug", f"")
-    simple_log("debug", f"+ Receive Comm Input: {comm_name}")
+    bt_simple_log("debug", f"")
+    bt_simple_log("debug", f"+ Receive Comm Input: {comm_name}")
     # simple_log("debug", f"+ Received Message: {received_message_json}")
-    simple_log("debug", f"message_size_xxx = {message_size_xxx} bytes")
-    simple_log("debug", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
+    bt_simple_log("debug", f"message_size_xxx = {message_size_xxx} bytes")
+    bt_simple_log("debug", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")

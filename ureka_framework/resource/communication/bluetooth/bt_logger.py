@@ -1,4 +1,6 @@
-def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PRODUCTION
+def bt_simple_log(
+    log_level: str, log_info: str
+) -> None:  # pragma: no cover -> PRODUCTION
     # Can omit debug logs, or even omit all logs
     if log_level == "demo":
         print(f"[    DEMO] : {log_info}")

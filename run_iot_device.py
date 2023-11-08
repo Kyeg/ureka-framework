@@ -9,7 +9,7 @@ from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
 )
 
 # Resource (Logger)
-from ureka_framework.resource.communication.bluetooth.bt_logger import simple_log
+from ureka_framework.resource.communication.bluetooth.bt_logger import bt_simple_log
 
 # Resource (Measurer)
 from ureka_framework.resource.communication.bluetooth.bt_measure_executor import (
@@ -19,6 +19,10 @@ from ureka_framework.resource.communication.bluetooth.bt_measure_executor import
     measure_comm_start,
     measure_comm_time,
 )
+
+# Data Model
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
 
 
 def device_event_loop(connection_socket: ConnectionSocket):
@@ -30,8 +34,8 @@ def device_event_loop(connection_socket: ConnectionSocket):
             # measure_comm_start()
             # Connection Socket: Receive
             received_u_ticket_str: str = connection_socket.recv_message()
-            simple_log("debug", f"")
-            simple_log("debug", f"received_u_ticket_str = {received_u_ticket_str}")
+            bt_simple_log("debug", f"")
+            bt_simple_log("debug", f"received_u_ticket_str = {received_u_ticket_str}")
             ########################################################################
             # End Comm Measurement
             ########################################################################
@@ -43,12 +47,12 @@ def device_event_loop(connection_socket: ConnectionSocket):
             measure_process_start()
             # Data Processing: TODO: Contoller, e.g., echo the message
             if received_u_ticket_str == "exit":
-                simple_log("info", f"")
-                simple_log("info", f"+ Connection is closed by peer.")
+                bt_simple_log("info", f"")
+                bt_simple_log("info", f"+ Connection is closed by peer.")
                 break
             sent_r_ticket_str: str = f"R<<<{received_u_ticket_str}>>>"
-            simple_log("debug", f"")
-            simple_log("debug", f"sent_r_ticket_str = {sent_r_ticket_str}")
+            bt_simple_log("debug", f"")
+            bt_simple_log("debug", f"sent_r_ticket_str = {sent_r_ticket_str}")
             # Connection Socket: Send
             connection_socket.send_message(sent_r_ticket_str)
             ########################################################################
@@ -56,37 +60,43 @@ def device_event_loop(connection_socket: ConnectionSocket):
             ########################################################################
             measure_comm_process("device_send_r_ticket", sent_r_ticket_str)
     except OSError:
-        simple_log("info", f"")
-        simple_log("info", f"+ Connection is closed by peer.")
+        bt_simple_log("info", f"")
+        bt_simple_log("info", f"+ Connection is closed by peer.")
 
 
 if __name__ == "__main__":
-    # Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    Environment.DEPLOYMENT_ENV = "DEMO"
+    Environment.DEPLOYMENT_ENV = "PRODUCTION"
+    # Environment.DEPLOYMENT_ENV = "DEMO"
     try:
-        ########################################################################
-        # Bluetooth Service Lifecycle: Accept New Connection
-        ########################################################################
+        # GIVEN: Uninitialized IoTD
+        iot_device = DeviceController(
+            device_type=this_device.IOT_DEVICE,
+            device_name="iot_device",
+        )
+        assert iot_device.shared_data.this_device.ticket_order == 0
+        assert iot_device.shared_data.this_device.device_priv_key_str == None
+
+        # GIVEN: Bluetooth Service Lifecycle: Accept New Connection
         accept_socket = AcceptSocket(
             service_uuid=bt_service.SERVICE_UUID,
             service_name=bt_service.SERVICE_NAME,
         )
         connecting_socket = accept_socket.accept()
 
-        ########################################################################
-        # Bluetooth Service Lifecycle: Receive & Send in Connection
-        ########################################################################
+        # WHEN: Bluetooth Service Lifecycle: Receive & Send in Connection
+        # iot_device.msg_receiver._recv_xxx_message()
         device_event_loop(connecting_socket)
 
-        ########################################################################
-        # Bluetooth Service Lifecycle: Close Connection
-        ########################################################################
+        # # THEN: Succeed to initialize DM's IoTD
+        # assert "SUCCESS" in iot_device.shared_data.result_message
+        # assert iot_device.shared_data.this_device.ticket_order == 1
+        # assert iot_device.shared_data.this_device.device_priv_key_str != None
+
+        # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
         connecting_socket.close()
 
-        ########################################################################
-        # Bluetooth Service Lifecycle: Stop Accepting New Connections
-        ########################################################################
+        # RE-GIVEN: Bluetooth Service Lifecycle: Stop Accepting New Connections
         accept_socket.close()
 
-    except Exception as error:
-        simple_log("error", f"{error}")
+    except RuntimeError as error:
+        bt_simple_log("error", f"{error}")
