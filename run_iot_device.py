@@ -20,45 +20,6 @@ def setup_production_environment():
     SimpleStorage.delete_storage_in_test()
 
 
-# def device_event_loop(connection_socket: ConnectionSocket):
-#     try:
-#         while True:
-#             ########################################################################
-#             # Start Comm Measurement
-#             ########################################################################
-#             # measure_comm_start()
-#             # Connection Socket: Receive
-#             received_u_ticket_str: str = connection_socket.recv_message()
-#             simple_log("debug", f"")
-#             simple_log("debug", f"received_u_ticket_str = {received_u_ticket_str}")
-#             ########################################################################
-#             # End Comm Measurement
-#             ########################################################################
-#             # measure_comm_time("received_u_ticket_str", received_u_ticket_str)
-
-#             ########################################################################
-#             # Start Process Measurement
-#             ########################################################################
-#             measure_process_start()
-#             # Data Processing: TODO: Contoller, e.g., echo the message
-#             if received_u_ticket_str == "exit":
-#                 simple_log("info", f"")
-#                 simple_log("info", f"+ Connection is closed by peer.")
-#                 break
-#             sent_r_ticket_str: str = f"R<<<{received_u_ticket_str}>>>"
-#             simple_log("debug", f"")
-#             simple_log("debug", f"sent_r_ticket_str = {sent_r_ticket_str}")
-#             # Connection Socket: Send
-#             connection_socket.send_message(sent_r_ticket_str)
-#             ########################################################################
-#             # End Process Measurement
-#             ########################################################################
-#             measure_comm_process("device_send_r_ticket", sent_r_ticket_str)
-#     except OSError:
-#         simple_log("info", f"")
-#         simple_log("info", f"+ Connection is closed by peer.")
-
-
 if __name__ == "__main__":
     Environment.DEPLOYMENT_ENV = "PRODUCTION"
     # Environment.DEPLOYMENT_ENV = "DEMO"

@@ -31,10 +31,13 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Resource (Measurer)
 from ureka_framework.resource.logger.simple_measurer import (
-    start_simple_timer,
+    start_process_timer,
     get_process_time,
+    start_comm_timer,
+    get_comm_time,
     simple_size_calculator,
 )
+
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -96,9 +99,9 @@ class Executor:
 
     def _execute_one_time_intialize_agent_or_server(self) -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self._start_timer()
+        self.measure_process_start()
 
         simple_log(
             "info",
@@ -170,9 +173,9 @@ class Executor:
         )
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self._measure_cli_input_flow("_execute_one_time_intialize_agent_or_server")
+        self.measure_cli_process("_execute_one_time_intialize_agent_or_server")
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
@@ -901,30 +904,48 @@ class Executor:
 
     ######################################################
     # Measurement Helper:
-    #   Data Size + Response Time
+    #   Process Response Time
     ######################################################
-    def _start_timer(self) -> None:
-        start_simple_timer()
+    def measure_process_start(self) -> None:
+        start_process_timer()
 
-    def _measure_cli_input_flow(self, cli_name: str) -> float:
+    def measure_cli_process(self, cli_name: str) -> None:
         # Response Time
-        process_time_xxx: float = get_process_time()
+        cli_process_time_xxx: float = get_process_time()
 
         # Print
         simple_log("demo", f"")
-        simple_log("demo", f"+ Receive UI Input: {cli_name}")
-        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+        simple_log("demo", f"+ Receive CLI Input: {cli_name}")
+        simple_log("demo", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds")
 
-    def _measure_comm_input_flow(self, received_message_json) -> float:
+    def measure_comm_process(self, comm_name: str) -> None:
+        # Response Time
+        comm_process_time_xxx: float = get_process_time()
+
+        # Print
+        simple_log("demo", f"")
+        simple_log("demo", f"+ Receive Comm Input: {comm_name}")
+        simple_log(
+            "demo", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
+        )
+
+    ######################################################
+    # Measurement Helper:
+    #   Data Size + Comm Response Time
+    ######################################################
+    def measure_comm_start(self) -> None:
+        start_comm_timer()
+
+    def measure_comm_time(self, comm_name: str, received_message_json) -> None:
         # Data Size
         message_size_xxx: int = simple_size_calculator(received_message_json)
 
         # Response Time
-        process_time_xxx: float = get_process_time()
+        comm_time_xxx: float = get_comm_time()
 
         # Print
         simple_log("demo", f"")
-        simple_log("demo", f"+ Received Message: {received_message_json}")
+        simple_log("demo", f"+ Receive Comm Input: {comm_name}")
+        # simple_log("demo", f"+ Received Message: {received_message_json}")
         simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
-        simple_log("demo", f"process_time_xxx = {process_time_xxx:.4f} seconds")
-
+        simple_log("demo", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
