@@ -3,6 +3,10 @@ class Environment:
     # "PRODUCTION": Production Mode (e.g., print, etc.)
     DEPLOYMENT_ENV = "TEST"
 
+    # "SIMULATED": Exchange message through shared memory
+    # "BLUETOOTH": Exchange message through bluetooth communication
+    COMMUNICATION_CHANNEL = "SIMULATED"
+
     # "TEST"
     INTERRUPT_CYCLE_TIME = 0.01
     # "PRODUCTION"

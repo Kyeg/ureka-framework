@@ -7,10 +7,10 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
         if log_level == "demo":
             logging.debug(log_info)
         elif log_level == "debug":
-            # logging.debug(log_info)
+            logging.debug(log_info)
             pass
         elif log_level == "info":
-            # logging.info(log_info)
+            logging.info(log_info)
             pass
         elif log_level == "warning":
             logging.warning(log_info)

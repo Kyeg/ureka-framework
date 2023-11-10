@@ -31,11 +31,14 @@ class SharedData:
     # Data Model (RAM-only)
     state: Optional[str] = None
 
+    # CLI Output
+    received_message_json: Optional[str] = None
+    result_message: Optional[str] = None
+    # target_device_id: Optional[str] = None
+
     # Resource (Simulated Comm)
     simulated_comm_channel: Optional[SimulatedCommChannel] = None
     comm_done_flag: Optional[bool] = None
-    received_message_json: Optional[str] = None
-    result_message: Optional[str] = None
 
     # Resource (Bluetooth Comm)
     accept_socket: Optional[AcceptSocket] = None

@@ -91,7 +91,7 @@ class MsgSender:
         else:  # pragma: no cover -> Weird M-Request
             raise RuntimeError("Weird M-Request")
 
-        if Environment.DEPLOYMENT_ENV == "TEST":
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             simple_log(
                 "info",
                 f"+ {self.shared_data.this_device.device_name} is sending message "

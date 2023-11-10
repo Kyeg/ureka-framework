@@ -116,7 +116,7 @@ class MsgReceiver:
         while True:
             try:
                 # [STAGE: (R)]
-                if Environment.DEPLOYMENT_ENV == "TEST":
+                if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                     # This will block until message is received
                     message = (
                         self.shared_data.simulated_comm_channel.receiver_queue.get()
@@ -227,7 +227,7 @@ class MsgReceiver:
                         self.executor.measure_comm_process(
                             "_holder_recv_u_ticket",
                         )
-                        # End Simulated Comm
+                        # End Simulated/Bluetooth Comm
                         simple_log("debug", f"+ Finish UT-UT~~ (holder)")
                         self.msg_sender.close_simulated_comm()
                     elif type(received_message) == RTicket:
@@ -251,9 +251,10 @@ class MsgReceiver:
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_r_ticket")
-                    # End Simulated Comm
+                    # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
                     self.msg_sender.close_simulated_comm()
+                    self.msg_sender.close_bluetooth_connection()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)

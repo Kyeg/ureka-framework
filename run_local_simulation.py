@@ -7,11 +7,19 @@ from tests.conftest import (
     current_teardown_log,
     current_test_given_log,
     current_test_when_and_then_log,
+)
+from tests.conftest import (
     create_comm_connection,
-    enterprise_provider_server_and_her_session,
     wait_comm_completed,
+)
+from tests.conftest import (
+    device_manufacturer_server,
+    device_manufacturer_server_and_her_device,
+    device_owner_agent,
     device_owner_agent_and_her_device,
+    device_owner_agent_and_her_session,
     enterprise_provider_server,
+    enterprise_provider_server_and_her_session,
     attacker_server,
 )
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
