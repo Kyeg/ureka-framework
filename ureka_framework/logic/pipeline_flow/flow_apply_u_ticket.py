@@ -54,9 +54,9 @@ class FlowApplyUTicket:
     ######################################################
     def holder_apply_u_ticket(self, device_id: str, cmd: str = "") -> None:
         ######################################################
-        # Start Measurement
+        # Start Process Measurement
         ######################################################
-        self.executor._start_timer()
+        self.executor.measure_process_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -111,9 +111,9 @@ class FlowApplyUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         ######################################################
-        # End Measurement
+        # End Process Measurement
         ######################################################
-        self.executor._measure_cli_input_flow("holder_apply_u_ticket")
+        self.executor.measure_cli_process("holder_apply_u_ticket")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -152,9 +152,9 @@ class FlowApplyUTicket:
 
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # End Comm
+            # End Simulated Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
-            self.executor.complete_comm()
+            self.msg_sender.close_simulated_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")

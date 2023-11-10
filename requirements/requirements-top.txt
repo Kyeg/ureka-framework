@@ -3,6 +3,7 @@ pytest
 pytest-cover
 pydantic
 cryptography # ==3.3.2 in legacy systems
+pybluez # Manually install ==0.30 in legacy systems
 
 # Optional
 pyclean

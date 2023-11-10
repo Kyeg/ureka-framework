@@ -37,7 +37,7 @@ class TestStorage:
         SimpleStorage.delete_storage_in_test()
 
     @pytest.mark.skip(reason="Broken test because of the concurrent receiver")
-    def test_comm_channel(self) -> None:
+    def test_simulated_comm_channel(self) -> None:
         current_test_given_log()
 
         # GIVEN: Initialized DM's CS
@@ -72,8 +72,8 @@ class TestStorage:
 
         # THEN: The messages sent and received are the same
         assert (
-            self.cloud_server_dm.comm_channel.recv_message
-            == self.iot_device.comm_channel.recv_message
+            self.cloud_server_dm.simulated_comm_channel.recv_message
+            == self.iot_device.simulated_comm_channel.recv_message
             == test_u_ticket
         )
 

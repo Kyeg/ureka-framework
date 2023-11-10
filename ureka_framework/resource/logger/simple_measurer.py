@@ -1,9 +1,7 @@
-import logging
-from ureka_framework.environment import Environment
 import time
 
 ######################################################
-# Response Time Measurement
+# Response Time Measurement (Process)
 ######################################################
 # start timer
 start_process: float = 0.0
@@ -17,10 +15,11 @@ end_process: float = 0.0
 elapsed_process_time: float = 0.0
 
 
-def start_simple_timer() -> None:
+def start_process_timer() -> None:
     global start_process
 
     start_process = time.process_time()
+    # start_process = time.perf_counter()
 
 
 def get_process_time() -> float:
@@ -28,12 +27,45 @@ def get_process_time() -> float:
     global elapsed_process_time
 
     end_process = time.process_time()
+    # end_process = time.perf_counter()
     elapsed_process_time = end_process - start_process
     return elapsed_process_time
+
+
+######################################################
+# Response Time Measurement (RTT-based Comm.)
+######################################################
+# start timer
+start_comm: float = 0.0
+
+# ...
+# time-consuming processing...
+# ...
+
+# end timer
+end_comm: float = 0.0
+elapsed_comm_time: float = 0.0
+
+
+def start_comm_timer() -> None:
+    global start_comm
+
+    # start_comm = time.process_time()
+    start_comm = time.perf_counter()
+
+
+def get_comm_time() -> float:
+    global start_comm
+    global elapsed_comm_time
+
+    # end_comm = time.process_time()
+    end_comm = time.perf_counter()
+    elapsed_comm_time = end_comm - start_comm
+    return elapsed_comm_time
 
 
 ######################################################
 # Data Size Measurement
 ######################################################
 def simple_size_calculator(message: str) -> int:
-    return len(message.encode("utf-8"))
+    return len(message.encode("UTF-8"))

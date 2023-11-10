@@ -1,6 +1,8 @@
 # Data Model (RAM)
 from typing import Optional
 from dataclasses import dataclass
+
+# Threading
 from queue import Queue
 
 # Prevent circular import by TYPE_CHECKING (mypy's recommanded trick through forward declarations)
@@ -11,7 +13,7 @@ if TYPE_CHECKING:  # pragma: no cover -> TYPE_CHECKING
 
 
 @dataclass
-class FakeCommChannel:
+class SimulatedCommChannel:
     # "Mutable default values" are problematic in Python because they are shared among all instances of the class.
     end: "DeviceController" = None
     # put/get str in Queue
