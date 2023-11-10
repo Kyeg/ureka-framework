@@ -8,50 +8,53 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Data Model
+from typing import Optional
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 
 
-######################################################
-# Test Fixtures
-######################################################
-def reset_production_environment():
-    # RE-GIVEN: Reset the production environment
-    SimpleStorage.delete_storage_in_test()
+class IoTDevice:
+    def __init__(self, device_name: str) -> None:
+        # GIVEN: Uninitialized IoTD
+        self.iot_device = DeviceController(
+            device_type=this_device.IOT_DEVICE,
+            device_name=device_name,
+        )
+
+        # THEN: Uninitialized IoTD
+        assert self.iot_device.shared_data.this_device.ticket_order == 0
+        assert self.iot_device.shared_data.this_device.device_priv_key_str == None
+
+    def receive_u_ticket_through_bluetooth(self) -> None:
+        # WHEN: Environment
+        Environment.DEPLOYMENT_ENV = "PRODUCTION"
+
+        # WHEN: Accept connection from UA or CS
+        self.iot_device.msg_receiver.accept_bluetooth_comm()
+
+        # WHEN: Receive/Send Message in Connection
+        self.iot_device.msg_receiver._recv_xxx_message()
+
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert self.iot_device.shared_data.this_device.ticket_order == 1
+        assert self.iot_device.shared_data.this_device.device_priv_key_str != None
+
+        # RE-GIVEN: Close Connection with IoTD
+        self.iot_device.msg_receiver.close_bluetooth_connection()
+
+        # RE-GIVEN: Stop Accepting New Connections from IoTD
+        self.iot_device.msg_receiver.close_bluetooth_acception()
 
 
 if __name__ == "__main__":
     try:
-        # GIVEN: Environment
-        Environment.DEPLOYMENT_ENV = "PRODUCTION"
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
 
-        # GIVEN: Uninitialized Devices
-        reset_production_environment()
-
-        # GIVEN: Uninitialized IoTD
-        iot_device = DeviceController(
-            device_type=this_device.IOT_DEVICE,
-            device_name="iot_device",
-        )
-        assert iot_device.shared_data.this_device.ticket_order == 0
-        assert iot_device.shared_data.this_device.device_priv_key_str == None
-
-        # WHEN: Bluetooth Service Lifecycle: Accept New Connection
-        iot_device.msg_receiver.accept_bluetooth_comm()
-
-        # WHEN: Bluetooth Service Lifecycle: Receive U-Ticket & Send R-Ticket in Connection
-        iot_device.msg_receiver._recv_xxx_message()
-
-        # THEN: Succeed to initialize DM's IoTD
-        assert "SUCCESS" in iot_device.shared_data.result_message
-        assert iot_device.shared_data.this_device.ticket_order == 1
-        assert iot_device.shared_data.this_device.device_priv_key_str != None
-
-        # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
-        iot_device.msg_receiver.close_bluetooth_connection()
-
-        # RE-GIVEN: Bluetooth Service Lifecycle: Stop Accepting New Connections
-        iot_device.msg_receiver.close_bluetooth_acception()
+        # WHEN: Production Case
+        iot_device = IoTDevice(device_name="iot_device")
+        iot_device.receive_u_ticket_through_bluetooth()
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

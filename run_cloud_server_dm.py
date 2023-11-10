@@ -8,64 +8,77 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Data Model
+from typing import Optional
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 import ureka_framework.model.message_model.u_ticket as u_ticket
 
 
-######################################################
-# Test Fixtures
-######################################################
-def reset_production_environment():
-    # RE-GIVEN: Reset the production environment
-    SimpleStorage.delete_storage_in_test()
+class AgentOrServer:
+    def __init__(self, device_name: str) -> None:
+        # GIVEN: Uninitialized UA or CS
+        self.agent_or_server = DeviceController(
+            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
+            device_name=device_name,
+        )
 
+        # THEN: Uninitialized UA or CS
+        assert self.agent_or_server.shared_data.this_device.ticket_order == 0
+        assert self.agent_or_server.shared_data.this_device.device_priv_key_str == None
 
-if __name__ == "__main__":
-    try:
-        # GIVEN: Environment
+    def intialize_agent_or_server_through_cli(self) -> None:
+        # WHEN: Environment
+        Environment.DEPLOYMENT_ENV = "TEST"
+
+        # WHEN: Initialize UA or CS
+        if self.agent_or_server.shared_data.this_device.ticket_order == 0:
+            self.agent_or_server.executor._execute_one_time_intialize_agent_or_server()
+
+        # THEN: Succeed to initialize UA or CS
+        assert self.agent_or_server.shared_data.this_device.ticket_order == 1
+        assert self.agent_or_server.shared_data.this_device.device_priv_key_str != None
+
+    def intialize_device_through_bluetooth(self) -> None:
+        # WHEN: Environment
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
 
-        # GIVEN: Uninitialized Devices
-        reset_production_environment()
-
-        # GIVEN: Initialized DM's CS
-        cloud_server_dm = DeviceController(
-            device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
-            device_name="cloud_server_dm",
-        )
-        if cloud_server_dm.shared_data.this_device.ticket_order == 0:
-            cloud_server_dm.executor._execute_one_time_intialize_agent_or_server()
-        assert cloud_server_dm.shared_data.this_device.ticket_order == 1
-        assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
-
-        # WHEN: Bluetooth Service Lifecycle: Connect New Connection
-        cloud_server_dm.msg_sender.connect_bluetooth_comm()
+        # WHEN: Create connection with IoTD
+        self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
         # WHEN: Issuer: DM's CS generate the intialization_u_ticket to herself
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
-            "holder_id": f"{cloud_server_dm.shared_data.this_person.person_pub_key_str}",
+            "holder_id": f"{self.agent_or_server.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_INITIALIZATION_UTICKET}",
         }
-        cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
+        self.agent_or_server.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
             device_id=id_for_initialization_u_ticket, arbitrary_dict=generated_request
         )
 
         # WHEN: Holder: DM's CS forward the intialization_u_ticket to Uninitialized IoTD
-        # WHEN: Bluetooth Service Lifecycle: Send U-Ticket in Connection
-        cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
+        self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(
             id_for_initialization_u_ticket
         )
-        # WHEN: Bluetooth Service Lifecycle: Receive R-Ticket & Send U-Ticket in Connection
-        cloud_server_dm.msg_receiver._recv_xxx_message()
+        # WHEN: Receive/Send Message in Connection
+        self.agent_or_server.msg_receiver._recv_xxx_message()
 
         # THEN: Succeed to initialize DM's IoTD
-        assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+        assert "SUCCESS" in self.agent_or_server.shared_data.result_message
 
-        # RE-GIVEN: Bluetooth Service Lifecycle: Close Connection
-        cloud_server_dm.msg_sender.close_bluetooth_connection()
+        # RE-GIVEN: Close Connection with IoTD
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
+
+
+if __name__ == "__main__":
+    try:
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
+
+        # WHEN: Production Case
+        cloud_server_dm = AgentOrServer(device_name="cloud_server_dm")
+        cloud_server_dm.intialize_agent_or_server_through_cli()
+        cloud_server_dm.intialize_device_through_bluetooth()
 
     except RuntimeError as error:
         simple_log("error", f"{error}")
