@@ -65,10 +65,8 @@ class MenuAgentOrServer:
             id_for_initialization_u_ticket
         )
         # WHEN: Receive/Send Message in Connection
+        #       & RE-GIVEN: Close Connection with IoTD (Finish UT-RT~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
-
-        # RE-GIVEN: Close Connection with IoTD
-        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
@@ -98,10 +96,8 @@ class MenuAgentOrServer:
         # WHEN: Holder: EP's CS apply the ownership_u_ticket to IoTD
         self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
         # WHEN: Receive/Send Message in Connection
+        #       & RE-GIVEN: Close Connection with IoTD (Finish UT-RT~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
-
-        # RE-GIVEN: Close Connection with IoTD
-        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
@@ -133,13 +129,47 @@ class MenuAgentOrServer:
         # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
         generated_command = "HELLO-1"
         self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(
-            target_device_id, generated_command
+            device_id=target_device_id, cmd=generated_command
         )
         # WHEN: Receive/Send Message in Connection
+        #       & RE-GIVEN: Close Connection with IoTD (Finish CR-KE~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
 
-        # RE-GIVEN: Close Connection with IoTD
-        self.agent_or_server.msg_sender.close_bluetooth_connection()
+        return self.agent_or_server
+
+    def apply_cmd_token_through_bluetooth(
+        self, target_device_id: str
+    ) -> DeviceController:
+        # WHEN: Create connection with IoTD
+        Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
+        self.agent_or_server.msg_sender.connect_bluetooth_comm()
+
+        # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        generated_command = "HELLO-2"
+        self.agent_or_server.flow_issue_u_token.holder_send_cmd(
+            device_id=target_device_id, cmd=generated_command
+        )
+        # WHEN: Receive/Send Message in Connection
+        #       & RE-GIVEN: Close Connection with IoTD (Finish PS~~)
+        self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        return self.agent_or_server
+
+    def apply_access_end_token_through_bluetooth(
+        self, target_device_id: str
+    ) -> DeviceController:
+        # WHEN: Create connection with IoTD
+        Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
+        self.agent_or_server.msg_sender.connect_bluetooth_comm()
+
+        # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        generated_command = "ACCESS_END"
+        self.agent_or_server.flow_issue_u_token.holder_send_cmd(
+            device_id=target_device_id, cmd=generated_command, access_end=True
+        )
+        # WHEN: Receive/Send Message in Connection
+        #       & RE-GIVEN: Close Connection with IoTD (Finish PS~~)
+        self.agent_or_server.msg_receiver._recv_xxx_message()
 
         return self.agent_or_server
 
@@ -175,8 +205,6 @@ if __name__ == "__main__":
         #     menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
         # )
 
-        # # simple_log("demo", f"target_device_id = {target_device_id}")
-
         # # THEN: Succeed to initialize DM's IoTD
         # assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
@@ -190,13 +218,15 @@ if __name__ == "__main__":
         # user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
 
         # # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
+        # target_device_id = menu_cloud_server_dm.get_target_device_id()
         # menu_cloud_server_dm.issue_ownership_ticket_through_simulated_comm(
-        #     target_device_id=menu_cloud_server_dm.get_target_device_id(),
+        #     target_device_id=target_device_id,
         #     user_agent_do=user_agent_do,
         # )
         # # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
+        # target_device_id = menu_user_agent_do.get_target_device_id()
         # user_agent_do = menu_user_agent_do.apply_ownership_ticket_through_bluetooth(
-        #     target_device_id=menu_cloud_server_dm.get_target_device_id()
+        #     target_device_id=target_device_id
         # )
 
         # # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
@@ -212,13 +242,15 @@ if __name__ == "__main__":
         cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
 
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
+        target_device_id = menu_user_agent_do.get_target_device_id()
         menu_user_agent_do.issue_access_ticket_through_simulated_comm(
-            target_device_id=menu_user_agent_do.get_target_device_id(),
+            target_device_id=target_device_id,
             cloud_server_ep=cloud_server_ep,
         )
         # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
         cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
-            target_device_id=menu_user_agent_do.get_target_device_id()
+            target_device_id=target_device_id
         )
 
         # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
@@ -227,6 +259,44 @@ if __name__ == "__main__":
         assert (
             cloud_server_ep.shared_data.current_session.plaintext_data
             == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS apply the u_token to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
+        cloud_server_ep = menu_cloud_server_ep.apply_cmd_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            cloud_server_ep.shared_data.current_session.plaintext_data
+            == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS apply the u_token to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
+        original_agent_order = cloud_server_ep.shared_data.device_table[
+            target_device_id
+        ].ticket_order
+        cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        assert (
+            cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
+            == original_agent_order + 1
         )
 
         ######################################################

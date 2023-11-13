@@ -108,9 +108,10 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated Comm
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
+            self.msg_sender.close_bluetooth_connection()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -246,9 +247,10 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated Comm
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
+            self.msg_sender.close_bluetooth_connection()
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 

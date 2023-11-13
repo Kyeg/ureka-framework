@@ -288,13 +288,14 @@ class MsgReceiver:
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_data")
-                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
+                    # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.msg_sender.close_simulated_comm()
+                    self.msg_sender.close_bluetooth_connection()
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
 
