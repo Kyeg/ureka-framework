@@ -269,7 +269,6 @@ class MsgReceiver:
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_cr_ke_3")
-                    # End Simulated Comm
                     simple_log(
                         "demo",
                         f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
@@ -278,8 +277,10 @@ class MsgReceiver:
                         "demo",
                         f"\n+++Session is Constucted+++",
                     )
+                    # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.msg_sender.close_simulated_comm()
+                    self.msg_sender.close_bluetooth_connection()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     # Flow
                     self.flow_issue_u_token._holder_recv_data(received_message)
