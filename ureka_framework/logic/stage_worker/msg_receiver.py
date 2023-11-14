@@ -169,7 +169,7 @@ class MsgReceiver:
                         received_message
                     )
                 simple_log(
-                    "demo",
+                    "cli",
                     f"Received Message: {self.shared_data.received_message_json}",
                 )
 
@@ -191,8 +191,8 @@ class MsgReceiver:
                     self.executor.measure_comm_process("_device_recv_cr_ke_2")
                     # End Simulated Comm
                     simple_log(
-                        "demo",
-                        f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
+                        "cli",
+                        f"plaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
                     self.msg_sender.close_simulated_comm()
@@ -205,8 +205,8 @@ class MsgReceiver:
                     self.executor.measure_comm_process("_device_recv_cmd")
                     # End Simulated Comm
                     simple_log(
-                        "demo",
-                        f"\nplaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
+                        "cli",
+                        f"plaintext_cmd in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_cmd}",
                     )
                     simple_log("debug", f"+ Finish PS~~ (device)")
                     self.msg_sender.close_simulated_comm()
@@ -271,12 +271,12 @@ class MsgReceiver:
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_cr_ke_3")
                     simple_log(
-                        "demo",
-                        f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
+                        "cli",
+                        f"plaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
                     simple_log(
-                        "demo",
-                        f"\n+++Session is Constucted+++",
+                        "cli",
+                        f"+++Session is Constucted+++",
                     )
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
@@ -291,8 +291,8 @@ class MsgReceiver:
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_data")
                     simple_log(
-                        "demo",
-                        f"\nplaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
+                        "cli",
+                        f"plaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish PS~~ (holder)")

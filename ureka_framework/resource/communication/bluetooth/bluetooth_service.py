@@ -56,14 +56,14 @@ class ConnectionSocket:
             # Receive
             chunk_with_length: bytes = self.connection_socket.recv(COMM_BUFFER_SIZE)
             chunk_with_length_str: str = self._byte_backto_str(chunk_with_length)
-            # simple_log("info", "")
-            # simple_log("info", f"Received Chunk With Length: {chunk_with_length_str}")
+            # simple_log("cli", "")
+            # simple_log("cli", f"Received Chunk With Length: {chunk_with_length_str}")
 
             # Combined Chunks into Message
             message_length = chunk_with_length_str.split(SPLIT_SIGN)[0]
-            # simple_log("info", f"Message Length: {message_length}")
+            # simple_log("cli", f"Message Length: {message_length}")
             received_chunk_str = chunk_with_length_str.split(SPLIT_SIGN)[1]
-            # simple_log("info", f"Received Chunk: {received_chunk_str}")
+            # simple_log("cli", f"Received Chunk: {received_chunk_str}")
             received_chunk_strs.append(received_chunk_str)
             bytes_received = bytes_received + self._message_size(received_chunk_str)
 
@@ -103,7 +103,7 @@ class ConnectionSocket:
         # Connection Socket: Closed
         ########################################################################
         self.connection_socket.close()
-        simple_log("info", "+ Connection is closed.")
+        simple_log("cli", "+ Connection is closed.")
 
 
 class ConnectingWorker:
@@ -130,13 +130,13 @@ class ConnectingWorker:
         addr = None
         if len(sys.argv) < 2:
             simple_log(
-                "info",
+                "cli",
                 f"+ No device specified. Searching for {self.service_name} from all nearby bluetooth devices...",
             )
         else:
             addr = sys.argv[1]
             simple_log(
-                "info", f"+ Searching for {self.service_name} on address {addr}..."
+                "cli", f"+ Searching for {self.service_name} on address {addr}..."
             )
 
         # Search for the service
@@ -149,7 +149,7 @@ class ConnectingWorker:
             )
             if len(service_matches) == 0:
                 simple_log(
-                    "info",
+                    "cli",
                     f"+ Re-connecting {self.service_name} services : {reconnect_num} attempt",
                 )
                 time.sleep(self.reconnect_interval)
@@ -170,11 +170,11 @@ class ConnectingWorker:
         # Connection Socket: Connect to Device/Service
         ########################################################################
         simple_log(
-            "info", f"+ Connecting to {name} through port {port} on address {host}..."
+            "cli", f"+ Connecting to {name} through port {port} on address {host}..."
         )
         self.connection_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
         self.connection_socket.connect((host, port))
-        simple_log("info", f"+ Connection is generated with {host}.")
+        simple_log("cli", f"+ Connection is generated with {host}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -214,9 +214,9 @@ class AcceptSocket:
         ########################################################################
         # Connection Socket: Created through Server Socket
         ########################################################################
-        simple_log("info", f"+ Waiting for connection on RFCOMM port {service_port}...")
+        simple_log("cli", f"+ Waiting for connection on RFCOMM port {service_port}...")
         self.connection_socket, client_info = self.accept_socket.accept()
-        simple_log("info", f"+ Connection is generated with {client_info}.")
+        simple_log("cli", f"+ Connection is generated with {client_info}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -225,4 +225,4 @@ class AcceptSocket:
         # Accept Socket: Closed
         ########################################################################
         self.accept_socket.close()
-        simple_log("info", "+ Stop accepting new connections.")
+        simple_log("cli", "+ Stop accepting new connections.")

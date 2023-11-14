@@ -207,69 +207,72 @@ if __name__ == "__main__":
         # ENVIRONMENT
         ######################################################
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
+        Environment.DEBUG_LOG = "CLOSED"
+        Environment.CLI_LOG = "OPEN"
+        Environment.MEASURE_LOG = "OPEN"
 
         ######################################################
         # Unintialized Agent or Server
         ######################################################
 
-        # # RE-GIVEN:
-        # SimpleStorage.delete_storage_in_test()
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
 
         ######################################################
         # Intialize Agent or Server
         ######################################################
 
-        # # GIVEN: Uninitialized DM's CS
-        # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        # GIVEN: Uninitialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
 
-        # # WHEN: DM's CS initialize UA or CS
-        # cloud_server_dm = menu_cloud_server_dm.intialize_agent_or_server_through_cli()
+        # WHEN: DM's CS initialize UA or CS
+        cloud_server_dm = menu_cloud_server_dm.intialize_agent_or_server_through_cli()
 
-        # # THEN: Succeed to initialize UA or CS
-        # assert cloud_server_dm.shared_data.this_device.ticket_order == 1
-        # assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
+        # THEN: Succeed to initialize UA or CS
+        assert cloud_server_dm.shared_data.this_device.ticket_order == 1
+        assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
 
         ######################################################
         # Intialize Device
         ######################################################
 
-        # # GIVEN: Initialized DM's CS
-        # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-        # cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+        # GIVEN: Initialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
-        # # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
-        # cloud_server_dm = (
-        #     menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
-        # )
+        # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
+        cloud_server_dm = (
+            menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
+        )
 
-        # # THEN: Succeed to initialize DM's IoTD
-        # assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
         # Transfer Device Ownership
         ######################################################
 
-        # # GIVEN: Initialized DM's CS
-        # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-        # cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
-        # # GIVEN: Initialized DO's UA
-        # menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
-        # user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
+        # GIVEN: Initialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+        # GIVEN: Initialized DO's UA
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
+        user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
 
-        # # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
-        # target_device_id = menu_cloud_server_dm.get_target_device_id()
-        # menu_cloud_server_dm.issue_ownership_ticket_through_simulated_comm(
-        #     target_device_id=target_device_id,
-        #     user_agent_do=user_agent_do,
-        # )
-        # # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
-        # target_device_id = menu_user_agent_do.get_target_device_id()
-        # user_agent_do = menu_user_agent_do.apply_ownership_ticket_through_bluetooth(
-        #     target_device_id=target_device_id
-        # )
+        # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
+        target_device_id = menu_cloud_server_dm.get_target_device_id()
+        menu_cloud_server_dm.issue_ownership_ticket_through_simulated_comm(
+            target_device_id=target_device_id,
+            user_agent_do=user_agent_do,
+        )
+        # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        user_agent_do = menu_user_agent_do.apply_ownership_ticket_through_bluetooth(
+            target_device_id=target_device_id
+        )
 
-        # # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
-        # assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
 
         ######################################################
         # Grant Device Access Right (to others)

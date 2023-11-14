@@ -40,7 +40,7 @@ class MsgSender:
     ######################################################
     def wait_simulated_comm_completed(self) -> None:
         while not self.shared_data.comm_done_flag:
-            time.sleep(Environment.INTERRUPT_CYCLE_TIME)
+            time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
         # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
 
     def close_simulated_comm(self) -> None:

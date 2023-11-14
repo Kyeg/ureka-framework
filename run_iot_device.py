@@ -47,43 +47,46 @@ if __name__ == "__main__":
         # ENVIRONMENT
         ######################################################
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
+        Environment.DEBUG_LOG = "CLOSED"
+        Environment.CLI_LOG = "OPEN"
+        Environment.MEASURE_LOG = "OPEN"
 
         ######################################################
         # Unintialized Device
         ######################################################
 
-        # # RE-GIVEN:
-        # SimpleStorage.delete_storage_in_test()
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
 
         ######################################################
         # Intialize Device
         ######################################################
 
-        # # GIVEN: Uninitialized IoTD
-        # menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        # GIVEN: Uninitialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
 
-        # # WHEN: Holder: DM's CS apply the initialization_u_ticket to IoTD
-        # iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # WHEN: Holder: DM's CS apply the initialization_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-        # # THEN: Succeed to initialize DM's IoTD
-        # assert "SUCCESS" in iot_device.shared_data.result_message
-        # assert iot_device.shared_data.this_device.ticket_order == 1
-        # assert iot_device.shared_data.this_device.device_priv_key_str != None
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert iot_device.shared_data.this_device.ticket_order == 1
+        assert iot_device.shared_data.this_device.device_priv_key_str != None
 
         ######################################################
         # Transfer Device Ownership
         ######################################################
 
-        # # GIVEN: Initialized IoTD
-        # menu_iot_device = MenuIoTDevice(device_name="iot_device")
-        # iot_device = menu_iot_device.get_iot_device()
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        iot_device = menu_iot_device.get_iot_device()
 
-        # # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
-        # iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-        # # THEN: Succeed to transfer ownership (become DO's IoTD)
-        # assert "SUCCESS" in iot_device.shared_data.result_message
-        # assert iot_device.shared_data.this_device.owner_pub_key_str != None
+        # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
         ######################################################
         # Grant Device Access Right (to others)
