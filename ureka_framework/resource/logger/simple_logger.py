@@ -34,7 +34,9 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
                 print(f"[    INFO] : {log_info}")
             elif log_level == "warning":
                 print(f"[ WARNING] : {log_info}")
-            elif log_level == "error":
+
+        if Environment.DEBUG_LOG == "OPEN" or Environment.DEBUG_LOG == "CLOSED":
+            if log_level == "error":
                 print(f"[   ERROR] : {log_info}")
             elif log_level == "critical":
                 print(f"[CRITICAL] : {log_info}")

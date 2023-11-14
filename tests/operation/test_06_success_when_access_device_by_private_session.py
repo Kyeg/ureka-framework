@@ -50,7 +50,7 @@ class TestSuccessWhenAccessDeviceByOthers:
     def test_success_when_apply_u_token_on_device(self) -> None:
         current_test_given_log()
 
-        # GIVEN: Initialized EP's CS open a seesion on DO's IoTD
+        # GIVEN: Initialized EP's CS open a session on DO's IoTD
         (
             self.user_agent_do,
             self.cloud_server_ep,
@@ -141,8 +141,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         # THEN: EP's CS cannot access DO's IoTD anymore
 
-        # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
-
+        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
         create_comm_connection(self.cloud_server_ep, self.user_agent_do)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id

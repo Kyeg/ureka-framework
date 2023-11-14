@@ -15,7 +15,7 @@ class Environment:
 
     # "TEST": No Delay (complete tests faster)
     # "PRODUCTION": With Delay (make local simulation interactive)
-    SIMULULATED_COMM_DELAY = 1
+    SIMULULATED_COMM_DELAY = 0.5
     SIMULULATED_COMM_INTERRUPT_CYCLE_TIME = 0.01
 
     ######################################################

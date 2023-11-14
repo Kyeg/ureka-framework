@@ -16,7 +16,7 @@ SERVICE_NAME = "MyBluetoothService"
 ########################################################################
 # Reconnect if Discover Fails
 ########################################################################
-RECONNECT_TIMES = 3  # sec
+RECONNECT_TIMES = 5  # times
 RECONNECT_INTERVAL = 3  # sec
 
 ########################################################################
