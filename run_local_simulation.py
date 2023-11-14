@@ -146,8 +146,7 @@ def simulation_script():
 
 
 if __name__ == "__main__":
-    # Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    Environment.DEPLOYMENT_ENV = "DEMO"
+    Environment.DEPLOYMENT_ENV = "PRODUCTION"
 
     setup()
 

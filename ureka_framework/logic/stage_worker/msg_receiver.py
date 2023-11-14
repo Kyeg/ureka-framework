@@ -254,7 +254,8 @@ class MsgReceiver:
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
                     self.msg_sender.close_simulated_comm()
-                    self.msg_sender.close_bluetooth_connection()
+                    if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                        self.msg_sender.close_bluetooth_connection()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)
@@ -280,7 +281,8 @@ class MsgReceiver:
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     self.msg_sender.close_simulated_comm()
-                    self.msg_sender.close_bluetooth_connection()
+                    if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                        self.msg_sender.close_bluetooth_connection()
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     # Flow
                     self.flow_issue_u_token._holder_recv_data(received_message)
@@ -295,7 +297,8 @@ class MsgReceiver:
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     self.msg_sender.close_simulated_comm()
-                    self.msg_sender.close_bluetooth_connection()
+                    if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                        self.msg_sender.close_bluetooth_connection()
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
 

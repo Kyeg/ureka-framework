@@ -98,16 +98,14 @@ class MsgSender:
                 f"to {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
             )
 
-            # # Simulate Network Delay
-            # for i in range(3):
-            #     for i in range(3):
-            #         simple_log("info", f"+ network delay")
-            #     if (
-            #         Environment.DEPLOYMENT_ENV == "PRODUCTION"
-            #     ):  # pragma: no cover -> PRODUCTION
-            #         time.sleep(Environment.NETWORK_DELAY)
-            #     elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
-            #         time.sleep(Environment.NETWORK_DELAY)
+            # Simulate Network Delay
+            for i in range(3):
+                for i in range(3):
+                    simple_log("info", f"+ network delay")
+                if (
+                    Environment.DEPLOYMENT_ENV == "PRODUCTION"
+                ):  # pragma: no cover -> PRODUCTION
+                    time.sleep(Environment.SIMULULATED_COMM_DELAY)
 
             # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
             self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)

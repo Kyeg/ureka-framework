@@ -203,13 +203,21 @@ class MenuAgentOrServer:
 
 if __name__ == "__main__":
     try:
+        ######################################################
         # ENVIRONMENT
+        ######################################################
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
 
+        ######################################################
+        # Unintialized Agent or Server
         ######################################################
 
         # # RE-GIVEN:
         # SimpleStorage.delete_storage_in_test()
+
+        ######################################################
+        # Intialize Agent or Server
+        ######################################################
 
         # # GIVEN: Uninitialized DM's CS
         # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
@@ -221,6 +229,8 @@ if __name__ == "__main__":
         # assert cloud_server_dm.shared_data.this_device.ticket_order == 1
         # assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
 
+        ######################################################
+        # Intialize Device
         ######################################################
 
         # # GIVEN: Initialized DM's CS
@@ -235,6 +245,8 @@ if __name__ == "__main__":
         # # THEN: Succeed to initialize DM's IoTD
         # assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
+        ######################################################
+        # Transfer Device Ownership
         ######################################################
 
         # # GIVEN: Initialized DM's CS
@@ -259,6 +271,8 @@ if __name__ == "__main__":
         # # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
         # assert "SUCCESS" in user_agent_do.shared_data.result_message
 
+        ######################################################
+        # Grant Device Access Right (to others)
         ######################################################
 
         # # GIVEN: Initialized DO's UA
@@ -326,6 +340,8 @@ if __name__ == "__main__":
         #     == original_agent_order + 1
         # )
 
+        ######################################################
+        # Grant Device Access Right (to owner herself)
         ######################################################
 
         # GIVEN: Initialized DM's CS

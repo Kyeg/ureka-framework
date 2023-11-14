@@ -43,14 +43,20 @@ class MenuIoTDevice:
 
 if __name__ == "__main__":
     try:
+        ######################################################
         # ENVIRONMENT
+        ######################################################
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
 
+        ######################################################
+        # Unintialized Device
         ######################################################
 
         # # RE-GIVEN:
         # SimpleStorage.delete_storage_in_test()
 
+        ######################################################
+        # Intialize Device
         ######################################################
 
         # # GIVEN: Uninitialized IoTD
@@ -65,6 +71,8 @@ if __name__ == "__main__":
         # assert iot_device.shared_data.this_device.device_priv_key_str != None
 
         ######################################################
+        # Transfer Device Ownership
+        ######################################################
 
         # # GIVEN: Initialized IoTD
         # menu_iot_device = MenuIoTDevice(device_name="iot_device")
@@ -77,6 +85,8 @@ if __name__ == "__main__":
         # assert "SUCCESS" in iot_device.shared_data.result_message
         # assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
+        ######################################################
+        # Grant Device Access Right (to others)
         ######################################################
 
         # # GIVEN: Initialized IoTD
@@ -123,6 +133,8 @@ if __name__ == "__main__":
         #     iot_device.shared_data.this_device.ticket_order == original_device_order + 1
         # )
 
+        ######################################################
+        # Grant Device Access Right (to owner herself)
         ######################################################
 
         # GIVEN: Initialized IoTD

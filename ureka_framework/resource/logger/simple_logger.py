@@ -36,10 +36,10 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
             print(f"[CRITICAL] : {log_info}")
         else:
             raise RuntimeError(f"Log Level: {log_level} is not supported.")
-    elif Environment.DEPLOYMENT_ENV == "DEMO":
-        # Keep only demo logs, omit all other logs
-        if log_level == "demo":
-            print(f"[    DEMO] : {log_info}")
+    # elif Environment.DEPLOYMENT_ENV == "DEMO":
+    #     # Keep only demo logs, omit all other logs
+    #     if log_level == "demo":
+    #         print(f"[    DEMO] : {log_info}")
     else:
         raise RuntimeError(
             f"Deployment Environment: {Environment.DEPLOYMENT_ENV} is not supported."

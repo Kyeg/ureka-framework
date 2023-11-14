@@ -10,4 +10,4 @@ class Environment:
     # "TEST"
     INTERRUPT_CYCLE_TIME = 0.01
     # "PRODUCTION"
-    NETWORK_DELAY = 0.1
+    SIMULULATED_COMM_DELAY = 1
