@@ -121,7 +121,10 @@ class MenuAgentOrServer:
         )
 
         # WHEN: Holder: DM's CS forward the self_access_u_ticket to Uninitialized IoTD
-        self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
+        generated_command = "HELLO-1"
+        self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(
+            target_device_id, cmd=generated_command
+        )
         # WHEN: Receive/Send Message in Connection
         #       & RE-GIVEN: Close Connection with IoTD (Finish CR-KE~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
@@ -359,7 +362,25 @@ if __name__ == "__main__":
 
         # THEN: Succeed to initialize DM's IoTD
         assert "SUCCESS" in user_agent_do.shared_data.result_message
-        # THEN: EP's CS can share a private session with DO's IoTD
+        # THEN: DO's UA can share a private session with DO's IoTD
+        assert (
+            user_agent_do.shared_data.current_session.plaintext_data
+            == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: DO's UA cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: DO's UA generate & apply the u_token to IoTD
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        user_agent_do = menu_user_agent_do.apply_cmd_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to allow DO's UA to access DO's IoTD
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # THEN: DO's UA can share a private session with DO's IoTD
         assert (
             user_agent_do.shared_data.current_session.plaintext_data
             == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
