@@ -156,6 +156,9 @@ class DeviceController:
                 device_type, device_name
             )
 
+        # Set Intialized State
+        self.executor._intialize_state()
+
         simple_log("info", f"+ Here is a {self.shared_data.this_device.device_name}...")
 
     ######################################################

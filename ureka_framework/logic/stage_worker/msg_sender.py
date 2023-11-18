@@ -40,7 +40,7 @@ class MsgSender:
     ######################################################
     def wait_simulated_comm_completed(self) -> None:
         while not self.shared_data.comm_done_flag:
-            time.sleep(Environment.INTERRUPT_CYCLE_TIME)
+            time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
         # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
 
     def close_simulated_comm(self) -> None:
@@ -91,23 +91,21 @@ class MsgSender:
         else:  # pragma: no cover -> Weird M-Request
             raise RuntimeError("Weird M-Request")
 
-        if Environment.DEPLOYMENT_ENV == "TEST":
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             simple_log(
                 "info",
                 f"+ {self.shared_data.this_device.device_name} is sending message "
                 f"to {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
             )
 
-            # # Simulate Network Delay
-            # for i in range(3):
-            #     for i in range(3):
-            #         simple_log("info", f"+ network delay")
-            #     if (
-            #         Environment.DEPLOYMENT_ENV == "PRODUCTION"
-            #     ):  # pragma: no cover -> PRODUCTION
-            #         time.sleep(Environment.NETWORK_DELAY)
-            #     elif Environment.DEPLOYMENT_ENV == "DEMO":  # pragma: no cover -> PRODUCTION
-            #         time.sleep(Environment.NETWORK_DELAY)
+            # Simulate Network Delay
+            for i in range(3):
+                for i in range(3):
+                    simple_log("info", f"+ network delay")
+                if (
+                    Environment.DEPLOYMENT_ENV == "PRODUCTION"
+                ):  # pragma: no cover -> PRODUCTION
+                    time.sleep(Environment.SIMULULATED_COMM_DELAY)
 
             # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
             self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)

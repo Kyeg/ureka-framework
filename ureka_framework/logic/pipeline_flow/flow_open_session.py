@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -108,9 +111,11 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated Comm
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
+            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                self.msg_sender.close_bluetooth_connection()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -246,9 +251,11 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated Comm
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             self.msg_sender.close_simulated_comm()
+            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                self.msg_sender.close_bluetooth_connection()
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 

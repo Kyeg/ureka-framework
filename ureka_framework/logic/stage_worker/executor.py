@@ -57,6 +57,19 @@ class Executor:
     ######################################################
     # [STAGE: (E)] Execute
     ######################################################
+    def _intialize_state(self) -> bool:
+        ######################################################
+        # Initial State
+        ######################################################
+        # [STAGE: (C)]
+        if self.shared_data.this_device.device_type == this_device.IOT_DEVICE:
+            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
+        elif (
+            self.shared_data.this_device.device_type
+            == this_device.USER_AGENT_OR_CLOUD_SERVER
+        ):
+            self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
+
     # Execute Initialization (Update Keystore)
     def _execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
@@ -74,18 +87,6 @@ class Executor:
         ######################################################
         # [STAGE: (O)]
         self._execute_update_ticket_order("has-type")
-
-        ######################################################
-        # Initial State
-        ######################################################
-        # [STAGE: (C)]
-        if self.shared_data.this_device.device_type == this_device.IOT_DEVICE:
-            self._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-        elif (
-            self.shared_data.this_device.device_type
-            == this_device.USER_AGENT_OR_CLOUD_SERVER
-        ):
-            self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
 
         ######################################################
         # Storage
@@ -914,19 +915,19 @@ class Executor:
         cli_process_time_xxx: float = get_process_time()
 
         # Print
-        simple_log("demo", f"")
-        simple_log("demo", f"+ Receive CLI Input: {cli_name}")
-        simple_log("demo", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds")
+        simple_log("measure", f"")
+        simple_log("measure", f"+ Receive CLI Input: {cli_name}")
+        simple_log("measure", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds")
 
     def measure_comm_process(self, comm_name: str) -> None:
         # Response Time
         comm_process_time_xxx: float = get_process_time()
 
         # Print
-        simple_log("demo", f"")
-        simple_log("demo", f"+ Receive Comm Input: {comm_name}")
+        simple_log("measure", f"")
+        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
         simple_log(
-            "demo", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
+            "measure", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
         )
 
     ######################################################
@@ -944,8 +945,8 @@ class Executor:
         comm_time_xxx: float = get_comm_time()
 
         # Print
-        simple_log("demo", f"")
-        simple_log("demo", f"+ Receive Comm Input: {comm_name}")
-        # simple_log("demo", f"+ Received Message: {received_message_json}")
-        simple_log("demo", f"message_size_xxx = {message_size_xxx} bytes")
-        simple_log("demo", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
+        simple_log("measure", f"")
+        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
+        # simple_log("measure", f"+ Received Message: {received_message_json}")
+        simple_log("measure", f"message_size_xxx = {message_size_xxx} bytes")
+        simple_log("measure", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
