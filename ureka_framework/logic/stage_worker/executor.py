@@ -926,11 +926,11 @@ class Executor:
         comm_process_time_xxx: float = get_process_time()
 
         # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
+        # simple_log("measure", f"")
         simple_log(
             "measure", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
         )
+        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
 
     ######################################################
     # Measurement Helper:

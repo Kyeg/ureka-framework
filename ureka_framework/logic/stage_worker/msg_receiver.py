@@ -149,8 +149,8 @@ class MsgReceiver:
                             f"from BT_address or BT_name...",
                         )
                     except OSError:
-                        simple_log("info", f"")
-                        simple_log("info", f"+ Connection is closed by peer.")
+                        simple_log("cli", f"")
+                        simple_log("cli", f"+ Connection is closed by peer.")
                         break
 
                 ######################################################

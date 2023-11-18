@@ -7,7 +7,10 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
-# Data Model
+# Data Model (Message)
+import json
+
+# Data Model (RAM)
 from typing import Optional, Tuple
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
@@ -214,6 +217,54 @@ class MenuAgentOrServer:
         )
         wait_comm_completed(original_issuer, self.agent_or_server)
 
+    def apply_insecure_cmd_through_bluetooth(self) -> DeviceController:
+        # WHEN: Create connection with IoTD
+        Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
+        self.agent_or_server.msg_sender.connect_bluetooth_comm()
+
+        # WHEN: UA or CS send the insecure_cmd to IoTD
+        insecure_cmd_dict = {
+            "protocol_verision": "UREKA-1.0",
+            # "protocol_verision": "",
+            "device_id": "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuWt9xdWLXffJE-CydWYBTH05kv7xFmMGl-L3DT_7-YH2ocgHJWUUAPxQjjRBQGOeITMandJxLDye7jK8W26GmA==",
+            # "device_id": "",
+            "insecure_command": "HELLO",
+            # "insecure_command": "HELLO" * 90,
+        }
+        insecure_cmd_json = json.dumps(insecure_cmd_dict, indent=4)
+        # insecure_command_json = "HELLO"
+        self.agent_or_server.shared_data.connection_socket.send_message(
+            insecure_cmd_json
+        )
+        simple_log("cli", f"Sent Command: {insecure_cmd_json}")
+
+        # WHEN: UA or CS receive the insecure_data from IoTD
+        try:
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            self.agent_or_server.executor.measure_comm_start()
+            insecure_data_json = (
+                self.agent_or_server.shared_data.connection_socket.recv_message()
+            )
+            ########################################################################
+            # End Comm Measurement
+            ########################################################################
+            self.agent_or_server.executor.measure_comm_time(
+                "holder_recv_insecure_cmd", insecure_data_json
+            )
+            simple_log("measure", f"+ Receive Comm Input: holder_recv_insecure_data")
+            simple_log("cli", f"Received Data: {insecure_data_json}")
+        except OSError:
+            simple_log("cli", f"")
+            simple_log("cli", f"+ Connection is closed by peer.")
+
+        # RE-GIVEN: Close Connection with IoTD
+        simple_log("cli", f"+ Finish CMD-DATA~~ (holder)")
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
+
+        return self.agent_or_server
+
 
 if __name__ == "__main__":
     try:
@@ -221,9 +272,12 @@ if __name__ == "__main__":
         # ENVIRONMENT
         ######################################################
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
+        # Environment.DEBUG_LOG = "OPEN"
         Environment.DEBUG_LOG = "CLOSED"
-        Environment.CLI_LOG = "OPEN"
+        # Environment.CLI_LOG = "OPEN"
+        Environment.CLI_LOG = "CLOSED"
         Environment.MEASURE_LOG = "OPEN"
+        # Environment.MEASURE_LOG = "CLOSED"
 
         ######################################################
         # Unintialized Agent or Server
@@ -263,6 +317,19 @@ if __name__ == "__main__":
         assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
+        # Send Insecure Command
+        ######################################################
+
+        # GIVEN: Initialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+
+        # WHEN: DM's CS apply the insecure_cmd to IoTD
+        cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth()
+
+        # THEN: ...
+
+        ######################################################
         # Transfer Device Ownership
         ######################################################
 
@@ -297,114 +364,49 @@ if __name__ == "__main__":
         # Grant Device Access Right (to others)
         ######################################################
 
-        # GIVEN: Initialized DO's UA
-        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
-        user_agent_do = menu_user_agent_do.get_agent_or_server()
-        # GIVEN: Initialized EP's CS
-        menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
-        cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
-
-        # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
-        target_device_id = menu_user_agent_do.get_target_device_id()
-        menu_user_agent_do.issue_access_ticket_through_simulated_comm(
-            target_device_id=target_device_id,
-            cloud_server_ep=cloud_server_ep,
-        )
-        # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
-        target_device_id = menu_cloud_server_ep.get_target_device_id()
-        cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
-            target_device_id=target_device_id
-        )
-
-        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
-        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        # THEN: EP's CS can share a private session with DO's IoTD
-        assert (
-            cloud_server_ep.shared_data.current_session.plaintext_data
-            == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
-        )
-
-        ###########################
-
-        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
-
-        # WHEN: Holder: EP's CS generate & apply the u_token to IoTD
-        target_device_id = menu_cloud_server_ep.get_target_device_id()
-        cloud_server_ep = menu_cloud_server_ep.apply_cmd_token_through_bluetooth(
-            target_device_id=target_device_id
-        )
-
-        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
-        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        # THEN: EP's CS can share a private session with DO's IoTD
-        assert (
-            cloud_server_ep.shared_data.current_session.plaintext_data
-            == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
-        )
-
-        ###########################
-
-        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
-
-        # WHEN: Holder: EP's CS generate & apply the access_end_u_token to IoTD
-        target_device_id = menu_cloud_server_ep.get_target_device_id()
-        original_agent_order = cloud_server_ep.shared_data.device_table[
-            target_device_id
-        ].ticket_order
-        cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
-            target_device_id=target_device_id
-        )
-        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
-        menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
-            target_device_id=target_device_id,
-            original_issuer=user_agent_do,
-        )
-
-        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
-        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        assert (
-            cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
-            == original_agent_order + 1
-        )
-
-        ######################################################
-        # Grant Device Access Right (to owner herself)
-        ######################################################
-
-        # # GIVEN: Initialized DM's CS
+        # # GIVEN: Initialized DO's UA
         # menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
         # user_agent_do = menu_user_agent_do.get_agent_or_server()
+        # # GIVEN: Initialized EP's CS
+        # menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
+        # cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
 
-        # # WHEN: Holder: DO's UA generate & apply the self_access_u_ticket to IoTD
+        # # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         # target_device_id = menu_user_agent_do.get_target_device_id()
-        # user_agent_do = menu_user_agent_do.apply_self_access_ticket_through_bluetooth(
+        # menu_user_agent_do.issue_access_ticket_through_simulated_comm(
+        #     target_device_id=target_device_id,
+        #     cloud_server_ep=cloud_server_ep,
+        # )
+        # # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        # target_device_id = menu_cloud_server_ep.get_target_device_id()
+        # cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
         #     target_device_id=target_device_id
         # )
 
-        # # THEN: Succeed to initialize DM's IoTD
-        # assert "SUCCESS" in user_agent_do.shared_data.result_message
-        # # THEN: DO's UA can share a private session with DO's IoTD
+        # # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        # # THEN: EP's CS can share a private session with DO's IoTD
         # assert (
-        #     user_agent_do.shared_data.current_session.plaintext_data
-        #     == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
+        #     cloud_server_ep.shared_data.current_session.plaintext_data
+        #     == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
         # )
 
         # ###########################
 
-        # # GIVEN: DO's UA cannot be rebooted, because the state & session is non-volatile
+        # # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
 
-        # # WHEN: Holder: DO's UA generate & apply the u_token to IoTD
-        # target_device_id = menu_user_agent_do.get_target_device_id()
-        # user_agent_do = menu_user_agent_do.apply_cmd_token_through_bluetooth(
+        # # WHEN: Holder: EP's CS generate & apply the u_token to IoTD
+        # target_device_id = menu_cloud_server_ep.get_target_device_id()
+        # cloud_server_ep = menu_cloud_server_ep.apply_cmd_token_through_bluetooth(
         #     target_device_id=target_device_id
         # )
 
-        # # THEN: Succeed to allow DO's UA to access DO's IoTD
-        # assert "SUCCESS" in user_agent_do.shared_data.result_message
-        # # THEN: DO's UA can share a private session with DO's IoTD
+        # # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        # # THEN: EP's CS can share a private session with DO's IoTD
         # assert (
-        #     user_agent_do.shared_data.current_session.plaintext_data
-        #     == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
+        #     cloud_server_ep.shared_data.current_session.plaintext_data
+        #     == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
         # )
 
         # ###########################
@@ -412,20 +414,85 @@ if __name__ == "__main__":
         # # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
 
         # # WHEN: Holder: EP's CS generate & apply the access_end_u_token to IoTD
-        # target_device_id = menu_user_agent_do.get_target_device_id()
-        # original_agent_order = user_agent_do.shared_data.device_table[
+        # target_device_id = menu_cloud_server_ep.get_target_device_id()
+        # original_agent_order = cloud_server_ep.shared_data.device_table[
         #     target_device_id
         # ].ticket_order
-        # user_agent_do = menu_user_agent_do.apply_access_end_token_through_bluetooth(
+        # cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
         #     target_device_id=target_device_id
+        # )
+        # # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
+        # menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
+        #     target_device_id=target_device_id,
+        #     original_issuer=user_agent_do,
         # )
 
         # # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
-        # assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
         # assert (
-        #     user_agent_do.shared_data.device_table[target_device_id].ticket_order
+        #     cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
         #     == original_agent_order + 1
         # )
+
+        ######################################################
+        # Grant Device Access Right (to owner herself)
+        ######################################################
+
+        # GIVEN: Initialized DM's CS
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
+        user_agent_do = menu_user_agent_do.get_agent_or_server()
+
+        # WHEN: Holder: DO's UA generate & apply the self_access_u_ticket to IoTD
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        user_agent_do = menu_user_agent_do.apply_self_access_ticket_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # THEN: DO's UA can share a private session with DO's IoTD
+        assert (
+            user_agent_do.shared_data.current_session.plaintext_data
+            == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: DO's UA cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: DO's UA generate & apply the u_token to IoTD
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        user_agent_do = menu_user_agent_do.apply_cmd_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to allow DO's UA to access DO's IoTD
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # THEN: DO's UA can share a private session with DO's IoTD
+        assert (
+            user_agent_do.shared_data.current_session.plaintext_data
+            == "DATA: " + user_agent_do.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS generate & apply the access_end_u_token to IoTD
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        original_agent_order = user_agent_do.shared_data.device_table[
+            target_device_id
+        ].ticket_order
+        user_agent_do = menu_user_agent_do.apply_access_end_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
+        assert (
+            user_agent_do.shared_data.device_table[target_device_id].ticket_order
+            == original_agent_order + 1
+        )
 
         ######################################################
 
