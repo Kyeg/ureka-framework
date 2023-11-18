@@ -13,7 +13,7 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
-# Resource (Cyrpto)
+# Resource (Crypto)
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -917,7 +917,9 @@ class Executor:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds")
+        simple_log(
+            "measure", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds"
+        )
 
     def measure_comm_process(self, comm_name: str) -> None:
         # Response Time

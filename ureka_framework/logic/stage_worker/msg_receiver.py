@@ -5,24 +5,26 @@ from ureka_framework.environment import Environment
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
 
-# Resource (Simulated Comm)
-from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
-    SimulatedCommChannel,
-)
-
 # Resource (Bluetooth Comm)
-import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
-from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    AcceptSocket,
-    ConnectionSocket,
-)
+try:
+    HAS_PYBLUEZ = True
+    import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+    from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+        AcceptSocket,
+        ConnectingWorker,
+        ConnectionSocket,
+    )
+except ImportError:
+    HAS_PYBLUEZ = False
+    # raise RuntimeError(
+    #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
+    # )
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Threading
 import threading
-from queue import Queue
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier

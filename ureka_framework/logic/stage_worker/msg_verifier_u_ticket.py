@@ -13,7 +13,7 @@ from ureka_framework.resource.crypto.serialization_util import (
     dict_to_jsonstr,
 )
 
-# Resource (Cyrpto)
+# Resource (Crypto)
 from cryptography.hazmat.primitives.asymmetric import ec
 import ureka_framework.resource.crypto.ecc as ecc
 from ureka_framework.resource.crypto import ecdh
@@ -21,6 +21,7 @@ import copy
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
 
 class UTicketVerifier:
     def __init__(self, this_device: Optional[ThisDevice]) -> None:

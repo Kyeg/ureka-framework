@@ -1,7 +1,9 @@
-from typing import Optional
-from dataclasses import dataclass, field
+# Deployment Environment
+from ureka_framework.environment import Environment
 
 # Data Model (RAM)
+from typing import Optional
+from dataclasses import dataclass, field
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.current_session import CurrentSession
 from ureka_framework.model.data_model.this_person import ThisPerson
@@ -13,11 +15,21 @@ from ureka_framework.resource.communication.simulated_comm.simulated_comm_channe
 )
 
 # Resource (Bluetooth Comm)
-from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    AcceptSocket,
-    ConnectingWorker,
-    ConnectionSocket,
-)
+try:
+    HAS_PYBLUEZ = True
+    from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+        AcceptSocket,
+        ConnectingWorker,
+        ConnectionSocket,
+    )
+except ImportError:
+    HAS_PYBLUEZ = False
+    # raise RuntimeError(
+    #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
+    # )
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
 
 
 @dataclass
@@ -41,6 +53,7 @@ class SharedData:
     comm_done_flag: Optional[bool] = None
 
     # Resource (Bluetooth Comm)
-    accept_socket: Optional[AcceptSocket] = None
-    connecting_worker: Optional[ConnectingWorker] = None
-    connection_socket: Optional[ConnectionSocket] = None
+    if HAS_PYBLUEZ == True:
+        accept_socket: Optional[AcceptSocket] = None
+        connecting_worker: Optional[ConnectingWorker] = None
+        connection_socket: Optional[ConnectionSocket] = None

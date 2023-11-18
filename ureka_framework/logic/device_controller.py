@@ -2,6 +2,7 @@
 from ureka_framework.environment import Environment
 
 # Data Model (RAM)
+from typing import Optional
 from ureka_framework.model.shared_data import SharedData
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.other_device import OtherDevice
@@ -19,6 +20,20 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
     SimulatedCommChannel,
 )
+
+# Resource (Bluetooth Comm)
+try:
+    HAS_PYBLUEZ = True
+    from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+        AcceptSocket,
+        ConnectingWorker,
+        ConnectionSocket,
+    )
+except ImportError:
+    HAS_PYBLUEZ = False
+    # raise RuntimeError(
+    #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
+    # )
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
@@ -64,9 +79,10 @@ class DeviceController:
             end=None, receiver_queue=Queue(), sender_queue=None
         )
         # Resource (Bluetooth Comm)
-        self.shared_data.accept_socket = None
-        self.shared_data.connecting_worker = None
-        self.shared_data.connection_socket = None
+        if HAS_PYBLUEZ == True:
+            self.shared_data.accept_socket: Optional[AcceptSocket] = None
+            self.shared_data.connecting_worker: Optional[ConnectingWorker] = None
+            self.shared_data.connection_socket: Optional[ConnectionSocket] = None
 
         # Stage Worker
         self.received_msg_storer = ReceivedMsgStorer(

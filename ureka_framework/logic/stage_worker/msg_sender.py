@@ -2,24 +2,28 @@
 from ureka_framework.environment import Environment
 
 # Data Model (RAM)
-from ureka_framework.model.shared_data import SharedData
 from pydantic import ValidationError
+from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.message_model.message as message
 from ureka_framework.model.message_model.message import Message, message_to_jsonstr
 import ureka_framework.model.message_model.u_ticket as u_ticket
 import ureka_framework.model.message_model.u_ticket as r_ticket
 
-# Resource (Simulated Comm)
-from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
-    SimulatedCommChannel,
-)
-
 # Resource (Bluetooth Comm)
-import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
-from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    ConnectingWorker,
-    ConnectionSocket,
-)
+try:
+    HAS_PYBLUEZ = True
+    import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+    from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+        AcceptSocket,
+        ConnectingWorker,
+        ConnectionSocket,
+    )
+except ImportError:
+    HAS_PYBLUEZ = False
+    # raise RuntimeError(
+    #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
+    # )
+
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
