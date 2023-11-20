@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -154,7 +157,8 @@ class FlowApplyUTicket:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Simulated Comm
             simple_log("debug", f"+ Failed UT-RT or Failed CR-KE~~ (device)")
-            self.msg_sender.close_simulated_comm()
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")

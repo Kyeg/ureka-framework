@@ -68,7 +68,7 @@ class DeviceController:
             this_person=ThisPerson(),
             device_table={},
             state=None,
-            comm_done_flag=False,
+            simulated_comm_completed_flag=False,
         )
 
         # Resource (Storage)

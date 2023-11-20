@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -61,13 +61,13 @@ class TestSuccessWhenAccessDeviceByOthers:
         current_test_when_and_then_log()
 
         # WHEN: Holder: EP's CS forward the u_token
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can share a private session with DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
@@ -89,13 +89,13 @@ class TestSuccessWhenAccessDeviceByOthers:
 
         # WHEN: Holder: EP's CS forward the u_token
         #   (with Forbidden command)
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can share a private session with DO's IoTD
         #   (but Forbidden command is not executed)
@@ -117,7 +117,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
 
         # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         original_device_order = self.iot_device.shared_data.this_device.ticket_order
         original_agent_order = self.cloud_server_ep.shared_data.device_table[
@@ -127,7 +127,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command, access_end=True
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
@@ -142,11 +142,11 @@ class TestSuccessWhenAccessDeviceByOthers:
         # THEN: EP's CS cannot access DO's IoTD anymore
 
         # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
-        create_comm_connection(self.cloud_server_ep, self.user_agent_do)
+        create_simulated_comm_connection(self.cloud_server_ep, self.user_agent_do)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id
         )
-        wait_comm_completed(self.user_agent_do, self.cloud_server_ep)
+        wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_ep)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
@@ -162,13 +162,13 @@ class TestSuccessWhenAccessDeviceByOthers:
         ) = enterprise_provider_server_and_her_session()
 
         # Given: Holder: EP's CS forward the u_token
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         assert (
             current_session_to_jsonstr(self.iot_device.shared_data.current_session)

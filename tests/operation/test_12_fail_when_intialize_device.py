@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -63,7 +63,7 @@ class TestFailWhenInitializeDevice:
         # WHEN:
         current_test_when_and_then_log()
         # WHEN: DM's CS re-apply the intialization_u_ticket to Initialized IoTD
-        create_comm_connection(self.cloud_server_dm, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_dm, self.iot_device)
         id_for_initialization_u_ticket = "no_id"
         generated_request: dict = {
             "device_id": f"{id_for_initialization_u_ticket}",
@@ -76,7 +76,7 @@ class TestFailWhenInitializeDevice:
         self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
             id_for_initialization_u_ticket
         )
-        wait_comm_completed(self.cloud_server_dm, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Fail to re-initialize IoTD & R-Ticket will provide the reason
         for value in self.cloud_server_dm.shared_data.device_table.values():

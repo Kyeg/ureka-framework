@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -90,7 +90,7 @@ def simulation_script():
     ######################################################
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     ######################################################
-    create_comm_connection(user_agent_do, cloud_server_ep)
+    create_simulated_comm_connection(user_agent_do, cloud_server_ep)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
@@ -102,26 +102,26 @@ def simulation_script():
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
         device_id=owned_device_id, arbitrary_dict=generated_request
     )
-    wait_comm_completed(cloud_server_ep, user_agent_do)
+    wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
     simple_log("cli", "")
     simple_log("cli", f"+++EP's CS get an access ticket from DO's UA+++")
 
     ######################################################
     # WHEN: Holder: EP's CS forward the access_u_ticket
     ######################################################
-    create_comm_connection(cloud_server_ep, iot_device)
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     # generated_command = "HELLO-1"
     simple_log("cli", "")
     generated_command = input("EP's CS enter 1st command to DO's IoTD: ")
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
         owned_device_id, generated_command
     )
-    wait_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
     ######################################################
-    create_comm_connection(cloud_server_ep, iot_device)
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-2"
     simple_log("cli", "")
@@ -129,12 +129,12 @@ def simulation_script():
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
     ######################################################
-    create_comm_connection(cloud_server_ep, iot_device)
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-3"
     simple_log("cli", "")
@@ -142,7 +142,7 @@ def simulation_script():
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # THEN: Show Response Time + Data Size Measurement

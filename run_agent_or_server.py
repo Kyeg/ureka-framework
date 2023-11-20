@@ -18,7 +18,10 @@ import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.resource.crypto.serialization_util import dict_to_jsonstr
 
 # Simulated Communication
-from tests.conftest import create_comm_connection, wait_comm_completed
+from tests.conftest import (
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
+)
 
 
 class MenuAgentOrServer:
@@ -78,7 +81,7 @@ class MenuAgentOrServer:
     ) -> None:
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_comm_connection(self.agent_or_server, user_agent_do)
+        create_simulated_comm_connection(self.agent_or_server, user_agent_do)
         generated_request: dict = {
             "device_id": f"{target_device_id}",
             "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
@@ -87,7 +90,7 @@ class MenuAgentOrServer:
         self.agent_or_server.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
-        wait_comm_completed(user_agent_do, self.agent_or_server)
+        wait_simulated_comm_completed(user_agent_do, self.agent_or_server)
 
     def apply_ownership_ticket_through_bluetooth(
         self, target_device_id: str
@@ -139,7 +142,7 @@ class MenuAgentOrServer:
     ) -> None:
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_comm_connection(self.agent_or_server, cloud_server_ep)
+        create_simulated_comm_connection(self.agent_or_server, cloud_server_ep)
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{target_device_id}",
@@ -150,7 +153,7 @@ class MenuAgentOrServer:
         self.agent_or_server.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
-        wait_comm_completed(cloud_server_ep, self.agent_or_server)
+        wait_simulated_comm_completed(cloud_server_ep, self.agent_or_server)
 
     def apply_access_ticket_through_bluetooth(
         self, target_device_id: str
@@ -211,11 +214,11 @@ class MenuAgentOrServer:
     ) -> None:
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_comm_connection(self.agent_or_server, original_issuer)
+        create_simulated_comm_connection(self.agent_or_server, original_issuer)
         self.agent_or_server.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             target_device_id
         )
-        wait_comm_completed(original_issuer, self.agent_or_server)
+        wait_simulated_comm_completed(original_issuer, self.agent_or_server)
 
     def apply_insecure_cmd_through_bluetooth(self) -> DeviceController:
         # WHEN: Create connection with IoTD

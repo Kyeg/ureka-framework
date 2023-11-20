@@ -113,8 +113,9 @@ class FlowOpenSession:
             )
             # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-            self.msg_sender.close_simulated_comm()
-            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
+            elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
                 self.msg_sender.close_bluetooth_connection()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
@@ -178,7 +179,8 @@ class FlowOpenSession:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
             # End Simulated Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
-            self.msg_sender.close_simulated_comm()
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -253,8 +255,9 @@ class FlowOpenSession:
             )
             # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-            self.msg_sender.close_simulated_comm()
-            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
+            elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
                 self.msg_sender.close_bluetooth_connection()
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")

@@ -3,7 +3,7 @@
 ######################################################
 import pytest
 from tests.conftest import (
-    create_comm_connection,
+    create_simulated_comm_connection,
     current_setup_log,
     current_teardown_log,
     current_test_given_log,
@@ -51,7 +51,7 @@ class TestStorage:
 
         # WHEN: Construct a Comm Channel between two devices
         current_test_when_and_then_log()
-        create_comm_connection(self.cloud_server_dm, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_dm, self.iot_device)
 
         # WHEN: Send/Recv the message through Comm Channel
         id_for_initialization_u_ticket = "no_id"

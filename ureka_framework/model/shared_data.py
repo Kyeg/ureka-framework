@@ -50,7 +50,7 @@ class SharedData:
 
     # Resource (Simulated Comm)
     simulated_comm_channel: Optional[SimulatedCommChannel] = None
-    comm_done_flag: Optional[bool] = None
+    simulated_comm_completed_flag: Optional[bool] = None
 
     # Resource (Bluetooth Comm)
     if HAS_PYBLUEZ == True:

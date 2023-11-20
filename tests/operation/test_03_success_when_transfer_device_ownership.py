@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -65,7 +65,7 @@ class TestSuccessWhenIntializeAgentOrServer:
         # WHEN:
         current_test_when_and_then_log()
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
-        create_comm_connection(self.cloud_server_dm, self.user_agent_do)
+        create_simulated_comm_connection(self.cloud_server_dm, self.user_agent_do)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
@@ -75,12 +75,12 @@ class TestSuccessWhenIntializeAgentOrServer:
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
-        wait_comm_completed(self.user_agent_do, self.cloud_server_dm)
+        wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_dm)
 
         # WHEN: Holder: DO's UA forward the ownership_u_ticket
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
@@ -90,11 +90,11 @@ class TestSuccessWhenIntializeAgentOrServer:
         )
 
         # WHEN: Holder: DO's UA return the ownership_r_ticket to DM's CS
-        create_comm_connection(self.user_agent_do, self.cloud_server_dm)
+        create_simulated_comm_connection(self.user_agent_do, self.cloud_server_dm)
         self.user_agent_do.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id
         )
-        wait_comm_completed(self.cloud_server_dm, self.user_agent_do)
+        wait_simulated_comm_completed(self.cloud_server_dm, self.user_agent_do)
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert "SUCCESS" in self.iot_device.shared_data.result_message

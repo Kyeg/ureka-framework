@@ -43,15 +43,15 @@ class MsgSender:
     # Resource (Simulated Comm)
     ######################################################
     def wait_simulated_comm_completed(self) -> None:
-        while not self.shared_data.comm_done_flag:
+        while not self.shared_data.simulated_comm_completed_flag:
             time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
         # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
 
-    def close_simulated_comm(self) -> None:
-        self.shared_data.comm_done_flag = True
+    def complete_simulated_comm(self) -> None:
+        self.shared_data.simulated_comm_completed_flag = True
 
-    def re_open_simulated_comm(self) -> None:
-        self.shared_data.comm_done_flag = False
+    def re_wait_simulated_comm(self) -> None:
+        self.shared_data.simulated_comm_completed_flag = False
 
     ######################################################
     # Resource (Bluetooth Comm)

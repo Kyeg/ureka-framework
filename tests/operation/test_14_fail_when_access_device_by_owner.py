@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -98,12 +98,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Apply Flow (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder id + signature) cannot be generated
@@ -177,12 +177,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Preempt (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder signature) cannot be generated
@@ -243,20 +243,20 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Holder: DO's UA forward the self_access_u_ticket
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "HELLO-1"
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # WHEN: DO's UA close the session (ACCESS_END)
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "ACCESS_END"
         self.user_agent_do.flow_issue_u_token.holder_send_cmd(
             device_id=owned_device_id, cmd=generated_command, access_end=True
         )
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # WHEN: Pretend Holder: Other
         # WHEN: Interception (issuer_issue_u_ticket_to_herself)
@@ -273,12 +273,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Reuse (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder signature) cannot be generated

@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -128,7 +131,8 @@ class FlowIssueUTicket:
 
                 # End Simulated Comm
                 simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
-                self.msg_sender.close_simulated_comm()
+                if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                    self.msg_sender.complete_simulated_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
@@ -193,7 +197,8 @@ class FlowIssueUTicket:
 
             # End Simulated Comm
             simple_log("debug", f"+ Finish RT-RT~~ (holder)")
-            self.msg_sender.close_simulated_comm()
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
 
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"

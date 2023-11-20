@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -63,7 +63,7 @@ class TestSuccessWhenAccessDeviceByOthers:
         current_test_when_and_then_log()
 
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
-        create_comm_connection(self.user_agent_do, self.cloud_server_ep)
+        create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
@@ -75,15 +75,15 @@ class TestSuccessWhenAccessDeviceByOthers:
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=owned_device_id, arbitrary_dict=generated_request
         )
-        wait_comm_completed(self.cloud_server_ep, self.user_agent_do)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.user_agent_do)
 
         # WHEN: Holder: EP's CS forward the access_u_ticket
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message

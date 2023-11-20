@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -73,12 +73,12 @@ class TestSuccessWhenAccessDeviceByOwner:
         )
 
         # WHEN: Holder: DO's UA forward the self_access_u_ticket
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "HELLO-1"
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
             owned_device_id, generated_command
         )
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # THEN: DO's UA succeed to access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
