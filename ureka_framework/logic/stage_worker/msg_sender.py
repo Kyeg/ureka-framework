@@ -56,6 +56,12 @@ class MsgSender:
     ######################################################
     # Resource (Bluetooth Comm)
     ######################################################
+    def complete_bluetooth_comm(self) -> None:
+        self.shared_data.bluetooth_comm_completed_flag = True
+
+    def re_wait_bluetooth_comm(self) -> None:
+        self.shared_data.bluetooth_comm_completed_flag = False
+
     def connect_bluetooth_comm(self) -> None:
         self.shared_data.connecting_worker = ConnectingWorker(
             service_uuid=bt_service.SERVICE_UUID,

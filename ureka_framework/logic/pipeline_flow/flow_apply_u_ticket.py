@@ -155,7 +155,8 @@ class FlowApplyUTicket:
 
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # End Simulated Comm
+
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed UT-RT or Failed CR-KE~~ (device)")
             if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                 self.msg_sender.complete_simulated_comm()

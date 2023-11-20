@@ -57,3 +57,4 @@ class SharedData:
         accept_socket: Optional[AcceptSocket] = None
         connecting_worker: Optional[ConnectingWorker] = None
         connection_socket: Optional[ConnectionSocket] = None
+        bluetooth_comm_completed_flag: Optional[bool] = None

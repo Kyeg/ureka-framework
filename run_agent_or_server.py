@@ -51,7 +51,7 @@ class MenuAgentOrServer:
         return self.agent_or_server
 
     def apply_initialization_ticket_through_bluetooth(self) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -71,8 +71,10 @@ class MenuAgentOrServer:
             id_for_initialization_u_ticket
         )
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish UT-RT~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish UT-RT~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
@@ -95,22 +97,24 @@ class MenuAgentOrServer:
     def apply_ownership_ticket_through_bluetooth(
         self, target_device_id: str
     ) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
         # WHEN: Holder: EP's CS apply the ownership_u_ticket to IoTD
         self.agent_or_server.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish UT-RT~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish UT-RT~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
     def apply_self_access_ticket_through_bluetooth(
         self, target_device_id: str
     ) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -132,8 +136,10 @@ class MenuAgentOrServer:
             target_device_id, cmd=generated_command
         )
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish CR-KE~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish CR-KE~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
@@ -158,7 +164,7 @@ class MenuAgentOrServer:
     def apply_access_ticket_through_bluetooth(
         self, target_device_id: str
     ) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -168,15 +174,17 @@ class MenuAgentOrServer:
             device_id=target_device_id, cmd=generated_command
         )
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish CR-KE~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish CR-KE~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
     def apply_cmd_token_through_bluetooth(
         self, target_device_id: str
     ) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -186,15 +194,17 @@ class MenuAgentOrServer:
             device_id=target_device_id, cmd=generated_command
         )
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish PS~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish PS~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
     def apply_access_end_token_through_bluetooth(
         self, target_device_id: str
     ) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -204,8 +214,10 @@ class MenuAgentOrServer:
             device_id=target_device_id, cmd=generated_command, access_end=True
         )
         # WHEN: Receive/Send Message in Connection
-        #       & RE-GIVEN: Close Connection with IoTD (Finish PS~~)
         self.agent_or_server.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish PS~~)
+        self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
 
@@ -221,7 +233,7 @@ class MenuAgentOrServer:
         wait_simulated_comm_completed(original_issuer, self.agent_or_server)
 
     def apply_insecure_cmd_through_bluetooth(self) -> DeviceController:
-        # WHEN: Create connection with IoTD
+        # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
@@ -247,6 +259,7 @@ class MenuAgentOrServer:
             # Start Comm Measurement
             ########################################################################
             self.agent_or_server.executor.measure_comm_start()
+            # This will block until message is received
             insecure_data_json = (
                 self.agent_or_server.shared_data.connection_socket.recv_message()
             )
@@ -258,12 +271,13 @@ class MenuAgentOrServer:
             )
             simple_log("measure", f"+ Receive Comm Input: holder_recv_insecure_data")
             simple_log("cli", f"Received Data: {insecure_data_json}")
+
+            simple_log("debug", f"+ Finish CMD-DATA~~ (holder)")
         except OSError:
             simple_log("cli", f"")
             simple_log("cli", f"+ Connection is closed by peer.")
 
-        # RE-GIVEN: Close Connection with IoTD
-        simple_log("cli", f"+ Finish CMD-DATA~~ (holder)")
+        # RE-GIVEN: Close bluetooth connection with IoTD (Finish CMD-DATA~~)
         self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
@@ -277,8 +291,8 @@ if __name__ == "__main__":
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
         # Environment.DEBUG_LOG = "OPEN"
         Environment.DEBUG_LOG = "CLOSED"
-        # Environment.CLI_LOG = "OPEN"
-        Environment.CLI_LOG = "CLOSED"
+        Environment.CLI_LOG = "OPEN"
+        # Environment.CLI_LOG = "CLOSED"
         Environment.MEASURE_LOG = "OPEN"
         # Environment.MEASURE_LOG = "CLOSED"
 

@@ -107,16 +107,18 @@ class FlowOpenSession:
 
         except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
+
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
+
             # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                 self.msg_sender.complete_simulated_comm()
             elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                self.msg_sender.close_bluetooth_connection()
+                self.msg_sender.complete_bluetooth_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -177,7 +179,8 @@ class FlowOpenSession:
 
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # End Simulated Comm
+
+            # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (device)")
             if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                 self.msg_sender.complete_simulated_comm()
@@ -246,19 +249,21 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-        except RuntimeError as error:  # pragm: no cover -> ???
+        except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
 
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
+
             # End Simulated/Bluetooth Comm
             simple_log("debug", f"+ Failed CR-KE~~ (holder)")
             if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                 self.msg_sender.complete_simulated_comm()
             elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                self.msg_sender.close_bluetooth_connection()
+                self.msg_sender.complete_bluetooth_comm()
+
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 

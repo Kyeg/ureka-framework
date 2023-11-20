@@ -28,56 +28,62 @@ class MenuIoTDevice:
         return self.iot_device
 
     def receive_u_ticket_through_bluetooth(self) -> DeviceController:
-        # WHEN: Accept connection from UA or CS
+        # WHEN: Accept bluetooth connection from UA or CS
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.iot_device.msg_receiver.accept_bluetooth_comm()
 
         # WHEN: Receive/Send Message in Connection
         self.iot_device.msg_receiver._recv_xxx_message()
 
-        # RE-GIVEN: Close Connection with UA or CS
+        # RE-GIVEN: Close bluetooth Connection with UA or CS
         self.iot_device.msg_receiver.close_bluetooth_connection()
 
-        # RE-GIVEN: Stop Accepting New Connections from UA or CS
+        # RE-GIVEN: Stop Accepting New bluetooth Connections from UA or CS
         self.iot_device.msg_receiver.close_bluetooth_acception()
 
         return self.iot_device
 
     def receive_insecure_cmd_through_bluetooth(self) -> DeviceController:
-        # WHEN: Accept connection from UA or CS
+        # WHEN: Accept bluetooth connection from UA or CS
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.iot_device.msg_receiver.accept_bluetooth_comm()
 
         # WHEN: IoTD receive the insecure_cmd from UA or CS
-        try:
-            insecure_cmd_json = (
-                self.iot_device.shared_data.connection_socket.recv_message()
-            )
-            simple_log("measure", f"+ Receive Comm Input: device_recv_insecure_cmd")
-            simple_log("cli", f"Received Command: {insecure_cmd_json}")
-        except OSError:
-            simple_log("cli", f"")
-            simple_log("cli", f"+ Connection is closed by peer.")
+        while True:
+            try:
+                # This will block until message is received
+                insecure_cmd_json = (
+                    self.iot_device.shared_data.connection_socket.recv_message()
+                )
+                simple_log("measure", f"+ Receive Comm Input: device_recv_insecure_cmd")
+                simple_log("cli", f"Received Command: {insecure_cmd_json}")
 
-        # WHEN: IoTD do data processing
-        insecure_cmd_dict = json.loads(insecure_cmd_json)
-        insecure_data_dict = {
-            "protocol_verision": insecure_cmd_dict["protocol_verision"],
-            "device_id": insecure_cmd_dict["device_id"],
-            "insecure_command": f"{insecure_cmd_dict['insecure_command']}",
-        }
+                # WHEN: IoTD do data processing
+                insecure_cmd_dict = json.loads(insecure_cmd_json)
+                insecure_data_dict = {
+                    "protocol_verision": insecure_cmd_dict["protocol_verision"],
+                    "device_id": insecure_cmd_dict["device_id"],
+                    "insecure_command": f"{insecure_cmd_dict['insecure_command']}",
+                }
 
-        # WHEN: IoTD return the insecure_data to UA or CS
-        insecure_data_json = json.dumps(insecure_data_dict, indent=4)
-        # insecure_data_json = insecure_command_json
-        self.iot_device.shared_data.connection_socket.send_message(insecure_data_json)
-        simple_log("cli", f"Sent Data: {insecure_data_json}")
+                # WHEN: IoTD return the insecure_data to UA or CS
+                insecure_data_json = json.dumps(insecure_data_dict, indent=4)
+                # insecure_data_json = insecure_command_json
+                self.iot_device.shared_data.connection_socket.send_message(
+                    insecure_data_json
+                )
+                simple_log("cli", f"Sent Data: {insecure_data_json}")
 
-        # RE-GIVEN: Close Connection with UA or CS
-        simple_log("cli", f"+ Finish CMD-DATA~~ (holder)")
+                simple_log("debug", f"+ Finish CMD-DATA~~ (device)")
+            except OSError:
+                simple_log("cli", f"")
+                simple_log("cli", f"+ Connection is closed by peer.")
+                break
+
+        # RE-GIVEN: Close bluetooth connection with UA or CS
         self.iot_device.msg_receiver.close_bluetooth_connection()
 
-        # RE-GIVEN: Stop Accepting New Connections from UA or CS
+        # RE-GIVEN: Stop Accepting New bluetooth Connections from UA or CS
         self.iot_device.msg_receiver.close_bluetooth_acception()
 
         return self.iot_device
@@ -91,8 +97,8 @@ if __name__ == "__main__":
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
         # Environment.DEBUG_LOG = "OPEN"
         Environment.DEBUG_LOG = "CLOSED"
-        # Environment.CLI_LOG = "OPEN"
-        Environment.CLI_LOG = "CLOSED"
+        Environment.CLI_LOG = "OPEN"
+        # Environment.CLI_LOG = "CLOSED"
         Environment.MEASURE_LOG = "OPEN"
         # Environment.MEASURE_LOG = "CLOSED"
 

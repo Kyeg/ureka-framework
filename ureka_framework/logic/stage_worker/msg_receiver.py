@@ -115,6 +115,9 @@ class MsgReceiver:
     # [STAGE: (R)] Receive Message
     ######################################################
     def _recv_xxx_message(self):
+        if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            self.msg_sender.re_wait_bluetooth_comm()
+
         while True:
             try:
                 # [STAGE: (R)]
@@ -129,13 +132,15 @@ class MsgReceiver:
                         f"+ {self.shared_data.this_device.device_name} is receiving message "
                         f"from {self.shared_data.simulated_comm_channel.end.shared_data.this_device.device_name}...",
                     )
-                else:  # pragma: no cover -> PRODUCTION
-                    # This will block until message is received
+                elif (
+                    Environment.COMMUNICATION_CHANNEL == "BLUETOOTH"
+                ):  # pragma: no cover -> PRODUCTION
                     try:
                         ########################################################################
                         # Start Comm Measurement
                         ########################################################################
                         self.executor.measure_comm_start()
+                        # This will block until message is received
                         message = self.shared_data.connection_socket.recv_message()
                         ########################################################################
                         # End Comm Measurement
@@ -186,6 +191,7 @@ class MsgReceiver:
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
+
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
                     ######################################################
@@ -200,6 +206,7 @@ class MsgReceiver:
                     simple_log("debug", f"+ Finish CR-KE~~ (device)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
+
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     # Flow
                     self.flow_issue_u_token._device_recv_cmd(received_message)
@@ -263,7 +270,8 @@ class MsgReceiver:
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
                     elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                        self.msg_sender.close_bluetooth_connection()
+                        self.msg_sender.complete_bluetooth_comm()
+
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)
@@ -291,7 +299,8 @@ class MsgReceiver:
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
                     elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                        self.msg_sender.close_bluetooth_connection()
+                        self.msg_sender.complete_bluetooth_comm()
+
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     # Flow
                     self.flow_issue_u_token._holder_recv_data(received_message)
@@ -308,7 +317,8 @@ class MsgReceiver:
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
                     elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                        self.msg_sender.close_bluetooth_connection()
+                        self.msg_sender.complete_bluetooth_comm()
+
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
 
@@ -319,3 +329,7 @@ class MsgReceiver:
 
             except:  # pragma: no cover -> Shouldn't Reach Here
                 raise RuntimeError(f"Shouldn't Reach Here")
+
+            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                if self.shared_data.bluetooth_comm_completed_flag == True:
+                    break
