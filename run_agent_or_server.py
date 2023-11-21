@@ -232,26 +232,46 @@ class MenuAgentOrServer:
         )
         wait_simulated_comm_completed(original_issuer, self.agent_or_server)
 
-    def apply_insecure_cmd_through_bluetooth(self) -> DeviceController:
+    def apply_insecure_cmd_through_bluetooth(
+        self, option: str = "with_device_id"
+    ) -> DeviceController:
         # WHEN: Connect bluetooth connection with IoTD
         Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
         self.agent_or_server.msg_sender.connect_bluetooth_comm()
 
         # WHEN: UA or CS send the insecure_cmd to IoTD
-        insecure_cmd_dict = {
-            "protocol_verision": "UREKA-1.0",
-            # "protocol_verision": "",
-            "device_id": "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuWt9xdWLXffJE-CydWYBTH05kv7xFmMGl-L3DT_7-YH2ocgHJWUUAPxQjjRBQGOeITMandJxLDye7jK8W26GmA==",
-            # "device_id": "",
-            "insecure_command": "HELLO",
-            # "insecure_command": "HELLO" * 90,
-        }
-        insecure_cmd_json = json.dumps(insecure_cmd_dict, indent=4)
-        # insecure_command_json = "HELLO"
+
+        ########################################################################
+        # Start Process Measurement
+        ########################################################################
+        self.agent_or_server.executor.measure_process_start()
+
+        if option == "shortest":
+            insecure_cmd_json = "HELLO"
+        elif option == "with_device_id":
+            insecure_cmd_dict = {
+                "protocol_verision": "UREKA-1.0",
+                "device_id": "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuWt9xdWLXffJE-CydWYBTH05kv7xFmMGl-L3DT_7-YH2ocgHJWUUAPxQjjRBQGOeITMandJxLDye7jK8W26GmA==",
+                "insecure_command": "HELLO",
+            }
+            insecure_cmd_json = json.dumps(insecure_cmd_dict, indent=4)
+        elif option == "u_ticket_size":
+            insecure_cmd_dict = {
+                "protocol_verision": "UREKA-1.0",
+                "device_id": "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuWt9xdWLXffJE-CydWYBTH05kv7xFmMGl-L3DT_7-YH2ocgHJWUUAPxQjjRBQGOeITMandJxLDye7jK8W26GmA==",
+                "insecure_command": "HELLO" * 90,
+            }
+            insecure_cmd_json = json.dumps(insecure_cmd_dict, indent=4)
+
         self.agent_or_server.shared_data.connection_socket.send_message(
             insecure_cmd_json
         )
         simple_log("cli", f"Sent Command: {insecure_cmd_json}")
+
+        ######################################################
+        # End Process Measurement
+        ######################################################
+        self.agent_or_server.executor.measure_cli_process("holder_apply_insecure_cmd")
 
         # WHEN: UA or CS receive the insecure_data from IoTD
         try:
@@ -259,18 +279,32 @@ class MenuAgentOrServer:
             # Start Comm Measurement
             ########################################################################
             self.agent_or_server.executor.measure_comm_start()
+
             # This will block until message is received
             insecure_data_json = (
                 self.agent_or_server.shared_data.connection_socket.recv_message()
             )
+
             ########################################################################
             # End Comm Measurement
             ########################################################################
             self.agent_or_server.executor.measure_comm_time(
-                "holder_recv_insecure_cmd", insecure_data_json
+                "_holder_or_device_recv_u_or_r_ticket", insecure_data_json
             )
-            simple_log("measure", f"+ Receive Comm Input: holder_recv_insecure_data")
+
+            ########################################################################
+            # Start Process Measurement
+            ########################################################################
+            self.agent_or_server.executor.measure_process_start()
+
             simple_log("cli", f"Received Data: {insecure_data_json}")
+
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.agent_or_server.executor.measure_cli_process(
+                "_holder_recv_insecure_data"
+            )
 
             simple_log("debug", f"+ Finish CMD-DATA~~ (holder)")
         except OSError:
@@ -291,64 +325,88 @@ if __name__ == "__main__":
         Environment.DEPLOYMENT_ENV = "PRODUCTION"
         # Environment.DEBUG_LOG = "OPEN"
         Environment.DEBUG_LOG = "CLOSED"
-        Environment.CLI_LOG = "OPEN"
-        # Environment.CLI_LOG = "CLOSED"
+        # Environment.CLI_LOG = "OPEN"
+        Environment.CLI_LOG = "CLOSED"
         Environment.MEASURE_LOG = "OPEN"
         # Environment.MEASURE_LOG = "CLOSED"
 
-        ######################################################
-        # Unintialized Agent or Server
-        ######################################################
+        # Omit 1st run (Cold-start)
+        for times in range(2):
+            if times == 0:
+                simple_log("measure", "")
+                simple_log("measure", "*" * 50)
+                simple_log("measure", f"+ Cold Start")
+                simple_log("measure", "*" * 50)
+            else:
+                simple_log("measure", "")
+                simple_log("measure", "*" * 50)
+                simple_log("measure", f"+ Initialize Agent & Device")
+                simple_log("measure", "*" * 50)
 
-        # RE-GIVEN:
-        SimpleStorage.delete_storage_in_test()
+            ######################################################
+            # Unintialized Agent or Server
+            ######################################################
 
-        ######################################################
-        # Intialize Agent or Server
-        ######################################################
+            # RE-GIVEN:
+            SimpleStorage.delete_storage_in_test()
 
-        # GIVEN: Uninitialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+            ######################################################
+            # Initialize Agent or Server
+            ######################################################
 
-        # WHEN: DM's CS initialize UA or CS
-        cloud_server_dm = menu_cloud_server_dm.intialize_agent_or_server_through_cli()
+            # GIVEN: Uninitialized DM's CS
+            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
 
-        # THEN: Succeed to initialize UA or CS
-        assert cloud_server_dm.shared_data.this_device.ticket_order == 1
-        assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
+            # WHEN: DM's CS initialize UA or CS
+            cloud_server_dm = (
+                menu_cloud_server_dm.intialize_agent_or_server_through_cli()
+            )
 
-        ######################################################
-        # Intialize Device
-        ######################################################
+            # THEN: Succeed to initialize UA or CS
+            assert cloud_server_dm.shared_data.this_device.ticket_order == 1
+            assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
 
-        # GIVEN: Initialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+            ######################################################
+            # Initialize Device
+            ######################################################
 
-        # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
-        cloud_server_dm = (
-            menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
-        )
+            # GIVEN: Initialized DM's CS
+            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
-        # THEN: Succeed to initialize DM's IoTD
-        assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+            # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
+            cloud_server_dm = (
+                menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
+            )
+
+            # THEN: Succeed to initialize DM's IoTD
+            assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
         # Send Insecure Command
         ######################################################
+        for option in ["shortest", "with_device_id", "u_ticket_size"]:
+            simple_log("measure", "")
+            simple_log("measure", "*" * 50)
+            simple_log("measure", f"+ Send Insecure Command ({option})")
+            simple_log("measure", "*" * 50)
 
-        # GIVEN: Initialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+            # GIVEN: Initialized DM's CS
+            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
-        # WHEN: DM's CS apply the insecure_cmd to IoTD
-        cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth()
-
-        # THEN: ...
+            # WHEN: DM's CS apply the insecure_cmd to IoTD
+            cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
+                option=option
+            )
 
         ######################################################
         # Transfer Device Ownership
         ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Transfer Device Ownership")
+        simple_log("measure", "*" * 50)
 
         # GIVEN: Initialized DM's CS
         menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
@@ -378,82 +436,12 @@ if __name__ == "__main__":
         assert "SUCCESS" in user_agent_do.shared_data.result_message
 
         ######################################################
-        # Grant Device Access Right (to others)
-        ######################################################
-
-        # # GIVEN: Initialized DO's UA
-        # menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
-        # user_agent_do = menu_user_agent_do.get_agent_or_server()
-        # # GIVEN: Initialized EP's CS
-        # menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
-        # cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
-
-        # # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
-        # target_device_id = menu_user_agent_do.get_target_device_id()
-        # menu_user_agent_do.issue_access_ticket_through_simulated_comm(
-        #     target_device_id=target_device_id,
-        #     cloud_server_ep=cloud_server_ep,
-        # )
-        # # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
-        # target_device_id = menu_cloud_server_ep.get_target_device_id()
-        # cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
-        #     target_device_id=target_device_id
-        # )
-
-        # # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
-        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        # # THEN: EP's CS can share a private session with DO's IoTD
-        # assert (
-        #     cloud_server_ep.shared_data.current_session.plaintext_data
-        #     == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
-        # )
-
-        # ###########################
-
-        # # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
-
-        # # WHEN: Holder: EP's CS generate & apply the u_token to IoTD
-        # target_device_id = menu_cloud_server_ep.get_target_device_id()
-        # cloud_server_ep = menu_cloud_server_ep.apply_cmd_token_through_bluetooth(
-        #     target_device_id=target_device_id
-        # )
-
-        # # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
-        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        # # THEN: EP's CS can share a private session with DO's IoTD
-        # assert (
-        #     cloud_server_ep.shared_data.current_session.plaintext_data
-        #     == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
-        # )
-
-        # ###########################
-
-        # # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
-
-        # # WHEN: Holder: EP's CS generate & apply the access_end_u_token to IoTD
-        # target_device_id = menu_cloud_server_ep.get_target_device_id()
-        # original_agent_order = cloud_server_ep.shared_data.device_table[
-        #     target_device_id
-        # ].ticket_order
-        # cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
-        #     target_device_id=target_device_id
-        # )
-        # # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
-        # menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
-        #     target_device_id=target_device_id,
-        #     original_issuer=user_agent_do,
-        # )
-
-        # # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
-        # assert "SUCCESS" in cloud_server_ep.shared_data.result_message
-        # assert (
-        #     cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
-        #     == original_agent_order + 1
-        # )
-
-        ######################################################
         # Grant Device Access Right (to owner herself)
         ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
+        simple_log("measure", "*" * 50)
 
         # GIVEN: Initialized DM's CS
         menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
@@ -512,6 +500,82 @@ if __name__ == "__main__":
         )
 
         ######################################################
+        # Grant Device Access Right (to others)
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Grant Device Access Right (to others)")
+        simple_log("measure", "*" * 50)
+
+        # GIVEN: Initialized DO's UA
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
+        user_agent_do = menu_user_agent_do.get_agent_or_server()
+        # GIVEN: Initialized EP's CS
+        menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
+        cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
+
+        # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
+        target_device_id = menu_user_agent_do.get_target_device_id()
+        menu_user_agent_do.issue_access_ticket_through_simulated_comm(
+            target_device_id=target_device_id,
+            cloud_server_ep=cloud_server_ep,
+        )
+        # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
+        cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            cloud_server_ep.shared_data.current_session.plaintext_data
+            == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS generate & apply the u_token to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
+        cloud_server_ep = menu_cloud_server_ep.apply_cmd_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
+        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            cloud_server_ep.shared_data.current_session.plaintext_data
+            == "DATA: " + cloud_server_ep.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: EP's CS cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS generate & apply the access_end_u_token to IoTD
+        target_device_id = menu_cloud_server_ep.get_target_device_id()
+        original_agent_order = cloud_server_ep.shared_data.device_table[
+            target_device_id
+        ].ticket_order
+        cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
+            target_device_id=target_device_id
+        )
+        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
+        menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
+            target_device_id=target_device_id,
+            original_issuer=user_agent_do,
+        )
+
+        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in cloud_server_ep.shared_data.result_message
+        assert (
+            cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
+            == original_agent_order + 1
+        )
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

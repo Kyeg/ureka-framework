@@ -140,14 +140,17 @@ class MsgReceiver:
                         # Start Comm Measurement
                         ########################################################################
                         self.executor.measure_comm_start()
+
                         # This will block until message is received
                         message = self.shared_data.connection_socket.recv_message()
+
                         ########################################################################
                         # End Comm Measurement
                         ########################################################################
                         self.executor.measure_comm_time(
-                            "holder_or_device_recv_u_or_r_ticket", message
+                            "_holder_or_device_recv_u_or_r_ticket", message
                         )
+
                         simple_log(
                             "info",
                             f"+ {self.shared_data.this_device.device_name} is receiving message "
@@ -182,22 +185,28 @@ class MsgReceiver:
 
                 # IOT_DEVICE
                 if self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_UT:
+                    # Flow
                     self.flow_apply_u_ticket._device_recv_u_ticket(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_device_recv_u_ticket")
+
                     # End Simulated Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (device)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                         self.msg_sender.complete_simulated_comm()
 
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
+                    # Flow
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_device_recv_cr_ke_2")
+
                     # End Simulated Comm
                     simple_log(
                         "cli",
@@ -210,10 +219,12 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     # Flow
                     self.flow_issue_u_token._device_recv_cmd(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_device_recv_cmd")
+
                     # End Simulated Comm
                     simple_log(
                         "cli",
@@ -233,13 +244,15 @@ class MsgReceiver:
                         self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
                             received_message
                         )
+
                         ######################################################
                         # End Process Measurement
                         ######################################################
                         self.executor.measure_comm_process(
                             "_holder_recv_u_ticket",
                         )
-                        # End Simulated/Bluetooth Comm
+
+                        # End Simulated Comm
                         simple_log("debug", f"+ Finish UT-UT~~ (holder)")
                         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                             self.msg_sender.complete_simulated_comm()
@@ -248,12 +261,14 @@ class MsgReceiver:
                         self.flow_issuer_issue_u_ticket._issuer_recv_r_ticket(
                             received_message
                         )
+
                         ######################################################
                         # End Process Measurement
                         ######################################################
                         self.executor.measure_comm_process(
                             "_issuer_recv_r_ticket",
                         )
+
                         # End Simulated Comm
                         simple_log("debug", f"+ Finish RT-RT~~ (issuer)")
                         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
@@ -261,10 +276,12 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     # Flow
                     self.flow_apply_u_ticket._holder_recv_r_ticket(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
                     self.executor.measure_comm_process("_holder_recv_r_ticket")
+
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish UT-RT~~ (holder)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
@@ -275,6 +292,7 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
@@ -282,6 +300,7 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_3(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
@@ -294,6 +313,7 @@ class MsgReceiver:
                         "cli",
                         f"+++Session is Constucted+++",
                     )
+
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish CR-KE~~ (holder)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
@@ -304,6 +324,7 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     # Flow
                     self.flow_issue_u_token._holder_recv_data(received_message)
+
                     ######################################################
                     # End Process Measurement
                     ######################################################
@@ -312,6 +333,7 @@ class MsgReceiver:
                         "cli",
                         f"plaintext_data in {self.shared_data.this_device.device_name} = {self.shared_data.current_session.plaintext_data}",
                     )
+
                     # End Simulated/Bluetooth Comm
                     simple_log("debug", f"+ Finish PS~~ (holder)")
                     if Environment.COMMUNICATION_CHANNEL == "SIMULATED":

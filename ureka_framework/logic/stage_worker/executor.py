@@ -912,23 +912,23 @@ class Executor:
 
     def measure_cli_process(self, cli_name: str) -> None:
         # Response Time
-        cli_process_time_xxx: float = get_process_time()
+        cli_process_time: float = get_process_time()
 
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
         simple_log(
-            "measure", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds"
+            "measure", f"cli_process_time = {cli_process_time:.4f} seconds"
         )
 
     def measure_comm_process(self, comm_name: str) -> None:
         # Response Time
-        comm_process_time_xxx: float = get_process_time()
+        comm_process_time: float = get_process_time()
 
         # Print
         # simple_log("measure", f"")
         simple_log(
-            "measure", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
+            "measure", f"comm_process_time = {comm_process_time:.4f} seconds"
         )
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
 
@@ -941,14 +941,14 @@ class Executor:
 
     def measure_comm_time(self, comm_name: str, received_message_json) -> None:
         # Data Size
-        message_size_xxx: int = simple_size_calculator(received_message_json)
+        message_size: int = simple_size_calculator(received_message_json)
 
         # Response Time
-        comm_time_xxx: float = get_comm_time()
+        comm_time: float = get_comm_time()
 
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
         # simple_log("measure", f"+ Received Message: {received_message_json}")
-        simple_log("measure", f"message_size_xxx = {message_size_xxx} bytes")
-        simple_log("measure", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
+        simple_log("measure", f"message_size = {message_size} bytes")
+        simple_log("measure", f"comm_time = {comm_time:.4f} seconds")
