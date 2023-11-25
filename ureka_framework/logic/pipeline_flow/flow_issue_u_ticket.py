@@ -98,7 +98,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("issuer_issue_u_ticket_to_herself")
+        self.executor.measure_cli_process_time("issuer_issue_u_ticket_to_herself")
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -151,7 +151,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("issuer_issue_u_ticket_to_holder")
+        self.executor.measure_cli_process_time("issuer_issue_u_ticket_to_holder")
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -211,7 +211,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("holder_send_r_ticket_to_issuer")
+        self.executor.measure_cli_process_time("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:

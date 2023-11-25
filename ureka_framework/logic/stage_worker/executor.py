@@ -176,7 +176,7 @@ class Executor:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_cli_process("_execute_one_time_intialize_agent_or_server")
+        self.measure_cli_process_time("_execute_one_time_intialize_agent_or_server")
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
@@ -910,45 +910,48 @@ class Executor:
     def measure_process_start(self) -> None:
         start_process_timer()
 
-    def measure_cli_process(self, cli_name: str) -> None:
+    def measure_cli_process_time(self, cli_name: str) -> None:
         # Response Time
         cli_process_time: float = get_process_time()
 
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log(
-            "measure", f"cli_process_time = {cli_process_time:.4f} seconds"
-        )
+        simple_log("measure", f"cli_process_time = {cli_process_time:.4f} seconds")
 
-    def measure_comm_process(self, comm_name: str) -> None:
+    def measure_comm_process_time(self, comm_name: str) -> None:
         # Response Time
         comm_process_time: float = get_process_time()
 
         # Print
         # simple_log("measure", f"")
-        simple_log(
-            "measure", f"comm_process_time = {comm_process_time:.4f} seconds"
-        )
+        simple_log("measure", f"comm_process_time = {comm_process_time:.4f} seconds")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
+        simple_log("measure", f"")
 
     ######################################################
     # Measurement Helper:
-    #   Data Size + Comm Response Time
+    #   Comm Response Time
     ######################################################
     def measure_comm_start(self) -> None:
         start_comm_timer()
 
-    def measure_comm_time(self, comm_name: str, received_message_json) -> None:
-        # Data Size
-        message_size: int = simple_size_calculator(received_message_json)
-
+    def measure_comm_time(self, comm_name: str) -> None:
         # Response Time
         comm_time: float = get_comm_time()
 
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        # simple_log("measure", f"+ Received Message: {received_message_json}")
-        simple_log("measure", f"message_size = {message_size} bytes")
         simple_log("measure", f"comm_time = {comm_time:.4f} seconds")
+
+    ######################################################
+    # Measurement Helper:
+    #   Data Size
+    ######################################################
+    def measure_message_size(self, received_message_with_header: str) -> None:
+        # Data Size
+        message_size: int = simple_size_calculator(received_message_with_header)
+
+        # Print
+        simple_log("measure", f"message_size = {message_size} bytes")

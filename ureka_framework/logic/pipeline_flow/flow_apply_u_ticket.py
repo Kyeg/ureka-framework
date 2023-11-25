@@ -116,7 +116,7 @@ class FlowApplyUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("holder_apply_u_ticket")
+        self.executor.measure_cli_process_time("holder_apply_u_ticket")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:

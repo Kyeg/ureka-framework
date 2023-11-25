@@ -271,7 +271,9 @@ class MenuAgentOrServer:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.agent_or_server.executor.measure_cli_process("holder_apply_insecure_cmd")
+        self.agent_or_server.executor.measure_cli_process_time(
+            "holder_apply_insecure_cmd"
+        )
 
         # WHEN: UA or CS receive the insecure_data from IoTD
         try:
@@ -289,20 +291,22 @@ class MenuAgentOrServer:
             # End Comm Measurement
             ########################################################################
             self.agent_or_server.executor.measure_comm_time(
-                "_holder_or_device_recv_u_or_r_ticket", insecure_data_json
+                "_holder_or_device_recv_u_or_r_ticket"
             )
+            self.agent_or_server.executor.measure_message_size(insecure_data_json)
+            simple_log("cli", f"Received Data: {insecure_data_json}")
 
             ########################################################################
             # Start Process Measurement
             ########################################################################
             self.agent_or_server.executor.measure_process_start()
 
-            simple_log("cli", f"Received Data: {insecure_data_json}")
+            # WHEN: UA/CS do data processing
 
             ######################################################
             # End Process Measurement
             ######################################################
-            self.agent_or_server.executor.measure_cli_process(
+            self.agent_or_server.executor.measure_comm_process_time(
                 "_holder_recv_insecure_data"
             )
 

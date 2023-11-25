@@ -53,11 +53,6 @@ class MenuIoTDevice:
         # WHEN: IoTD receive the insecure_cmd from UA or CS
         while True:
             try:
-                ########################################################################
-                # Start Comm Measurement
-                ########################################################################
-                self.iot_device.executor.measure_comm_start()
-
                 # This will block until message is received
                 insecure_cmd_json = (
                     self.iot_device.shared_data.connection_socket.recv_message()
@@ -66,9 +61,7 @@ class MenuIoTDevice:
                 ########################################################################
                 # End Comm Measurement
                 ########################################################################
-                self.iot_device.executor.measure_comm_time(
-                    "_holder_or_device_recv_u_or_r_ticket", insecure_cmd_json
-                )
+                self.iot_device.executor.measure_message_size(insecure_cmd_json)
                 simple_log("cli", f"Received Command: {insecure_cmd_json}")
 
                 ######################################################
@@ -97,7 +90,7 @@ class MenuIoTDevice:
                 ######################################################
                 # End Process Measurement
                 ######################################################
-                self.iot_device.executor.measure_comm_process(
+                self.iot_device.executor.measure_comm_process_time(
                     "_device_recv_insecure_cmd"
                 )
 

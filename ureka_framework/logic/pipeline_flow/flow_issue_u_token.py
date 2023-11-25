@@ -118,7 +118,7 @@ class FlowIssueUToken:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("holder_send_cmd")
+        self.executor.measure_cli_process_time("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
