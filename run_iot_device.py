@@ -94,7 +94,7 @@ class MenuIoTDevice:
                     "_device_recv_insecure_cmd"
                 )
 
-                simple_log("debug", f"+ Finish CMD-DATA~~ (device)")
+                simple_log("debug", f"+ Manually Finish CMD-DATA~~ (device)")
             except OSError:
                 simple_log("cli", f"")
                 simple_log("cli", f"+ Connection is closed by peer.")
@@ -119,6 +119,10 @@ if __name__ == "__main__":
                 Environment.DEBUG_LOG = "CLOSED"
                 Environment.CLI_LOG = "CLOSED"
                 Environment.MEASURE_LOG = "CLOSED"
+                print(f"[   PRINT] : ")
+                print(f"[   PRINT] : {f'*' * 50}")
+                print(f"[   PRINT] : + Omit Cold-start...")
+                print(f"[   PRINT] : {f'*' * 50}")
             else:
                 ######################################################
                 # ENVIRONMENT
@@ -134,10 +138,6 @@ if __name__ == "__main__":
             ######################################################
             # Unintialized Device
             ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Initialize Agent & Device")
-            simple_log("measure", "*" * 50)
 
             # RE-GIVEN:
             SimpleStorage.delete_storage_in_test()
@@ -145,6 +145,10 @@ if __name__ == "__main__":
             ######################################################
             # Intialize Device
             ######################################################
+            simple_log("measure", "")
+            simple_log("measure", "*" * 50)
+            simple_log("measure", f"+ Initialize Device")
+            simple_log("measure", "*" * 50)
 
             # GIVEN: Uninitialized IoTD
             menu_iot_device = MenuIoTDevice(device_name="iot_device")
@@ -157,150 +161,148 @@ if __name__ == "__main__":
             assert iot_device.shared_data.this_device.ticket_order == 1
             assert iot_device.shared_data.this_device.device_priv_key_str != None
 
-            ######################################################
-            # Receive Insecure Command & Send Insecure Data
-            ######################################################
-            for option in ["shortest", "with_device_id", "u_ticket_size"]:
-                simple_log("measure", "")
-                simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Send Insecure Command ({option})")
-                simple_log("measure", "*" * 50)
-
-                # GIVEN: Initialized IoTD
-                menu_iot_device = MenuIoTDevice(device_name="iot_device")
-                iot_device = menu_iot_device.get_iot_device()
-
-                # WHEN: DM's CS apply the insecure_cmd to IoTD
-                iot_device = menu_iot_device.receive_insecure_cmd_through_bluetooth(
-                    option=option
-                )
-
-                # THEN: ...
-
-            ######################################################
-            # Transfer Device Ownership
-            ######################################################
+        ######################################################
+        # Receive Insecure Command & Send Insecure Data
+        ######################################################
+        for option in ["shortest", "with_device_id", "u_ticket_size"]:
             simple_log("measure", "")
             simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Transfer Device Ownership")
+            simple_log("measure", f"+ Send Insecure Command ({option})")
             simple_log("measure", "*" * 50)
 
             # GIVEN: Initialized IoTD
             menu_iot_device = MenuIoTDevice(device_name="iot_device")
             iot_device = menu_iot_device.get_iot_device()
 
-            # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
-
-            # THEN: Succeed to transfer ownership (become DO's IoTD)
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            assert iot_device.shared_data.this_device.owner_pub_key_str != None
-
-            ######################################################
-            # Grant Device Access Right (to owner herself)
-            ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-            simple_log("measure", "*" * 50)
-
-            # GIVEN: Initialized IoTD
-            menu_iot_device = MenuIoTDevice(device_name="iot_device")
-            iot_device = menu_iot_device.get_iot_device()
-
-            # WHEN: Holder: EP's CS apply the self_access_u_ticket to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
-
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
+            # WHEN: DM's CS apply the insecure_cmd to IoTD
+            iot_device = menu_iot_device.receive_insecure_cmd_through_bluetooth(
+                option=option
             )
 
-            ###########################
+            # THEN: ...
 
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+        ######################################################
+        # Transfer Device Ownership
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Transfer Device Ownership")
+        simple_log("measure", "*" * 50)
 
-            # WHEN: Holder: EP's CS apply the u_token to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        iot_device = menu_iot_device.get_iot_device()
 
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
-            )
+        # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            ###########################
+        # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+        ######################################################
+        # Grant Device Access Right (to owner herself)
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
+        simple_log("measure", "*" * 50)
 
-            # WHEN: Holder: EP's CS apply the access_end_u_token to IoTD
-            original_device_order = iot_device.shared_data.this_device.ticket_order
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        iot_device = menu_iot_device.get_iot_device()
 
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            assert (
-                iot_device.shared_data.this_device.ticket_order
-                == original_device_order + 1
-            )
+        # WHEN: Holder: EP's CS apply the self_access_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            ######################################################
-            # Grant Device Access Right (to others)
-            ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Grant Device Access Right (to others)")
-            simple_log("measure", "*" * 50)
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            iot_device.shared_data.current_session.plaintext_data
+            == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
+        )
 
-            # GIVEN: Initialized IoTD
-            menu_iot_device = MenuIoTDevice(device_name="iot_device")
-            iot_device = menu_iot_device.get_iot_device()
+        ###########################
 
-            # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
 
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
-            )
+        # WHEN: Holder: EP's CS apply the u_token to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            ###########################
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            iot_device.shared_data.current_session.plaintext_data
+            == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
+        )
 
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+        ###########################
 
-            # WHEN: Holder: EP's CS apply the u_token to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
 
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
-            )
+        # WHEN: Holder: EP's CS apply the access_end_u_token to IoTD
+        original_device_order = iot_device.shared_data.this_device.ticket_order
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            ###########################
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert (
+            iot_device.shared_data.this_device.ticket_order == original_device_order + 1
+        )
 
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+        ######################################################
+        # Grant Device Access Right (to others)
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Grant Device Access Right (to others)")
+        simple_log("measure", "*" * 50)
 
-            # WHEN: Holder: EP's CS apply the access_end_u_token to IoTD
-            original_device_order = iot_device.shared_data.this_device.ticket_order
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        iot_device = menu_iot_device.get_iot_device()
 
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            assert (
-                iot_device.shared_data.this_device.ticket_order
-                == original_device_order + 1
-            )
+        # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            iot_device.shared_data.current_session.plaintext_data
+            == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS apply the u_token to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        # THEN: EP's CS can share a private session with DO's IoTD
+        assert (
+            iot_device.shared_data.current_session.plaintext_data
+            == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
+        )
+
+        ###########################
+
+        # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+
+        # WHEN: Holder: EP's CS apply the access_end_u_token to IoTD
+        original_device_order = iot_device.shared_data.this_device.ticket_order
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+
+        # THEN: Succeed to share a private session with DO's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert (
+            iot_device.shared_data.this_device.ticket_order == original_device_order + 1
+        )
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -201,6 +204,11 @@ class FlowIssueUToken:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish PS~~ (device)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
     def _holder_recv_data(self, received_r_token: RTicket) -> None:
         try:
             # [STAGE: (R)(VR)]
@@ -227,7 +235,6 @@ class FlowIssueUToken:
             # [STAGE: (VTK)]
             # [STAGE: (E)]
             self.executor._execute_xxx_r_ticket(received_r_token)
-
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (C)]
@@ -245,3 +252,10 @@ class FlowIssueUToken:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        # Manually Finish Simulated/Bluetooth Comm
+        simple_log("debug", f"+ Manually Finish PS~~ (holder)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+        elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            self.msg_sender.complete_bluetooth_comm()

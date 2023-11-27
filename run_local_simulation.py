@@ -116,7 +116,7 @@ def simulation_script():
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
         owned_device_id, generated_command
     )
-    wait_simulated_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(iot_device, cloud_server_ep)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
@@ -129,7 +129,7 @@ def simulation_script():
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_simulated_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(iot_device, cloud_server_ep)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
@@ -142,7 +142,7 @@ def simulation_script():
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_simulated_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(iot_device, cloud_server_ep)
 
     ######################################################
     # THEN: Show Response Time + Data Size Measurement
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     # ENVIRONMENT
     ######################################################
     Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    Environment.DEBUG_LOG = "CLOSED"
+    Environment.DEBUG_LOG = "OPEN"
     Environment.CLI_LOG = "OPEN"
     Environment.MEASURE_LOG = "OPEN"
 

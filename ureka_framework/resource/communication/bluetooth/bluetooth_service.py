@@ -28,9 +28,11 @@ MSG_MAX_SIZE = 980  # byte
 # MSG_MAX_SIZE = 80  # byte
 # COMM_BUFFER_SIZE = 64  # byte
 # MSG_MAX_SIZE = 20  # byte
+
 SPLIT_SIGN = "|||S|P|L|I|T|||"
-# Too high: decrease performance;
-# Too low: message may not received when doing other processing (multi-thread may help)
+
+# Too high: Decrease performance
+# Too low: Message may not received when doing other processing (multi-thread may help)
 WAIT_NEXT_CHUNK = 0.001  # sec
 # WAIT_NEXT_CHUNK = 0.05  # sec
 

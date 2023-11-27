@@ -28,7 +28,9 @@ def get_process_time() -> float:
 
     end_process = time.process_time()
     # end_process = time.perf_counter()
+
     elapsed_process_time = end_process - start_process
+
     return elapsed_process_time
 
 

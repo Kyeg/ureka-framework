@@ -156,10 +156,23 @@ class FlowApplyUTicket:
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
 
-            # End Simulated/Bluetooth Comm
-            simple_log("debug", f"+ Failed UT-RT or Failed CR-KE~~ (device)")
-            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
-                self.msg_sender.complete_simulated_comm()
+            # UT-RT
+            if (
+                received_u_ticket.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+            ):
+                pass
+            # CR-KE
+            elif (
+                received_u_ticket.u_ticket_type == u_ticket.TYPE_ACCESS_UTICKET
+                or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
+            ):
+                # Automatically Terminate Simulated Comm
+                simple_log("debug", f"+ Automatically Terminate CR-KE-0~~ (device)")
+                if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                    self.msg_sender.complete_simulated_comm()
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -246,6 +259,11 @@ class FlowApplyUTicket:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish UT-RT~~ (device)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
     def _holder_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (R)(VR)]
@@ -302,3 +320,10 @@ class FlowApplyUTicket:
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
+        # Manually Finish Simulated/Bluetooth Comm
+        simple_log("debug", f"+ Manually Finish UT-RT~~ (holder)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+        elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            self.msg_sender.complete_bluetooth_comm()

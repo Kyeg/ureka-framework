@@ -129,11 +129,6 @@ class FlowIssueUTicket:
                     generated_u_ticket_json,
                 )
 
-                # End Simulated Comm
-                simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
-                if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
-                    self.msg_sender.complete_simulated_comm()
-
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
@@ -147,6 +142,11 @@ class FlowIssueUTicket:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish UT-UT~~ (issuer)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
 
         ######################################################
         # End Process Measurement
@@ -175,6 +175,11 @@ class FlowIssueUTicket:
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
             pass
 
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish UT-UT~~ (holder)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
     def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
         ######################################################
         # Start Process Measurement
@@ -195,11 +200,6 @@ class FlowIssueUTicket:
                 stored_r_ticket_json,
             )
 
-            # End Simulated Comm
-            simple_log("debug", f"+ Finish RT-RT~~ (holder)")
-            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
-                self.msg_sender.complete_simulated_comm()
-
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
@@ -207,6 +207,11 @@ class FlowIssueUTicket:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish RT-RT~~ (holder)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
 
         ######################################################
         # End Process Measurement
@@ -292,3 +297,8 @@ class FlowIssueUTicket:
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
+        # Manually Finish Simulated Comm
+        simple_log("debug", f"+ Manually Finish RT-RT~~ (issuer)")
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()

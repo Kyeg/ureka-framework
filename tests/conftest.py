@@ -70,6 +70,11 @@ def current_teardown_log() -> None:
 # Helper Functions (Simulated Comm)
 ######################################################
 def create_simulated_comm_connection(end1: DeviceController, end2: DeviceController):
+    # # Re-open the sender/receiver
+    # end1.msg_sender.start_simulated_comm()
+    # end2.msg_sender.start_simulated_comm()
+
+    # Set Sender (on Main Thread) & Start Reciever Thread
     end1.msg_receiver.create_simulated_comm_connection(end2)
     end2.msg_receiver.create_simulated_comm_connection(end1)
 
@@ -83,9 +88,6 @@ def wait_simulated_comm_completed(end1: DeviceController, end2: DeviceController
     # Wait for all sender/receiver to finish their works (block last 1st make log beautiful)
     end1.msg_sender.wait_simulated_comm_completed()
     end2.msg_sender.wait_simulated_comm_completed()
-    # Re-open the sender/receiver
-    end1.msg_sender.re_wait_simulated_comm()
-    end2.msg_sender.re_wait_simulated_comm()
 
     simple_log(
         "info",

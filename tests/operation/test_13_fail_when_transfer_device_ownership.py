@@ -108,7 +108,7 @@ class TestFailWhenTransferDeviceOwnership:
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id
         )
-        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.iot_device, self.cloud_server_atk)
 
         # THEN: Because no legal issuer private key,
         #       legal authorization (issuer signature) cannot be generated
