@@ -9,6 +9,9 @@ from ureka_framework.model.data_model.current_session import CurrentSession
 from ureka_framework.model.data_model.this_person import ThisPerson
 from ureka_framework.model.data_model.other_device import OtherDevice
 
+# Threading
+import threading
+
 # Resource (Simulated Comm)
 from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
     SimulatedCommChannel,
@@ -27,9 +30,6 @@ except ImportError:
     # raise RuntimeError(
     #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
     # )
-
-# Resource (Logger)
-from ureka_framework.resource.logger.simple_logger import simple_log
 
 
 @dataclass
@@ -50,6 +50,7 @@ class SharedData:
 
     # Resource (Simulated Comm)
     simulated_comm_channel: Optional[SimulatedCommChannel] = None
+    simulated_comm_receiver_thread: threading.Thread = None
     simulated_comm_completed_flag: Optional[bool] = None
 
     # Resource (Bluetooth Comm)

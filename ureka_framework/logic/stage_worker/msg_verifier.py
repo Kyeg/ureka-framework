@@ -40,7 +40,7 @@ class MsgVerifier:
     ) -> Union[UTicket, RTicket]:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying message type...",
         )
 
         # [STAGE: (VR: UTicket)]
@@ -62,7 +62,7 @@ class MsgVerifier:
     def _classify_u_ticket_is_defined_type(self, arbitrary_json: str) -> UTicket:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying ticket type...",
         )
 
         # Notice that Pydantic can classify message type by json schema,
@@ -84,7 +84,7 @@ class MsgVerifier:
     def _classify_r_ticket_is_defined_type(self, arbitrary_json: str) -> RTicket:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying ticket type...",
         )
 
         # Notice that Pydantic can classify message type by json schema,

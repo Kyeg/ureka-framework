@@ -51,8 +51,7 @@ class MsgSender:
     def wait_simulated_comm_completed(self) -> None:
         while not self.shared_data.simulated_comm_completed_flag:
             time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
-        # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
-
+        # self.shared_data.simulated_comm_receiver_thread.join()
 
     ######################################################
     # Resource (Bluetooth Comm)
@@ -110,9 +109,10 @@ class MsgSender:
             )
 
             # Simulate Network Delay
-            for i in range(3):
-                for i in range(3):
-                    simple_log("info", f"+ network delay")
+            for i in range(Environment.SIMULULATED_COMM_DELAY_COUNT):
+                simple_log("info", f"+ network delay")
+                simple_log("info", f"+ network delay")
+                simple_log("info", f"+ network delay")
                 if (
                     Environment.DEPLOYMENT_ENV == "PRODUCTION"
                 ):  # pragma: no cover -> PRODUCTION

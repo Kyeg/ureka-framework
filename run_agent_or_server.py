@@ -230,7 +230,7 @@ class MenuAgentOrServer:
         self.agent_or_server.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             target_device_id
         )
-        wait_simulated_comm_completed(original_issuer, self.agent_or_server)
+        wait_simulated_comm_completed(self.agent_or_server, original_issuer)
 
     def apply_insecure_cmd_through_bluetooth(
         self, option: str = "with_device_id"

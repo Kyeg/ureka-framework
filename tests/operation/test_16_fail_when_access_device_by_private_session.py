@@ -145,7 +145,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
 
         # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
 
-        create_simulated_comm_connection(self.cloud_server_ep, self.user_agent_do)
+        create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id
         )

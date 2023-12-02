@@ -15,8 +15,11 @@ class Environment:
 
     # "TEST": No Delay (complete tests faster)
     # "PRODUCTION": With Delay (make local simulation interactive)
-    SIMULULATED_COMM_DELAY = 0.5
     SIMULULATED_COMM_INTERRUPT_CYCLE_TIME = 0.01
+    SIMULULATED_COMM_DELAY_COUNT = 3
+    SIMULULATED_COMM_DELAY = 0.01
+    # SIMULULATED_COMM_TIME_OUT: Should be at least larger than SIMULULATED_COMM_DELAY_COUNT * SIMULULATED_COMM_DELAY
+    SIMULULATED_COMM_TIME_OUT = 1
 
     ######################################################
     # Log
@@ -25,4 +28,4 @@ class Environment:
     # "CLOSED": Not Print Log
     DEBUG_LOG = "OPEN"
     CLI_LOG = "OPEN"
-    MEASURE_LOG = "OPEN"
+    MEASURE_LOG = "CLOSED"

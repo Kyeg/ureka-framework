@@ -90,7 +90,7 @@ class TestSuccessWhenIntializeAgentOrServer:
         )
 
         # WHEN: Holder: DO's UA return the ownership_r_ticket to DM's CS
-        create_simulated_comm_connection(self.user_agent_do, self.cloud_server_dm)
+        create_simulated_comm_connection(self.cloud_server_dm, self.user_agent_do)
         self.user_agent_do.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id
         )

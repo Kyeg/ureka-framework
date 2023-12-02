@@ -50,17 +50,17 @@ def simulation_script():
     ######################################################
     # GIVEN:
     ######################################################
-    simple_log("cli", "\n")
+    simple_log("cli", "")
     simple_log("cli", "*" * 50)
     simple_log("cli", f"Preparing for the Local Simulation...")
     simple_log("cli", "*" * 50)
-    simple_log("cli", "\n")
+    simple_log("cli", "")
 
     ######################################################
     # GIVEN: Initialized DO's UA and DO's IoTD
     ######################################################
     simple_log("cli", "")
-    input("Press Enter to continue...")
+    input("[     CLI] : Press Enter to continue...")
     (user_agent_do, iot_device) = device_owner_agent_and_her_device()
     simple_log("cli", "")
     simple_log("cli", f"+++DO's UA and DO's IoTD are Initialized+++")
@@ -69,7 +69,7 @@ def simulation_script():
     # GIVEN: Initialized EP's CS
     ######################################################
     simple_log("cli", "")
-    input("Press Enter to continue...")
+    input("[     CLI] : Press Enter to continue...")
     cloud_server_ep = enterprise_provider_server()
     simple_log("cli", "")
     simple_log("cli", f"+++EP's CS is Initialized+++")
@@ -77,14 +77,14 @@ def simulation_script():
     ######################################################
     # WHEN:
     ######################################################
-    simple_log("cli", "\n")
+    simple_log("cli", "")
     simple_log("cli", "*" * 50)
     simple_log("cli", f"Start Local Simulation...")
     simple_log("cli", "*" * 50)
-    simple_log("cli", "\n")
+    simple_log("cli", "")
 
     simple_log("cli", "")
-    input("Press Enter to continue...")
+    input("[     CLI] : Press Enter to continue...")
     current_test_when_and_then_log()
 
     ######################################################
@@ -109,49 +109,49 @@ def simulation_script():
     ######################################################
     # WHEN: Holder: EP's CS forward the access_u_ticket
     ######################################################
-    create_simulated_comm_connection(cloud_server_ep, iot_device)
     # generated_command = "HELLO-1"
     simple_log("cli", "")
-    generated_command = input("EP's CS enter 1st command to DO's IoTD: ")
+    generated_command = input("[     CLI] : EP's CS enter 1st command to DO's IoTD: ")
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
         owned_device_id, generated_command
     )
-    wait_simulated_comm_completed(iot_device, cloud_server_ep)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
     ######################################################
-    create_simulated_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-2"
     simple_log("cli", "")
-    generated_command = input("EP's CS enter 2nd command to DO's IoTD: ")
+    generated_command = input("[     CLI] : EP's CS enter 2nd command to DO's IoTD: ")
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_simulated_comm_completed(iot_device, cloud_server_ep)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # WHEN: Holder: EP's CS forward the u_token
     ######################################################
-    create_simulated_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     # generated_command = "HELLO-3"
     simple_log("cli", "")
-    generated_command = input("EP's CS enter 3rd command to DO's IoTD: ")
+    generated_command = input("[     CLI] : EP's CS enter 3rd command to DO's IoTD: ")
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
+    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
         device_id=owned_device_id, cmd=generated_command
     )
-    wait_simulated_comm_completed(iot_device, cloud_server_ep)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     ######################################################
     # THEN: Show Response Time + Data Size Measurement
     ######################################################
-    simple_log("cli", "\n")
+    simple_log("cli", "")
     simple_log("cli", "*" * 50)
     simple_log("cli", f"Finish Local Simulation")
     simple_log("cli", "*" * 50)
-    simple_log("cli", "\n")
+    simple_log("cli", "")
 
 
 if __name__ == "__main__":

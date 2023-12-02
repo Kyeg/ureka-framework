@@ -25,6 +25,7 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Threading
 import threading
+import queue
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -85,8 +86,10 @@ class MsgReceiver:
             end.shared_data.simulated_comm_channel.receiver_queue
         )
         # Start Reciever Thread
-        receiver_thread = threading.Thread(target=self._recv_xxx_message, daemon=True)
-        receiver_thread.start()
+        self.shared_data.simulated_comm_receiver_thread = threading.Thread(
+            target=self._recv_xxx_message, daemon=True
+        )
+        self.shared_data.simulated_comm_receiver_thread.start()
 
     ######################################################
     # Resource (Bluetooth Comm)
@@ -132,6 +135,7 @@ class MsgReceiver:
                 # [STAGE: (R)]
                 if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                     # This will block until message is received
+                    # timeout=Environment.SIMULULATED_COMM_TIME_OUT
                     received_message_with_header = (
                         self.shared_data.simulated_comm_channel.receiver_queue.get()
                     )
@@ -173,7 +177,7 @@ class MsgReceiver:
                         simple_log("cli", f"")
                         simple_log("cli", f"+ Connection is closed by peer.")
                         break
-                        
+
                 ########################################################################
                 # Message Size Measurement
                 ########################################################################
@@ -320,6 +324,15 @@ class MsgReceiver:
 
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
+
+            except queue.Empty:
+                # Automatically Finish Simulated Comm
+                simple_log(
+                    "debug",
+                    f"+ Timeout: Automatically close Simulated Receiver Queue after {Environment.SIMULULATED_COMM_TIME_OUT} seconds",
+                )
+                if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                    self.msg_sender.complete_simulated_comm()
 
             except RuntimeError as error:  # pragma: no cover -> FAILURE: (VR)
                 # TODO: device_send_error_r_ticket (Sterilization)
