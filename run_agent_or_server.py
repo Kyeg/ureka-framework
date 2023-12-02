@@ -310,7 +310,10 @@ class MenuAgentOrServer:
                 "_holder_recv_insecure_data"
             )
 
-            simple_log("debug", f"+ Manually Finish CMD-DATA~~ (holder)")
+            simple_log(
+                "debug",
+                f"+ {self.agent_or_server.shared_data.this_device.device_name} manually finish CMD-DATA~~ (holder)",
+            )
         except OSError:
             simple_log("cli", f"")
             simple_log("cli", f"+ Connection is closed by peer.")

@@ -168,7 +168,10 @@ class FlowApplyUTicket:
                 or received_u_ticket.u_ticket_type == u_ticket.TYPE_SELFACCESS_UTICKET
             ):
                 # Automatically Terminate Simulated Comm
-                simple_log("debug", f"+ Automatically Terminate CR-KE-0~~ (device)")
+                simple_log(
+                    "debug",
+                    f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-0~~ (device)",
+                )
                 if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                     self.msg_sender.complete_simulated_comm()
             else:  # pragma: no cover -> Shouldn't Reach Here
@@ -260,7 +263,10 @@ class FlowApplyUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish UT-RT~~ (device)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-RT~~ (device)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -322,7 +328,10 @@ class FlowApplyUTicket:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
         # Manually Finish Simulated/Bluetooth Comm
-        simple_log("debug", f"+ Manually Finish UT-RT~~ (holder)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-RT~~ (holder)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
         elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":

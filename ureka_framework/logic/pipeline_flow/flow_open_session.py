@@ -114,7 +114,10 @@ class FlowOpenSession:
             )
 
             # Automatically Terminate Simulated/Bluetooth Comm
-            simple_log("debug", f"+ Automatically Terminate CR-KE-1~~ (holder)")
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-1~~ (holder)",
+            )
             if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                 self.msg_sender.complete_simulated_comm()
             elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
@@ -181,7 +184,10 @@ class FlowOpenSession:
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
 
             # Automatically Terminate Simulated Comm
-            simple_log("debug", f"+ Automatically Terminate CR-KE-2~~ (device)")
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-2~~ (device)",
+            )
             # Anyway, Finish CR-KE~~
 
         except:  # pragma: no cover -> Shouldn't Reach Here
@@ -192,7 +198,10 @@ class FlowOpenSession:
             self._device_send_cr_ke_3(self.shared_data.result_message)
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish CR-KE~~ (device)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish CR-KE~~ (device)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -262,14 +271,20 @@ class FlowOpenSession:
             )
 
             # Automatically Terminate Simulated/Bluetooth Comm
-            simple_log("debug", f"+ Automatically Terminate CR-KE-3~~ (holder)")
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-3~~ (holder)",
+            )
             # Anyway, Finish CR-KE~~
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated/Bluetooth Comm
-        simple_log("debug", f"+ Manually Finish CR-KE~~ (holder)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish CR-KE~~ (holder)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
         elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":

@@ -94,7 +94,10 @@ class MenuIoTDevice:
                     "_device_recv_insecure_cmd"
                 )
 
-                simple_log("debug", f"+ Manually Finish CMD-DATA~~ (device)")
+                simple_log(
+                    "debug",
+                    f"+ {self.iot_device.shared_data.this_device.device_name} manually finish CMD-DATA~~ (device)",
+                )
             except OSError:
                 simple_log("cli", f"")
                 simple_log("cli", f"+ Connection is closed by peer.")

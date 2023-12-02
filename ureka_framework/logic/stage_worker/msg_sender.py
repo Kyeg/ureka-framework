@@ -49,9 +49,12 @@ class MsgSender:
         self.shared_data.simulated_comm_completed_flag = True
 
     def wait_simulated_comm_completed(self) -> None:
-        while not self.shared_data.simulated_comm_completed_flag:
-            time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
-        # self.shared_data.simulated_comm_receiver_thread.join()
+        if Environment.DEPLOYMENT_ENV == "TEST":
+            # Pytest terminates all daemon threads when main thread is finished
+            while not self.shared_data.simulated_comm_completed_flag:
+                time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
+        elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
+            self.shared_data.simulated_comm_receiver_thread.join()
 
     ######################################################
     # Resource (Bluetooth Comm)
@@ -95,7 +98,7 @@ class MsgSender:
             try:
                 new_message = Message(**message_request)
                 new_message_json = message_to_jsonstr(new_message)
-                # simple_log("debug", f"sent_message_json: {new_message_json}")
+                # simple_log("debug", f"sent_message_json: {sent_message_json}")
             except ValidationError as error:  # pragma: no cover -> Weird M-Request
                 raise RuntimeError(f"Weird M-Request: {error}")
         else:  # pragma: no cover -> Weird M-Request
@@ -109,16 +112,15 @@ class MsgSender:
             )
 
             # Simulate Network Delay
-            for i in range(Environment.SIMULULATED_COMM_DELAY_COUNT):
+            for _ in range(Environment.SIMULULATED_COMM_DELAY_COUNT):
                 simple_log("info", f"+ network delay")
                 simple_log("info", f"+ network delay")
                 simple_log("info", f"+ network delay")
                 if (
                     Environment.DEPLOYMENT_ENV == "PRODUCTION"
                 ):  # pragma: no cover -> PRODUCTION
-                    time.sleep(Environment.SIMULULATED_COMM_DELAY)
+                    time.sleep(Environment.SIMULULATED_COMM_DELAY_DURATION)
 
-            # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
             self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)
         else:  # pragma: no cover -> PRODUCTION
             simple_log(

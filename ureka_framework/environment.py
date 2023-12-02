@@ -17,9 +17,12 @@ class Environment:
     # "PRODUCTION": With Delay (make local simulation interactive)
     SIMULULATED_COMM_INTERRUPT_CYCLE_TIME = 0.01
     SIMULULATED_COMM_DELAY_COUNT = 3
-    SIMULULATED_COMM_DELAY = 0.01
-    # SIMULULATED_COMM_TIME_OUT: Should be at least larger than SIMULULATED_COMM_DELAY_COUNT * SIMULULATED_COMM_DELAY
-    SIMULULATED_COMM_TIME_OUT = 1
+    SIMULULATED_COMM_DELAY_DURATION = 0.3
+
+    # "TEST": No Time Out (Pytest terminates all daemon threads when main thread is finished)
+    # "PRODUCTION": Terminates the worker threads through Timeout
+    #                 and make sure TIME_OUT must be larger than DELAY_COUNT * DELAY_DURATION + Process Time in worker thread
+    SIMULULATED_COMM_TIME_OUT = 2
 
     ######################################################
     # Log

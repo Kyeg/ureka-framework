@@ -144,7 +144,10 @@ class FlowIssueUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish UT-UT~~ (issuer)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-UT~~ (issuer)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -176,7 +179,10 @@ class FlowIssueUTicket:
             pass
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish UT-UT~~ (holder)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-UT~~ (holder)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -209,7 +215,10 @@ class FlowIssueUTicket:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish RT-RT~~ (holder)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish RT-RT~~ (holder)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -299,6 +308,9 @@ class FlowIssueUTicket:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish RT-RT~~ (issuer)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish RT-RT~~ (issuer)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()

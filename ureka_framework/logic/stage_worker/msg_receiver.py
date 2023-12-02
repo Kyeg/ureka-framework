@@ -124,21 +124,28 @@ class MsgReceiver:
             self.msg_sender.start_bluetooth_comm()
 
         while True:
-            # if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
-            #     if self.shared_data.simulated_comm_completed_flag == True:
-            #         break
-            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                if self.shared_data.simulated_comm_completed_flag == True:
+                    break
+            elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
                 if self.shared_data.bluetooth_comm_completed_flag == True:
                     break
 
             try:
                 # [STAGE: (R)]
                 if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
-                    # This will block until message is received
-                    # timeout=Environment.SIMULULATED_COMM_TIME_OUT
-                    received_message_with_header = (
-                        self.shared_data.simulated_comm_channel.receiver_queue.get()
-                    )
+                    if Environment.DEPLOYMENT_ENV == "TEST":
+                        # This will block until message is received
+                        received_message_with_header = (
+                            self.shared_data.simulated_comm_channel.receiver_queue.get()
+                        )
+                    elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
+                        # This will block until message is received all until timeout
+                        received_message_with_header = (
+                            self.shared_data.simulated_comm_channel.receiver_queue.get(
+                                timeout=Environment.SIMULULATED_COMM_TIME_OUT
+                            )
+                        )
 
                     simple_log(
                         "info",
@@ -329,7 +336,8 @@ class MsgReceiver:
                 # Automatically Finish Simulated Comm
                 simple_log(
                     "debug",
-                    f"+ Timeout: Automatically close Simulated Receiver Queue after {Environment.SIMULULATED_COMM_TIME_OUT} seconds",
+                    f"+ {self.shared_data.this_device.device_name}"
+                    f" automatically terminate receiver thread (simulated comm) after Timeout ({Environment.SIMULULATED_COMM_TIME_OUT} seconds)~~",
                 )
                 if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
                     self.msg_sender.complete_simulated_comm()

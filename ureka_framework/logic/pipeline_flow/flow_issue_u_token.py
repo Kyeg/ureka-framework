@@ -205,7 +205,10 @@ class FlowIssueUToken:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated Comm
-        simple_log("debug", f"+ Manually Finish PS~~ (device)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish PS~~ (device)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
@@ -254,7 +257,10 @@ class FlowIssueUToken:
             raise RuntimeError(f"Shouldn't Reach Here")
 
         # Manually Finish Simulated/Bluetooth Comm
-        simple_log("debug", f"+ Manually Finish PS~~ (holder)")
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish PS~~ (holder)",
+        )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
         elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
