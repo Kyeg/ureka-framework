@@ -15,6 +15,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -31,6 +34,7 @@ class FlowIssueUToken:
     def __init__(
         self,
         share_data: SharedData,
+        measure_helper: MeasureHelper,
         received_msg_storer: ReceivedMsgStorer,
         msg_verifier: MsgVerifier,
         executor: Executor,
@@ -40,6 +44,7 @@ class FlowIssueUToken:
         flow_apply_u_ticket: FlowApplyUTicket,
     ) -> None:
         self.shared_data = share_data
+        self.measure_helper = measure_helper
         self.received_msg_storer = received_msg_storer
         self.msg_verifier = msg_verifier
         self.executor = executor
@@ -66,7 +71,7 @@ class FlowIssueUToken:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -121,7 +126,7 @@ class FlowIssueUToken:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process_time("holder_send_cmd")
+        self.measure_helper.measure_cli_process_time("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:

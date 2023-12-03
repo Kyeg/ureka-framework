@@ -250,7 +250,7 @@ class MenuAgentOrServer:
         ########################################################################
         # Start Process Measurement
         ########################################################################
-        self.agent_or_server.executor.measure_process_start()
+        self.agent_or_server.measure_helper.measure_process_start()
 
         if option == "shortest":
             insecure_cmd_json = "HELLO"
@@ -277,7 +277,7 @@ class MenuAgentOrServer:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.agent_or_server.executor.measure_cli_process_time(
+        self.agent_or_server.measure_helper.measure_cli_process_time(
             "holder_apply_insecure_cmd"
         )
 
@@ -286,7 +286,7 @@ class MenuAgentOrServer:
             ########################################################################
             # Start Comm Measurement
             ########################################################################
-            self.agent_or_server.executor.measure_comm_start()
+            self.agent_or_server.measure_helper.measure_comm_start()
 
             # This will block until message is received
             insecure_data_json = (
@@ -296,23 +296,27 @@ class MenuAgentOrServer:
             ########################################################################
             # End Comm Measurement
             ########################################################################
-            self.agent_or_server.executor.measure_comm_time(
+            self.agent_or_server.measure_helper.measure_comm_time(
                 "_holder_or_device_recv_u_or_r_ticket"
             )
-            self.agent_or_server.executor.measure_message_size(insecure_data_json)
+
+            ########################################################################
+            # Message Size Measurement
+            ########################################################################
+            self.agent_or_server.measure_helper.measure_message_size(insecure_data_json)
             simple_log("cli", f"Received Data: {insecure_data_json}")
 
             ########################################################################
             # Start Process Measurement
             ########################################################################
-            self.agent_or_server.executor.measure_process_start()
+            self.agent_or_server.measure_helper.measure_process_start()
 
             # WHEN: UA/CS do data processing
 
             ######################################################
             # End Process Measurement
             ######################################################
-            self.agent_or_server.executor.measure_comm_process_time(
+            self.agent_or_server.measure_helper.measure_comm_process_time(
                 "_holder_recv_insecure_data"
             )
 

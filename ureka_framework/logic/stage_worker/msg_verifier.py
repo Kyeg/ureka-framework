@@ -16,6 +16,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 # Resource (Serialization)
 from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
 from ureka_framework.logic.stage_worker.msg_verifier_r_ticket import RTicketVerifier
@@ -23,8 +26,13 @@ from ureka_framework.logic.stage_worker.msg_verifier_message import MessageVerif
 
 
 class MsgVerifier:
-    def __init__(self, shared_data: SharedData) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        measure_helper: MeasureHelper,
+    ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
 
     ######################################################
     # [STAGE: (V)] Verify Message & Execute

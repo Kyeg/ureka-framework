@@ -43,6 +43,9 @@ import time
 import threading
 from queue import Queue
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_receiver import MsgReceiver
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
@@ -84,31 +87,43 @@ class DeviceController:
             self.shared_data.connecting_worker: Optional[ConnectingWorker] = None
             self.shared_data.connection_socket: Optional[ConnectionSocket] = None
 
+        # Measurer
+        self.measure_helper = MeasureHelper(shared_data=self.shared_data)
+
         # Stage Worker
         self.received_msg_storer = ReceivedMsgStorer(
-            shared_data=self.shared_data, simple_storage=self.simple_storage
+            shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
+            simple_storage=self.simple_storage,
         )
         self.msg_verifier = MsgVerifier(
             shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
         )
         self.executor = Executor(
             shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
             simple_storage=self.simple_storage,
             msg_verifier=self.msg_verifier,
         )
         self.msg_generator = MsgGenerator(
             shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
         )
         self.generated_msg_storer = GeneratedMsgStorer(
-            shared_data=self.shared_data, simple_storage=self.simple_storage
+            shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
+            simple_storage=self.simple_storage,
         )
         self.msg_sender = MsgSender(
             shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
         )
 
         # Flow
         self.flow_issuer_issue_u_ticket = FlowIssueUTicket(
             share_data=self.shared_data,
+            measure_helper=self.measure_helper,
             received_msg_storer=self.received_msg_storer,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
@@ -118,6 +133,7 @@ class DeviceController:
         )
         self.flow_open_session = FlowOpenSession(
             share_data=self.shared_data,
+            measure_helper=self.measure_helper,
             received_msg_storer=self.received_msg_storer,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
@@ -127,6 +143,7 @@ class DeviceController:
         )
         self.flow_apply_u_ticket = FlowApplyUTicket(
             share_data=self.shared_data,
+            measure_helper=self.measure_helper,
             received_msg_storer=self.received_msg_storer,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
@@ -137,6 +154,7 @@ class DeviceController:
         )
         self.flow_issue_u_token = FlowIssueUToken(
             share_data=self.shared_data,
+            measure_helper=self.measure_helper,
             received_msg_storer=self.received_msg_storer,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
@@ -149,6 +167,7 @@ class DeviceController:
         # Stage Worker
         self.msg_receiver = MsgReceiver(
             shared_data=self.shared_data,
+            measure_helper=self.measure_helper,
             msg_verifier=self.msg_verifier,
             executor=self.executor,
             msg_sender=self.msg_sender,

@@ -38,19 +38,23 @@ from ureka_framework.resource.logger.simple_measurer import (
     simple_size_calculator,
 )
 
-
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 
 class Executor:
     def __init__(
         self,
         shared_data: SharedData,
+        measure_helper: MeasureHelper,
         simple_storage: SimpleStorage,
         msg_verifier: MsgVerifier,
     ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
         self.simple_storage = simple_storage
         self.msg_verifier = msg_verifier
 
@@ -102,7 +106,7 @@ class Executor:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_process_start()
+        self.measure_helper.measure_process_start()
 
         simple_log(
             "info",
@@ -176,7 +180,9 @@ class Executor:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_cli_process_time("_execute_one_time_intialize_agent_or_server")
+        self.measure_helper.measure_cli_process_time(
+            "_execute_one_time_intialize_agent_or_server"
+        )
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
@@ -248,7 +254,9 @@ class Executor:
                 or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
             ):
                 # [STAGE: (O)]
-                self._execute_update_ticket_order("holder-or-issuer-verify-rticket", r_ticket_in)
+                self._execute_update_ticket_order(
+                    "holder-or-issuer-verify-rticket", r_ticket_in
+                )
             elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
                 # [STAGE: (E)]
                 self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
@@ -285,7 +293,9 @@ class Executor:
                     r_ticket_in.device_id
                 ].device_access_end_r_ticket_for_others = None
                 # [STAGE: (O)]
-                self._execute_update_ticket_order("holder-or-issuer-verify-rticket", r_ticket_in)
+                self._execute_update_ticket_order(
+                    "holder-or-issuer-verify-rticket", r_ticket_in
+                )
                 ######################################################
                 # Storage
                 ######################################################
@@ -939,56 +949,3 @@ class Executor:
     ######################################################
     def _change_state(self, new_state: str) -> None:
         self.shared_data.state = new_state
-
-    ######################################################
-    # Measurement Helper:
-    #   Process Response Time
-    ######################################################
-    def measure_process_start(self) -> None:
-        start_process_timer()
-
-    def measure_cli_process_time(self, cli_name: str) -> None:
-        # Response Time
-        cli_process_time: float = get_process_time()
-
-        # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_process_time = {cli_process_time:.3f} seconds")
-
-    def measure_comm_process_time(self, comm_name: str) -> None:
-        # Response Time
-        comm_process_time: float = get_process_time()
-
-        # Print
-        # simple_log("measure", f"")
-        simple_log("measure", f"comm_process_time = {comm_process_time:.3f} seconds")
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        simple_log("measure", f"")
-
-    ######################################################
-    # Measurement Helper:
-    #   Comm Response Time
-    ######################################################
-    def measure_comm_start(self) -> None:
-        start_comm_timer()
-
-    def measure_comm_time(self, comm_name: str) -> None:
-        # Response Time
-        comm_time: float = get_comm_time()
-
-        # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        simple_log("measure", f"comm_time = {comm_time:.3f} seconds")
-
-    ######################################################
-    # Measurement Helper:
-    #   Data Size
-    ######################################################
-    def measure_message_size(self, received_message_with_header: str) -> None:
-        # Data Size
-        message_size: int = simple_size_calculator(received_message_with_header)
-
-        # Print
-        simple_log("measure", f"message_size = {message_size} bytes")

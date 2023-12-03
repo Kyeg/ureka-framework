@@ -15,6 +15,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -28,6 +31,7 @@ class FlowIssueUTicket:
     def __init__(
         self,
         share_data: SharedData,
+        measure_helper: MeasureHelper,
         received_msg_storer: ReceivedMsgStorer,
         msg_verifier: MsgVerifier,
         executor: Executor,
@@ -36,6 +40,7 @@ class FlowIssueUTicket:
         msg_sender: MsgSender,
     ) -> None:
         self.shared_data = share_data
+        self.measure_helper = measure_helper
         self.received_msg_storer = received_msg_storer
         self.msg_verifier = msg_verifier
         self.executor = executor
@@ -64,7 +69,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -98,7 +103,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process_time("issuer_issue_u_ticket_to_herself")
+        self.measure_helper.measure_cli_process_time("issuer_issue_u_ticket_to_herself")
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -106,7 +111,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_start()
 
         try:
             # [STAGE: (VL)]
@@ -154,7 +159,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process_time("issuer_issue_u_ticket_to_holder")
+        self.measure_helper.measure_cli_process_time("issuer_issue_u_ticket_to_holder")
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -190,7 +195,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -225,7 +230,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process_time("holder_send_r_ticket_to_issuer")
+        self.measure_helper.measure_cli_process_time("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:

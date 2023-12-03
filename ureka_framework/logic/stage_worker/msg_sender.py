@@ -24,9 +24,11 @@ except ImportError:
     #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
     # )
 
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 # Threading
 import time
@@ -36,8 +38,10 @@ class MsgSender:
     def __init__(
         self,
         shared_data: SharedData,
+        measure_helper: MeasureHelper,
     ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
 
     ######################################################
     # Resource (Simulated Comm)

@@ -12,10 +12,18 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 from ureka_framework.logic.stage_worker.msg_generator_u_ticket import UTicketGenerator
 from ureka_framework.logic.stage_worker.msg_generator_r_ticket import RTicketGenerator
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 
 class MsgGenerator:
-    def __init__(self, shared_data: SharedData) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        measure_helper: MeasureHelper,
+    ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
 
     ######################################################
     # [STAGE: (G)] Generate Message

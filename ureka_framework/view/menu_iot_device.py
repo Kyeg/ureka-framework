@@ -65,15 +65,15 @@ class MenuIoTDevice:
                 )
 
                 ########################################################################
-                # End Comm Measurement
+                # Message Size Measurement
                 ########################################################################
-                self.iot_device.executor.measure_message_size(insecure_cmd_json)
+                self.iot_device.measure_helper.measure_message_size(insecure_cmd_json)
                 simple_log("cli", f"Received Command: {insecure_cmd_json}")
 
                 ######################################################
                 # Start Process Measurement
                 ######################################################
-                self.iot_device.executor.measure_process_start()
+                self.iot_device.measure_helper.measure_process_start()
 
                 # WHEN: IoTD do data processing
                 if option == "shortest":
@@ -96,7 +96,7 @@ class MenuIoTDevice:
                 ######################################################
                 # End Process Measurement
                 ######################################################
-                self.iot_device.executor.measure_comm_process_time(
+                self.iot_device.measure_helper.measure_comm_process_time(
                     "_device_recv_insecure_cmd"
                 )
 
