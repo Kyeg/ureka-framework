@@ -917,7 +917,7 @@ class Executor:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_process_time = {cli_process_time:.4f} seconds")
+        simple_log("measure", f"cli_process_time = {cli_process_time:.3f} seconds")
 
     def measure_comm_process_time(self, comm_name: str) -> None:
         # Response Time
@@ -925,7 +925,7 @@ class Executor:
 
         # Print
         # simple_log("measure", f"")
-        simple_log("measure", f"comm_process_time = {comm_process_time:.4f} seconds")
+        simple_log("measure", f"comm_process_time = {comm_process_time:.3f} seconds")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
         simple_log("measure", f"")
 
@@ -943,7 +943,7 @@ class Executor:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        simple_log("measure", f"comm_time = {comm_time:.4f} seconds")
+        simple_log("measure", f"comm_time = {comm_time:.3f} seconds")
 
     ######################################################
     # Measurement Helper:
