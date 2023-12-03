@@ -78,8 +78,10 @@ class TestFailWhenAccessDeviceByPrivateSession:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
@@ -106,9 +108,9 @@ class TestFailWhenAccessDeviceByPrivateSession:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
-        #   (but Forbidden command is not executed)
+        # THEN: Fail to allow EP's CS to limitedly access DO's IoTD
         assert "FAILURE" in self.iot_device.shared_data.result_message
+        # THEN: Device: Not execute the forbidden command
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -131,9 +133,10 @@ class TestFailWhenAccessDeviceByPrivateSession:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        # THEN: Succeed to end this session
         assert "SUCCESS" in self.iot_device.shared_data.result_message
-        # THEN: Updated ticket order, EP's CS cannot access DO's IoTD anymore
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: Update ticket order, EP's CS cannot access DO's IoTD anymore
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1
@@ -143,7 +146,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
             == original_agent_order + 1
         )
 
-        # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
+        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
         create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id

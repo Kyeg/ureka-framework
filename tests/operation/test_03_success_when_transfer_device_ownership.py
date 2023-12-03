@@ -88,12 +88,13 @@ class TestSuccessWhenIntializeAgentOrServer:
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
-        # THEN: Updated ticket order, New Owner
+        assert "SUCCESS" in self.user_agent_do.shared_data.result_message
+        # THEN: Device: Set New Owner
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
             == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
-        # THEN: Updated ticket order, DM's CS cannot access DO's IoTD anymore
+        # THEN: Device: Update ticket order, DM's CS cannot access DO's IoTD anymore
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1

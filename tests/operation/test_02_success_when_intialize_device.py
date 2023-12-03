@@ -87,6 +87,8 @@ class TestSuccessWhenIntializeDevice:
 
         # THEN: Succeed to initialize DM's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_dm.shared_data.result_message
+        # THEN: Device: Set New Owner, Update ticket order
         assert self.iot_device.shared_data.this_device.ticket_order == 1
         assert self.iot_device.shared_data.this_device.device_priv_key_str != None
         assert self.iot_device.shared_data.this_device.device_pub_key_str != None

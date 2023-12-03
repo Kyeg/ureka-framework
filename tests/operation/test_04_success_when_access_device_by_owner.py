@@ -82,12 +82,13 @@ class TestSuccessWhenAccessDeviceByOwner:
 
         # THEN: DO's UA succeed to access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
-        # THEN: Still DO's IoTD
+        assert "SUCCESS" in self.user_agent_do.shared_data.result_message
+        # THEN: Device: Still DO's IoTD
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
             == self.user_agent_do.shared_data.this_person.person_pub_key_str
         )
-        # THEN: DO's UA can share a private session with DO's IoTD
+        # THEN: Device: DO's UA can share a private session with DO's IoTD
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command

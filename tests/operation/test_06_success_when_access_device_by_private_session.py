@@ -69,8 +69,10 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: EP's CS can share a private session with DO's IoTD (but Forbidden command is not executed)
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
@@ -88,7 +90,6 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
 
         # WHEN: Holder: EP's CS forward the u_token
-        #   (with Forbidden command)
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
@@ -97,9 +98,10 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
-        #   (but Forbidden command is not executed)
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: EP's CS can share a private session with DO's IoTD (but Forbidden command is not executed)
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
@@ -129,13 +131,15 @@ class TestSuccessWhenAccessDeviceByOthers:
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        # THEN: Succeed to end this session
         assert "SUCCESS" in self.iot_device.shared_data.result_message
-        # THEN: Updated ticket order, EP's CS cannot access DO's IoTD anymore
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: Update ticket order, EP's CS cannot access DO's IoTD anymore
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1
         )
+        # THEN: Holder: Update ticket order, know that she cannot access DO's IoTD anymore
         assert (
             self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
             == original_agent_order + 1
