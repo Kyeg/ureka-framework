@@ -31,9 +31,9 @@ MSG_MAX_SIZE = 980  # byte
 
 SPLIT_SIGN = "|||S|P|L|I|T|||"
 
-# Too high: Decrease performance
-# Too low: Message may not received when doing other processing (multi-thread may help)
-WAIT_NEXT_CHUNK = 0.001  # sec
+# Too high: decrease performance
+# Too low: message may not received when doing other processing (multi-thread may help)
+WAIT_NEXT_CHUNK = 0.005  # sec
 # WAIT_NEXT_CHUNK = 0.05  # sec
 
 

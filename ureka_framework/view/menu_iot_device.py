@@ -1,0 +1,112 @@
+# Environment
+from ureka_framework.environment import Environment
+
+# Resource (Storage)
+from ureka_framework.resource.storage.simple_storage import SimpleStorage
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Data Model (Message)
+import json
+
+# Data Model (RAM)
+from typing import Optional, Tuple
+from ureka_framework.logic.device_controller import DeviceController
+import ureka_framework.model.data_model.this_device as this_device
+
+
+class MenuIoTDevice:
+    def __init__(self, device_name: str) -> None:
+        # GIVEN: Uninitialized IoTD
+        self.iot_device = DeviceController(
+            device_type=this_device.IOT_DEVICE,
+            device_name=device_name,
+        )
+
+    def get_iot_device(self) -> DeviceController:
+        return self.iot_device
+
+    def receive_u_ticket_through_bluetooth(self) -> DeviceController:
+        # WHEN: Accept bluetooth connection from UA or CS
+        Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
+        self.iot_device.msg_receiver.accept_bluetooth_comm()
+
+        # WHEN: Receive/Send Message in Connection
+        self.iot_device.msg_receiver._recv_xxx_message()
+
+        # RE-GIVEN: Close bluetooth Connection with UA or CS
+        self.iot_device.msg_receiver.close_bluetooth_connection()
+
+        # RE-GIVEN: Stop Accepting New bluetooth Connections from UA or CS
+        self.iot_device.msg_receiver.close_bluetooth_acception()
+
+        return self.iot_device
+
+    def receive_insecure_cmd_through_bluetooth(
+        self, option: str = "with_device_id"
+    ) -> DeviceController:
+        # WHEN: Accept bluetooth connection from UA or CS
+        Environment.COMMUNICATION_CHANNEL = "BLUETOOTH"
+        self.iot_device.msg_receiver.accept_bluetooth_comm()
+
+        # WHEN: IoTD receive the insecure_cmd from UA or CS
+        while True:
+            try:
+                # This will block until message is received
+                insecure_cmd_json = (
+                    self.iot_device.shared_data.connection_socket.recv_message()
+                )
+
+                ########################################################################
+                # End Comm Measurement
+                ########################################################################
+                self.iot_device.executor.measure_message_size(insecure_cmd_json)
+                simple_log("cli", f"Received Command: {insecure_cmd_json}")
+
+                ######################################################
+                # Start Process Measurement
+                ######################################################
+                self.iot_device.executor.measure_process_start()
+
+                # WHEN: IoTD do data processing
+                if option == "shortest":
+                    insecure_data_json = f"Data: {insecure_cmd_json}"
+                else:
+                    insecure_cmd_dict = json.loads(insecure_cmd_json)
+                    insecure_data_dict = {
+                        "protocol_verision": insecure_cmd_dict["protocol_verision"],
+                        "device_id": insecure_cmd_dict["device_id"],
+                        "insecure_data_response": f"Data: {insecure_cmd_dict['insecure_command']}",
+                    }
+                    insecure_data_json = json.dumps(insecure_data_dict, indent=4)
+
+                # WHEN: IoTD return the insecure_data to UA or CS
+                self.iot_device.shared_data.connection_socket.send_message(
+                    insecure_data_json
+                )
+                simple_log("cli", f"Sent Data: {insecure_data_json}")
+
+                ######################################################
+                # End Process Measurement
+                ######################################################
+                self.iot_device.executor.measure_comm_process_time(
+                    "_device_recv_insecure_cmd"
+                )
+
+                simple_log(
+                    "debug",
+                    f"+ {self.iot_device.shared_data.this_device.device_name} manually finish CMD-DATA~~ (device)",
+                )
+            except OSError:
+                simple_log("cli", f"")
+                simple_log("cli", f"+ Connection is closed by peer.")
+                break
+
+        # RE-GIVEN: Close bluetooth connection with UA or CS
+        self.iot_device.msg_receiver.close_bluetooth_connection()
+
+        # RE-GIVEN: Stop Accepting New bluetooth Connections from UA or CS
+        self.iot_device.msg_receiver.close_bluetooth_acception()
+
+        return self.iot_device
