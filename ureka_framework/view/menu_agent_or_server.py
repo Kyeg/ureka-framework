@@ -25,6 +25,9 @@ from tests.conftest import (
 
 
 class MenuAgentOrServer:
+    ######################################################
+    # Secure Mode
+    ######################################################
     def __init__(self, device_name: str) -> None:
         # GIVEN: Uninitialized UA or CS
         self.agent_or_server = DeviceController(
@@ -224,14 +227,17 @@ class MenuAgentOrServer:
     def return_r_ticket_through_simulated_comm(
         self, target_device_id: str, original_issuer: DeviceController
     ) -> None:
-        # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
+        # WHEN: Holder: Holder return the r_ticket to Issuer
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_simulated_comm_connection(self.agent_or_server, original_issuer)
+        create_simulated_comm_connection(original_issuer, self.agent_or_server)
         self.agent_or_server.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             target_device_id
         )
         wait_simulated_comm_completed(original_issuer, self.agent_or_server)
 
+    ######################################################
+    # Insecure Mode
+    ######################################################
     def apply_insecure_cmd_through_bluetooth(
         self, option: str = "with_device_id"
     ) -> DeviceController:
@@ -319,4 +325,3 @@ class MenuAgentOrServer:
         self.agent_or_server.msg_sender.close_bluetooth_connection()
 
         return self.agent_or_server
-

@@ -24,7 +24,7 @@ if __name__ == "__main__":
         # Environment.MEASURE_LOG = "CLOSED"
 
         # Omit 1st run (Cold-start)
-        for times in range(3):
+        for times in range(1):
             if times == 0:
                 ######################################################
                 # Omit Cold-start
@@ -43,9 +43,13 @@ if __name__ == "__main__":
                 simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
                 simple_log("measure", "*" * 50)
 
+            ###########################
+
             # GIVEN: Initialized DM's CS
             menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
             user_agent_do = menu_user_agent_do.get_agent_or_server()
+
+            ###########################
 
             # WHEN: Holder: DO's UA generate & apply the self_access_u_ticket to IoTD
             target_device_id = menu_user_agent_do.get_target_device_id()

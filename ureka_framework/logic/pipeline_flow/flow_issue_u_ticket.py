@@ -267,6 +267,7 @@ class FlowIssueUTicket:
                 self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
                 # [STAGE: (E)(O)]
+                # TO-DO: _execute_xxx_r_ticket
                 if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
                     # Now owner anymore, delete this device in table
                     self.shared_data.device_table.pop(received_r_ticket.device_id)

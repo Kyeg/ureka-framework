@@ -17,6 +17,9 @@ import ureka_framework.model.data_model.this_device as this_device
 
 
 class MenuIoTDevice:
+    ######################################################
+    # Secure Mode
+    ######################################################
     def __init__(self, device_name: str) -> None:
         # GIVEN: Uninitialized IoTD
         self.iot_device = DeviceController(
@@ -43,6 +46,9 @@ class MenuIoTDevice:
 
         return self.iot_device
 
+    ######################################################
+    # Insecure Mode
+    ######################################################
     def receive_insecure_cmd_through_bluetooth(
         self, option: str = "with_device_id"
     ) -> DeviceController:

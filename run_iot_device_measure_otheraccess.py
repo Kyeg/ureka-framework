@@ -36,18 +36,18 @@ if __name__ == "__main__":
                 print(f"[   PRINT] : {f'*' * 50}")
             else:
                 ######################################################
-                # Grant Device Access Right (to owner herself)
+                # Grant Device Access Right (to others)
                 ######################################################
                 simple_log("measure", "")
                 simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
+                simple_log("measure", f"+ Grant Device Access Right (to others)")
                 simple_log("measure", "*" * 50)
 
             # GIVEN: Initialized IoTD
             menu_iot_device = MenuIoTDevice(device_name="iot_device")
             iot_device = menu_iot_device.get_iot_device()
 
-            # WHEN: Holder: EP's CS apply the self_access_u_ticket to IoTD
+            # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
             iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
             # THEN: Succeed to share a private session with DO's IoTD

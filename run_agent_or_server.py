@@ -109,6 +109,8 @@ if __name__ == "__main__":
         simple_log("measure", f"+ Transfer Device Ownership")
         simple_log("measure", "*" * 50)
 
+        ###########################
+
         # GIVEN: Initialized DM's CS
         menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
         cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
@@ -116,25 +118,36 @@ if __name__ == "__main__":
         menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
         user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
 
+        ###########################
+
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         target_device_id = menu_cloud_server_dm.get_target_device_id()
         menu_cloud_server_dm.issue_ownership_ticket_through_simulated_comm(
             target_device_id=target_device_id,
             user_agent_do=user_agent_do,
         )
+
+        ###########################
+
         # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
         target_device_id = menu_user_agent_do.get_target_device_id()
         user_agent_do = menu_user_agent_do.apply_ownership_ticket_through_bluetooth(
             target_device_id=target_device_id
         )
+
+        # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
+
+        ###########################
+
         # WHEN: Holder: DO's UA return the ownership_r_ticket to DM's CS
         menu_user_agent_do.return_r_ticket_through_simulated_comm(
             target_device_id=target_device_id,
             original_issuer=cloud_server_dm,
         )
 
-        # THEN: Succeed to transfer ownership (& update ticket_order of DO's IoTD)
-        assert "SUCCESS" in user_agent_do.shared_data.result_message
+        # THEN: Issuer: DM's CS know that DO's UA has become the new owner of DO's IoTD (& ticket order++)
+        assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
         # Grant Device Access Right (to owner herself)
@@ -144,9 +157,13 @@ if __name__ == "__main__":
         simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
         simple_log("measure", "*" * 50)
 
+        ###########################
+
         # GIVEN: Initialized DM's CS
         menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
         user_agent_do = menu_user_agent_do.get_agent_or_server()
+
+        ###########################
 
         # WHEN: Holder: DO's UA generate & apply the self_access_u_ticket to IoTD
         target_device_id = menu_user_agent_do.get_target_device_id()
@@ -215,12 +232,17 @@ if __name__ == "__main__":
         menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
         cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
 
+        ###########################
+
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         target_device_id = menu_user_agent_do.get_target_device_id()
         menu_user_agent_do.issue_access_ticket_through_simulated_comm(
             target_device_id=target_device_id,
             cloud_server_ep=cloud_server_ep,
         )
+
+        ###########################
+
         # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
         target_device_id = menu_cloud_server_ep.get_target_device_id()
         cloud_server_ep = menu_cloud_server_ep.apply_access_ticket_through_bluetooth(
@@ -265,11 +287,6 @@ if __name__ == "__main__":
         cloud_server_ep = menu_cloud_server_ep.apply_access_end_token_through_bluetooth(
             target_device_id=target_device_id
         )
-        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
-        menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
-            target_device_id=target_device_id,
-            original_issuer=user_agent_do,
-        )
 
         # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
         assert "SUCCESS" in cloud_server_ep.shared_data.result_message
@@ -277,6 +294,17 @@ if __name__ == "__main__":
             cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
             == original_agent_order + 1
         )
+
+        ###########################
+
+        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
+        menu_cloud_server_ep.return_r_ticket_through_simulated_comm(
+            target_device_id=target_device_id,
+            original_issuer=user_agent_do,
+        )
+
+        # THEN: Issuer: DO's UA know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in user_agent_do.shared_data.result_message
 
     except RuntimeError as error:
         simple_log("error", f"{error}")
