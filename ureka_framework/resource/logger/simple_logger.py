@@ -9,11 +9,11 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
                 logging.debug(log_info)
             elif log_level == "info":
                 logging.info(log_info)
-            elif log_level == "warning":
-                logging.warning(log_info)
 
         if Environment.DEBUG_LOG == "OPEN" or Environment.DEBUG_LOG == "CLOSED":
-            if log_level == "error":
+            if log_level == "warning":
+                logging.warning(log_info)
+            elif log_level == "error":
                 logging.error(log_info)
             elif log_level == "critical":
                 logging.critical(log_info)
@@ -32,11 +32,11 @@ def simple_log(log_level: str, log_info: str) -> None:  # pragma: no cover -> PR
                 print(f"[   DEBUG] : {log_info}")
             elif log_level == "info":
                 print(f"[    INFO] : {log_info}")
-            elif log_level == "warning":
-                print(f"[ WARNING] : {log_info}")
 
         if Environment.DEBUG_LOG == "OPEN" or Environment.DEBUG_LOG == "CLOSED":
-            if log_level == "error":
+            if log_level == "warning":
+                print(f"[ WARNING] : {log_info}")
+            elif log_level == "error":
                 print(f"[   ERROR] : {log_info}")
             elif log_level == "critical":
                 print(f"[CRITICAL] : {log_info}")

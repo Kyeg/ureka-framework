@@ -17,7 +17,8 @@ class Environment:
     # "PRODUCTION": With Delay (make local simulation interactive)
     SIMULULATED_COMM_INTERRUPT_CYCLE_TIME = 0.01
     SIMULULATED_COMM_DELAY_COUNT = 3
-    SIMULULATED_COMM_DELAY_DURATION = 0.3
+    # SIMULULATED_COMM_DELAY_DURATION = 0.3
+    SIMULULATED_COMM_DELAY_DURATION = 0
 
     # "TEST": No Time Out (Pytest terminates all daemon threads when main thread is finished)
     # "PRODUCTION": Terminates the worker threads through Timeout
@@ -32,3 +33,8 @@ class Environment:
     DEBUG_LOG = "OPEN"
     CLI_LOG = "OPEN"
     MEASURE_LOG = "CLOSED"
+
+    ######################################################
+    # Measurement
+    ######################################################
+    IO_BLOCKING_TOLELANCE_TIME = 0.010
