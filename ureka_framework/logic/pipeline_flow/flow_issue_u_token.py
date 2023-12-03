@@ -133,7 +133,6 @@ class FlowIssueUToken:
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
-
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
 
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
@@ -237,7 +236,9 @@ class FlowIssueUToken:
 
             # [STAGE: (VTK)]
             # [STAGE: (E)]
-            self.executor._execute_xxx_r_ticket(received_r_token)
+            self.executor._execute_xxx_r_ticket(
+                r_ticket_in=received_r_token, comm_end="holder-or-device"
+            )
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (C)]

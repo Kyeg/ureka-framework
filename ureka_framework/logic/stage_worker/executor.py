@@ -238,28 +238,65 @@ class Executor:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute RTicket (Update Session, & Ticket Order)
-    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
-        if (
-            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
-        ):
-            # [STAGE: (O)]
-            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="device")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # [STAGE: (E)]
-            self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
-        else:  # pragma: no cover -> Shouldn't Reach Here
-            raise RuntimeError(f"Shouldn't Reach Here")
+    def _execute_xxx_r_ticket(
+        self, r_ticket_in: RTicket, comm_end="holder-or-device"
+    ) -> None:
+        if comm_end == "holder-or-device":
+            if (
+                r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
+            ):
+                # [STAGE: (O)]
+                self._execute_update_ticket_order("holder-or-issuer-verify-rticket", r_ticket_in)
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="device")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+                # [STAGE: (E)]
+                self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
+        elif comm_end == "issuer":
+            if r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+                # Not owner anymore, delete this device in table
+                self.shared_data.device_table.pop(r_ticket_in.device_id)
+                ######################################################
+                # Storage
+                ######################################################
+                self.simple_storage.store_storage(
+                    self.shared_data.this_device,
+                    self.shared_data.device_table,
+                    self.shared_data.this_person,
+                    self.shared_data.current_session,
+                )
+            elif r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
+                # Still owner, but keep/delete device_access_u_ticket_for_others in table
+                self.shared_data.device_table[
+                    r_ticket_in.device_id
+                ].device_access_u_ticket_for_others = None
+                self.shared_data.device_table[
+                    r_ticket_in.device_id
+                ].device_access_end_r_ticket_for_others = None
+                # [STAGE: (O)]
+                self._execute_update_ticket_order("holder-or-issuer-verify-rticket", r_ticket_in)
+                ######################################################
+                # Storage
+                ######################################################
+                self.simple_storage.store_storage(
+                    self.shared_data.this_device,
+                    self.shared_data.device_table,
+                    self.shared_data.this_person,
+                    self.shared_data.current_session,
+                )
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
 
     # Ownership
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
@@ -819,7 +856,7 @@ class Executor:
     #       "agent-initialization": Ticket Order = 1 after device/agent is initialized
     #       "holder-generate-or-receive-uticket": Generate or Receive UTicket (expected ticket order)
     #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
-    #       "holder-verify-rticket": Verify RTicket (actual ticket order)
+    #       "holder-or-issuer-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
     def _execute_update_ticket_order(
         self, updating_case: str, ticket_in: Union[UTicket, RTicket] = None
@@ -868,7 +905,7 @@ class Executor:
                 )
             else:  # pragma: no cover -> Shouldn't Reach Here
                 raise RuntimeError(f"Shouldn't Reach Here")
-        elif updating_case == "holder-verify-rticket":
+        elif updating_case == "holder-or-issuer-verify-rticket":
             # Execute UTicket
             if type(ticket_in) == RTicket and (
                 ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET

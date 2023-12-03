@@ -300,10 +300,13 @@ class FlowApplyUTicket:
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
-                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
                 # [STAGE: (E)(O)]
-                self.executor._execute_xxx_r_ticket(received_r_ticket)
+                self.executor._execute_xxx_r_ticket(
+                    r_ticket_in=received_r_ticket, comm_end="holder-or-device"
+                )
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
                 # [STAGE: (C)]
                 self.executor._change_state(
                     this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
