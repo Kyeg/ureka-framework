@@ -146,8 +146,9 @@ if __name__ == "__main__":
             original_issuer=cloud_server_dm,
         )
 
-        # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+        # THEN: Issuer: DM's CS know that DO's UA has become the new owner of DO's IoTD (& ticket order++)
         assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+        assert cloud_server_dm.shared_data.device_table.get(target_device_id) == None
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

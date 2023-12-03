@@ -133,6 +133,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
 
         # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: Updated ticket order, EP's CS cannot access DO's IoTD anymore
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1
@@ -141,18 +142,20 @@ class TestFailWhenAccessDeviceByPrivateSession:
             self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
             == original_agent_order + 1
         )
-        # THEN: EP's CS cannot access DO's IoTD anymore
 
         # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
-
         create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
             owned_device_id
         )
         wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_ep)
 
-        # THEN: Succeed to transfer ownership (become DO's IoTD)
-        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in self.user_agent_do.shared_data.result_message
+        assert (
+            self.user_agent_do.shared_data.device_table[owned_device_id].ticket_order
+            == original_agent_order + 1
+        )
 
     ######################################################
     # Threat: (S) Spoofing, (T) Tampering, (E) Elevation of Privilege

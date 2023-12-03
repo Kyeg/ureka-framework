@@ -271,6 +271,15 @@ class FlowIssueUTicket:
                 if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
                     # Now owner anymore, delete this device in table
                     self.shared_data.device_table.pop(received_r_ticket.device_id)
+                    ######################################################
+                    # Storage
+                    ######################################################
+                    self.executor.simple_storage.store_storage(
+                        self.shared_data.this_device,
+                        self.shared_data.device_table,
+                        self.shared_data.this_person,
+                        self.shared_data.current_session,
+                    )
                 elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
                     # Still owner, but keep/delete device_access_u_ticket_for_others in table
                     self.shared_data.device_table[
@@ -279,6 +288,10 @@ class FlowIssueUTicket:
                     self.shared_data.device_table[
                         received_r_ticket.device_id
                     ].device_access_end_r_ticket_for_others = None
+                    # [STAGE: (O)]
+                    self.executor._execute_update_ticket_order(
+                        "holder-verify-rticket", received_r_ticket
+                    )
                 else:  # pragma: no cover -> Shouldn't Reach Here
                     raise RuntimeError(f"Shouldn't Reach Here")
 

@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # Environment.MEASURE_LOG = "CLOSED"
 
         # Omit 1st run (Cold-start)
-        for times in range(1):
+        for times in range(2):
             if times == 0:
                 ######################################################
                 # Omit Cold-start

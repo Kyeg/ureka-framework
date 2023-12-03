@@ -148,6 +148,7 @@ if __name__ == "__main__":
 
         # THEN: Issuer: DM's CS know that DO's UA has become the new owner of DO's IoTD (& ticket order++)
         assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+        assert cloud_server_dm.shared_data.device_table.get(target_device_id) == None
 
         ######################################################
         # Grant Device Access Right (to owner herself)
@@ -303,8 +304,12 @@ if __name__ == "__main__":
             original_issuer=user_agent_do,
         )
 
-        # THEN: Issuer: DO's UA know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+        # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
         assert "SUCCESS" in user_agent_do.shared_data.result_message
+        assert (
+            user_agent_do.shared_data.device_table[target_device_id].ticket_order
+            == original_agent_order + 1
+        )
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

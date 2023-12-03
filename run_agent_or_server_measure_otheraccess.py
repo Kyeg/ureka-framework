@@ -24,7 +24,7 @@ if __name__ == "__main__":
         # Environment.MEASURE_LOG = "CLOSED"
 
         # Omit 1st run (Cold-start)
-        for times in range(1):
+        for times in range(2):
             if times == 0:
                 ######################################################
                 # Omit Cold-start
@@ -129,12 +129,12 @@ if __name__ == "__main__":
                 original_issuer=user_agent_do,
             )
 
-            # THEN: Issuer: DO's UA know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+            # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
             assert "SUCCESS" in user_agent_do.shared_data.result_message
-            # assert (
-            #     user_agent_do.shared_data.device_table[target_device_id].ticket_order
-            #     == original_agent_order + 1
-            # )
+            assert (
+                user_agent_do.shared_data.device_table[target_device_id].ticket_order
+                == original_agent_order + 1
+            )
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

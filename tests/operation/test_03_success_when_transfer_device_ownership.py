@@ -67,6 +67,10 @@ class TestSuccessWhenIntializeAgentOrServer:
         # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
         create_simulated_comm_connection(self.cloud_server_dm, self.user_agent_do)
         owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        original_device_order = self.iot_device.shared_data.this_device.ticket_order
+        original_agent_order = self.cloud_server_dm.shared_data.device_table[
+            owned_device_id
+        ].ticket_order
         generated_request: dict = {
             "device_id": f"{owned_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
@@ -84,9 +88,19 @@ class TestSuccessWhenIntializeAgentOrServer:
 
         # THEN: Succeed to transfer ownership (become DO's IoTD)
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: Updated ticket order, New Owner
         assert (
             self.iot_device.shared_data.this_device.owner_pub_key_str
             == self.user_agent_do.shared_data.this_person.person_pub_key_str
+        )
+        # THEN: Updated ticket order, DM's CS cannot access DO's IoTD anymore
+        assert (
+            self.iot_device.shared_data.this_device.ticket_order
+            == original_device_order + 1
+        )
+        assert (
+            self.user_agent_do.shared_data.device_table[owned_device_id].ticket_order
+            == original_agent_order + 1
         )
 
         # WHEN: Holder: DO's UA return the ownership_r_ticket to DM's CS
@@ -96,8 +110,11 @@ class TestSuccessWhenIntializeAgentOrServer:
         )
         wait_simulated_comm_completed(self.cloud_server_dm, self.user_agent_do)
 
-        # THEN: Succeed to transfer ownership (become DO's IoTD)
-        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: Issuer: DM's CS know that DO's UA has become the new owner of DO's IoTD (& ticket order++)
+        assert "SUCCESS" in self.cloud_server_dm.shared_data.result_message
+        assert (
+            self.cloud_server_dm.shared_data.device_table.get(owned_device_id) == None
+        )
 
     def test_success_when_reboot_device(self) -> None:
         current_test_given_log()
