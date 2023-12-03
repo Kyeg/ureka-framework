@@ -91,16 +91,16 @@ def simulation_script():
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     ######################################################
     create_simulated_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
     wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
     simple_log("cli", "")
@@ -114,7 +114,7 @@ def simulation_script():
     generated_command = input("[     CLI] : EP's CS enter 1st command to DO's IoTD: ")
     create_simulated_comm_connection(cloud_server_ep, iot_device)
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
     wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
@@ -125,9 +125,9 @@ def simulation_script():
     simple_log("cli", "")
     generated_command = input("[     CLI] : EP's CS enter 2nd command to DO's IoTD: ")
     create_simulated_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-        device_id=owned_device_id, cmd=generated_command
+        device_id=target_device_id, cmd=generated_command
     )
     wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
@@ -138,9 +138,9 @@ def simulation_script():
     simple_log("cli", "")
     generated_command = input("[     CLI] : EP's CS enter 3rd command to DO's IoTD: ")
     create_simulated_comm_connection(cloud_server_ep, iot_device)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-        device_id=owned_device_id, cmd=generated_command
+        device_id=target_device_id, cmd=generated_command
     )
     wait_simulated_comm_completed(cloud_server_ep, iot_device)
 

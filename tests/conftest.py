@@ -166,20 +166,20 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
 
     # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
     create_simulated_comm_connection(cloud_server_dm, user_agent_do)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
     }
     cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
     wait_simulated_comm_completed(user_agent_do, cloud_server_dm)
 
     # WHEN: Holder: DO's UA forward the ownership_u_ticket
     create_simulated_comm_connection(user_agent_do, iot_device)
-    user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
+    user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
     wait_simulated_comm_completed(user_agent_do, iot_device)
 
     return (user_agent_do, iot_device)
@@ -196,23 +196,23 @@ def device_owner_agent_and_her_session() -> Tuple[DeviceController, DeviceContro
     current_test_when_and_then_log()
 
     # WHEN: Issuer: DO's UA generate the self_access_u_ticket to herself
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
 
     # WHEN: Holder: DO's UA forward the self_access_u_ticket
     create_simulated_comm_connection(user_agent_do, iot_device)
     generated_command = "HELLO-1"
     user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
     wait_simulated_comm_completed(user_agent_do, iot_device)
 
@@ -244,22 +244,22 @@ def enterprise_provider_server_and_her_session() -> (
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     create_simulated_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
     wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
 
@@ -267,7 +267,7 @@ def enterprise_provider_server_and_her_session() -> (
     create_simulated_comm_connection(cloud_server_ep, iot_device)
     generated_command = "HELLO-1"
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
     wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
@@ -288,7 +288,7 @@ def enterprise_provider_server_and_her_limited_session() -> (
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
     create_simulated_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr(
         {
             "SAY-HELLO-1": "allow",
@@ -297,13 +297,13 @@ def enterprise_provider_server_and_her_limited_session() -> (
         }
     )
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
     wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
 
@@ -311,7 +311,7 @@ def enterprise_provider_server_and_her_limited_session() -> (
     create_simulated_comm_connection(cloud_server_ep, iot_device)
     generated_command = "HELLO-1"
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
     wait_simulated_comm_completed(cloud_server_ep, iot_device)
 

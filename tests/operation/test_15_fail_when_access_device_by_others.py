@@ -148,16 +148,16 @@ class TestFailWhenAccessDeviceByOthers:
         #         Because TYPE_ACCESS_UTICKET has sent on BC, & maybe have been sent in WPAN (Reopen Session)
         #           the attacker can intercept & preempt it.
         create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.user_agent_do)
 
@@ -212,16 +212,16 @@ class TestFailWhenAccessDeviceByOthers:
         #         Because TYPE_ACCESS_UTICKET has sent on BC, & maybe have been sent in WPAN (Reopen Session)
         #           the attacker can intercept & reuse it.
         create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.cloud_server_ep.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.user_agent_do)
 
@@ -229,7 +229,7 @@ class TestFailWhenAccessDeviceByOthers:
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-            owned_device_id, generated_command
+            target_device_id, generated_command
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -237,7 +237,7 @@ class TestFailWhenAccessDeviceByOthers:
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
         generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, access_end=True
+            device_id=target_device_id, cmd=generated_command, access_end=True
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 

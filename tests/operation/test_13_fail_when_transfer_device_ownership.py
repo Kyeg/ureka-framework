@@ -145,14 +145,14 @@ class TestFailWhenTransferDeviceOwnership:
         #         Because TYPE_OWNERSHIP_UTICKET has sent on BC,
         #           the attacker can intercept & preempt it.
         create_simulated_comm_connection(self.cloud_server_dm, self.user_agent_do)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
         wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_dm)
 
@@ -205,20 +205,20 @@ class TestFailWhenTransferDeviceOwnership:
         #         Because TYPE_OWNERSHIP_UTICKET has sent on BC,
         #           the attacker can intercept & reuse it.
         create_simulated_comm_connection(self.cloud_server_dm, self.user_agent_do)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
         wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_dm)
 
         # WHEN: Holder: DO's UA forward the ownership_u_ticket
         create_simulated_comm_connection(self.user_agent_do, self.iot_device)
-        self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
+        self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
         wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # WHEN: Pretend Holder: Other

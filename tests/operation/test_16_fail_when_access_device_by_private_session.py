@@ -71,10 +71,10 @@ class TestFailWhenAccessDeviceByPrivateSession:
 
         # WHEN: Holder: EP's CS forward the u_token
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -101,10 +101,10 @@ class TestFailWhenAccessDeviceByPrivateSession:
         # WHEN: Holder: EP's CS forward the u_token
         #   (with Forbidden command)
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -122,14 +122,14 @@ class TestFailWhenAccessDeviceByPrivateSession:
 
         # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         original_device_order = self.iot_device.shared_data.this_device.ticket_order
         original_agent_order = self.cloud_server_ep.shared_data.device_table[
-            owned_device_id
+            target_device_id
         ].ticket_order
         generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, access_end=True
+            device_id=target_device_id, cmd=generated_command, access_end=True
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
@@ -142,21 +142,21 @@ class TestFailWhenAccessDeviceByPrivateSession:
             == original_device_order + 1
         )
         assert (
-            self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
+            self.cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
             == original_agent_order + 1
         )
 
         # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
         create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
-            owned_device_id
+            target_device_id
         )
         wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_ep)
 
         # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
         assert "SUCCESS" in self.user_agent_do.shared_data.result_message
         assert (
-            self.user_agent_do.shared_data.device_table[owned_device_id].ticket_order
+            self.user_agent_do.shared_data.device_table[target_device_id].ticket_order
             == original_agent_order + 1
         )
 
@@ -265,15 +265,15 @@ class TestFailWhenAccessDeviceByPrivateSession:
         #         Here, after TYPE_CMD_UTOKEN has been Sent in WPAN (i.e., used),
         #           the attacker can intercept & use it.
         create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
         wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # WHEN: Interception (_holder_recv_u_ticket, incl. _execute_cr_ke + _execute_ps)
-        target_device_id = owned_device_id
+        target_device_id = target_device_id
         intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
             target_device_id
         ].device_u_ticket_for_owner
@@ -284,7 +284,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
             jsonstr_to_u_ticket(intercepted_uticket_json)
         )
         # WHEN: Interception (_device_recv_cmd)
-        target_device_id = owned_device_id
+        target_device_id = target_device_id
         intercepted_utoken_json = self.iot_device.shared_data.received_message_json
 
         # WHEN: Reuse (holder_send_cmd, incl. _execute_ps)

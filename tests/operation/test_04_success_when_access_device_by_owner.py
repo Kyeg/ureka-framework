@@ -60,23 +60,23 @@ class TestSuccessWhenAccessDeviceByOwner:
         current_test_when_and_then_log()
 
         # WHEN: Issuer: DO's UA generate the self_access_u_ticket to herself
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
 
         # WHEN: Holder: DO's UA forward the self_access_u_ticket
         create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "HELLO-1"
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
-            owned_device_id, generated_command
+            target_device_id, generated_command
         )
         wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
