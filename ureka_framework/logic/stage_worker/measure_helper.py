@@ -27,11 +27,11 @@ class MeasureHelper:
     # Measurement Helper:
     #   Process Response Time
     ######################################################
-    def measure_process_start(self) -> None:
+    def measure_process_perf_start(self) -> None:
         start_process_timer()
         start_perf_timer()
 
-    def measure_cli_process_time(self, cli_name: str) -> None:
+    def measure_recv_cli_perf_time(self, cli_name: str) -> None:
         # Response Time
         cli_process_time: float = get_process_time()
         cli_perf_time: float = get_perf_time()
@@ -40,34 +40,30 @@ class MeasureHelper:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_process_time = {cli_process_time:.3f} seconds")
         simple_log("measure", f"cli_perf_time = {cli_perf_time:.3f} seconds")
         if cli_blocked_time > Environment.IO_BLOCKING_TOLELANCE_TIME:
             simple_log("warning", f"+ I/O MAYBE BLOCKED TOO LONG...")
             simple_log("warning", f"cli_blocked_time = {cli_blocked_time:.3f} seconds")
 
-    def measure_comm_process_time(self, comm_name: str) -> None:
+    def measure_recv_msg_perf_time(self, comm_name: str) -> None:
         # Response Time
-        comm_process_time: float = get_process_time()
-        comm_perf_time: float = get_perf_time()
-        comm_blocked_time: float = abs(comm_perf_time - comm_process_time)
+        msg_process_time: float = get_process_time()
+        msg_perf_time: float = get_perf_time()
+        msg_blocked_time: float = abs(msg_perf_time - msg_process_time)
 
         # Print
-        simple_log("measure", f"comm_process_time = {comm_process_time:.3f} seconds")
-        simple_log("measure", f"comm_perf_time = {comm_perf_time:.3f} seconds")
-        if comm_blocked_time > Environment.IO_BLOCKING_TOLELANCE_TIME:
+        simple_log("measure", f"msg_perf_time = {msg_perf_time:.3f} seconds")
+        if msg_blocked_time > Environment.IO_BLOCKING_TOLELANCE_TIME:
             simple_log("warning", f"+ I/O MAYBE BLOCKED TOO LONG...")
-            simple_log(
-                "warning", f"comm_blocked_time = {comm_blocked_time:.3f} seconds"
-            )
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
+            simple_log("warning", f"msg_blocked_time = {msg_blocked_time:.3f} seconds")
+        simple_log("measure", f"+ Receive Message Input: {comm_name}")
         simple_log("measure", f"")
 
     ######################################################
     # Measurement Helper:
     #   Comm Response Time
     ######################################################
-    def measure_comm_start(self) -> None:
+    def measure_comm_perf_start(self) -> None:
         start_comm_timer()
 
     def measure_comm_time(self, comm_name: str) -> None:

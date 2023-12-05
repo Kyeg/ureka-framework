@@ -69,7 +69,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_helper.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)]
@@ -103,7 +103,9 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_helper.measure_cli_process_time("issuer_issue_u_ticket_to_herself")
+        self.measure_helper.measure_recv_cli_perf_time(
+            "issuer_issue_u_ticket_to_herself"
+        )
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -111,7 +113,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_helper.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)]
@@ -159,7 +161,9 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_helper.measure_cli_process_time("issuer_issue_u_ticket_to_holder")
+        self.measure_helper.measure_recv_cli_perf_time(
+            "issuer_issue_u_ticket_to_holder"
+        )
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -195,7 +199,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_helper.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -230,7 +234,7 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_helper.measure_cli_process_time("holder_send_r_ticket_to_issuer")
+        self.measure_helper.measure_recv_cli_perf_time("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:

@@ -250,7 +250,7 @@ class MenuAgentOrServer:
         ########################################################################
         # Start Process Measurement
         ########################################################################
-        self.agent_or_server.measure_helper.measure_process_start()
+        self.agent_or_server.measure_helper.measure_process_perf_start()
 
         if option == "shortest":
             insecure_cmd_json = "HELLO"
@@ -277,7 +277,7 @@ class MenuAgentOrServer:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.agent_or_server.measure_helper.measure_cli_process_time(
+        self.agent_or_server.measure_helper.measure_recv_cli_perf_time(
             "holder_apply_insecure_cmd"
         )
 
@@ -286,7 +286,7 @@ class MenuAgentOrServer:
             ########################################################################
             # Start Comm Measurement
             ########################################################################
-            self.agent_or_server.measure_helper.measure_comm_start()
+            self.agent_or_server.measure_helper.measure_comm_perf_start()
 
             # This will block until message is received
             insecure_data_json = (
@@ -309,14 +309,14 @@ class MenuAgentOrServer:
             ########################################################################
             # Start Process Measurement
             ########################################################################
-            self.agent_or_server.measure_helper.measure_process_start()
+            self.agent_or_server.measure_helper.measure_process_perf_start()
 
             # WHEN: UA/CS do data processing
 
             ######################################################
             # End Process Measurement
             ######################################################
-            self.agent_or_server.measure_helper.measure_comm_process_time(
+            self.agent_or_server.measure_helper.measure_recv_msg_perf_time(
                 "_holder_recv_insecure_data"
             )
 

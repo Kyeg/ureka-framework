@@ -165,7 +165,7 @@ class MsgReceiver:
                         # Start Comm Measurement
                         ########################################################################
                         if self.shared_data.this_device.device_name != "iot_device":
-                            self.measure_helper.measure_comm_start()
+                            self.measure_helper.measure_comm_perf_start()
 
                         # This will block until message is received
                         received_message_with_header = (
@@ -198,7 +198,7 @@ class MsgReceiver:
                 ######################################################
                 # Start Process Measurement
                 ######################################################
-                self.measure_helper.measure_process_start()
+                self.measure_helper.measure_process_perf_start()
 
                 # [STAGE: (VR)]
                 received_message = self.msg_verifier._classify_message_is_defined_type(
@@ -225,7 +225,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time(
+                    self.measure_helper.measure_recv_msg_perf_time(
                         "_device_recv_u_ticket"
                     )
 
@@ -236,7 +236,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time(
+                    self.measure_helper.measure_recv_msg_perf_time(
                         "_device_recv_cr_ke_2"
                     )
 
@@ -252,7 +252,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time("_device_recv_cmd")
+                    self.measure_helper.measure_recv_msg_perf_time("_device_recv_cmd")
 
                     simple_log(
                         "cli",
@@ -273,7 +273,7 @@ class MsgReceiver:
                         ######################################################
                         # End Process Measurement
                         ######################################################
-                        self.measure_helper.measure_comm_process_time(
+                        self.measure_helper.measure_recv_msg_perf_time(
                             "_holder_recv_u_ticket",
                         )
                     elif type(received_message) == RTicket:
@@ -285,7 +285,7 @@ class MsgReceiver:
                         ######################################################
                         # End Process Measurement
                         ######################################################
-                        self.measure_helper.measure_comm_process_time(
+                        self.measure_helper.measure_recv_msg_perf_time(
                             "_issuer_recv_r_ticket",
                         )
 
@@ -296,7 +296,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time(
+                    self.measure_helper.measure_recv_msg_perf_time(
                         "_holder_recv_r_ticket"
                     )
 
@@ -307,7 +307,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time(
+                    self.measure_helper.measure_recv_msg_perf_time(
                         "_holder_recv_cr_ke_1"
                     )
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
@@ -317,7 +317,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time(
+                    self.measure_helper.measure_recv_msg_perf_time(
                         "_holder_recv_cr_ke_3"
                     )
 
@@ -337,7 +337,7 @@ class MsgReceiver:
                     ######################################################
                     # End Process Measurement
                     ######################################################
-                    self.measure_helper.measure_comm_process_time("_holder_recv_data")
+                    self.measure_helper.measure_recv_msg_perf_time("_holder_recv_data")
 
                     simple_log(
                         "cli",

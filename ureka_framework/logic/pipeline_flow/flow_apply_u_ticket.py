@@ -64,7 +64,7 @@ class FlowApplyUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_helper.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -121,7 +121,7 @@ class FlowApplyUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_helper.measure_cli_process_time("holder_apply_u_ticket")
+        self.measure_helper.measure_recv_cli_perf_time("holder_apply_u_ticket")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:

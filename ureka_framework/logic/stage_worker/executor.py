@@ -29,15 +29,6 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
-# Resource (Measurer)
-from ureka_framework.resource.logger.simple_measurer import (
-    start_process_timer,
-    get_process_time,
-    start_comm_timer,
-    get_comm_time,
-    simple_size_calculator,
-)
-
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 
@@ -106,7 +97,7 @@ class Executor:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_helper.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         simple_log(
             "info",
@@ -180,7 +171,7 @@ class Executor:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_helper.measure_cli_process_time(
+        self.measure_helper.measure_recv_cli_perf_time(
             "_execute_one_time_intialize_agent_or_server"
         )
 

@@ -73,7 +73,7 @@ class MenuIoTDevice:
                 ######################################################
                 # Start Process Measurement
                 ######################################################
-                self.iot_device.measure_helper.measure_process_start()
+                self.iot_device.measure_helper.measure_process_perf_start()
 
                 # WHEN: IoTD do data processing
                 if option == "shortest":
@@ -96,7 +96,7 @@ class MenuIoTDevice:
                 ######################################################
                 # End Process Measurement
                 ######################################################
-                self.iot_device.measure_helper.measure_comm_process_time(
+                self.iot_device.measure_helper.measure_recv_msg_perf_time(
                     "_device_recv_insecure_cmd"
                 )
 
