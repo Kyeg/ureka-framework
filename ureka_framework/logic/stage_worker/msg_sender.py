@@ -27,6 +27,9 @@ except ImportError:
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Measure Helper
 from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
@@ -86,6 +89,7 @@ class MsgSender:
     ######################################################
     # [STAGE: (S)] Send Message
     ######################################################
+    @measure_worker_func
     def _send_xxx_message(
         self, message_operation: str, message_type: str, sent_message_json: str
     ) -> None:

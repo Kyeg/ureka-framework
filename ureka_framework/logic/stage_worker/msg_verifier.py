@@ -13,6 +13,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Resource (Serialization)
 from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
 
@@ -43,6 +46,7 @@ class MsgVerifier:
     #   (VTK): verify_token_through_hmac (when _execute_decrypt_ciphertext)
     #   (VTS): verify_cmd_is_in_task_scope
     ######################################################
+    @measure_worker_func
     def _classify_message_is_defined_type(
         self, arbitrary_json: str
     ) -> Union[UTicket, RTicket]:
@@ -67,6 +71,7 @@ class MsgVerifier:
         elif message_in.message_type == r_ticket.MESSAGE_TYPE:
             return self._classify_r_ticket_is_defined_type(message_in.message_str)
 
+    @measure_worker_func
     def _classify_u_ticket_is_defined_type(self, arbitrary_json: str) -> UTicket:
         simple_log(
             "info",
@@ -89,6 +94,7 @@ class MsgVerifier:
         except RuntimeError as error:  # pragma: no cover -> Weird Message
             raise RuntimeError(error)
 
+    @measure_worker_func
     def _classify_r_ticket_is_defined_type(self, arbitrary_json: str) -> RTicket:
         simple_log(
             "info",
@@ -117,6 +123,7 @@ class MsgVerifier:
         except RuntimeError as error:  # pragma: no cover -> Weird Message
             raise RuntimeError(error)
 
+    @measure_worker_func
     def verify_u_ticket_can_execute(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -144,6 +151,7 @@ class MsgVerifier:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+    @measure_worker_func
     def verify_u_ticket_has_successfully_executed_through_r_ticket(
         self,
         r_ticket_in: RTicket,
@@ -184,6 +192,7 @@ class MsgVerifier:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+    # @measure_worker_func
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
         success_msg = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
         failure_msg = f"-> FAILURE: VERIFY_CMD_IN_TASK_SCOPE"

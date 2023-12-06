@@ -29,6 +29,9 @@ from ureka_framework.resource.crypto.serialization_util import (
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
 
@@ -52,6 +55,7 @@ class Executor:
     ######################################################
     # [STAGE: (E)] Execute
     ######################################################
+    # @measure_worker_func
     def _intialize_state(self) -> bool:
         ######################################################
         # Initial State
@@ -66,6 +70,7 @@ class Executor:
             self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
 
     # Execute Initialization (Update Keystore)
+    # @measure_worker_func
     def _execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
@@ -93,6 +98,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
+    # @measure_worker_func
     def _execute_one_time_intialize_agent_or_server(self) -> None:
         ######################################################
         # Start Process Measurement
@@ -176,6 +182,7 @@ class Executor:
         )
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
+    @measure_worker_func
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             try:
@@ -235,6 +242,7 @@ class Executor:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute RTicket (Update Session, & Ticket Order)
+    @measure_worker_func
     def _execute_xxx_r_ticket(
         self, r_ticket_in: RTicket, comm_end="holder-or-device"
     ) -> None:
@@ -300,6 +308,7 @@ class Executor:
                 raise RuntimeError(f"Shouldn't Reach Here")
 
     # Ownership
+    # @measure_worker_func
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -343,6 +352,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
+    # @measure_worker_func
     def _execute_ownership_transfer(self, new_u_ticket: UTicket) -> None:
         simple_log(
             "info",
@@ -368,6 +378,7 @@ class Executor:
         )
 
     # CR-KE
+    @measure_worker_func
     def _execute_cr_ke(
         self, ticket_in: Union[UTicket, RTicket], comm_end: str, cmd: str = ""
     ) -> None:
@@ -500,6 +511,7 @@ class Executor:
         #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
         # )
 
+    # @measure_worker_func
     def _execute_generate_session_key(
         self,
         salt_1: str,
@@ -532,6 +544,7 @@ class Executor:
         return current_session_key
 
     # PS
+    @measure_worker_func
     def _execute_ps(
         self,
         executing_case: str,
@@ -774,9 +787,11 @@ class Executor:
         #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
         # )
 
+    # @measure_worker_func
     def _gen_next_iv(self) -> str:
         return byte_to_base64str(ecdh.gcm_gen_iv())
 
+    # @measure_worker_func
     def _execute_encrypt_plaintext(
         self,
         plaintext: str,
@@ -795,6 +810,7 @@ class Executor:
 
         return (ciphertext, gcm_authentication_tag)
 
+    # @measure_worker_func
     def _execute_decrypt_ciphertext(
         self,
         ciphertext: str,
@@ -837,6 +853,7 @@ class Executor:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute Application & Data Processing
+    # @measure_worker_func
     def _execute_data_processing(
         self, plaintext_cmd: str, associated_plaintext_cmd: str
     ) -> Tuple[str, str]:
@@ -859,6 +876,7 @@ class Executor:
     #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
     #       "holder-or-issuer-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
+    @measure_worker_func
     def _execute_update_ticket_order(
         self, updating_case: str, ticket_in: Union[UTicket, RTicket] = None
     ) -> None:
@@ -938,5 +956,6 @@ class Executor:
     ######################################################
     # [STAGE: (C)] Change Reciever State
     ######################################################
+    @measure_worker_func
     def _change_state(self, new_state: str) -> None:
         self.shared_data.state = new_state

@@ -1,7 +1,13 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
+# Data Model (RAM)
 from pydantic import BaseModel, ConfigDict, ValidationError
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from typing import Optional
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
 
 ######################################################
 # Message Type
@@ -97,6 +103,7 @@ class RTicket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
+@measure_worker_func
 def r_ticket_to_jsonstr(r_ticket_obj: RTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
     r_ticket_json = r_ticket_obj.model_dump_json(indent=4, exclude_none=True)

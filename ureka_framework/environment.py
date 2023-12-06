@@ -33,8 +33,10 @@ class Environment:
     DEBUG_LOG = "OPEN"
     CLI_LOG = "OPEN"
     MEASURE_LOG = "CLOSED"
+    MORE_MEASURE_WORKER_LOG = "CLOSED"
+    MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 
     ######################################################
     # Measurement
     ######################################################
-    IO_BLOCKING_TOLELANCE_TIME = 0.010
+    IO_BLOCKING_TOLERANCE_TIME = 0.010

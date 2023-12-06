@@ -8,6 +8,9 @@ from ureka_framework.model.message_model.r_ticket import r_ticket_to_jsonstr
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_generator_u_ticket import UTicketGenerator
 from ureka_framework.logic.stage_worker.msg_generator_r_ticket import RTicketGenerator
@@ -28,6 +31,7 @@ class MsgGenerator:
     ######################################################
     # [STAGE: (G)] Generate Message
     ######################################################
+    @measure_worker_func
     def _generate_xxx_u_ticket(self, arbitrary_dict: dict) -> str:
         simple_log(
             "info",
@@ -46,6 +50,7 @@ class MsgGenerator:
 
         return generated_u_ticket_json
 
+    @measure_worker_func
     def _generate_xxx_r_ticket(self, arbitrary_dict: dict) -> str:
         simple_log(
             "info",

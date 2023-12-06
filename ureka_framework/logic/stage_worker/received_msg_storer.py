@@ -20,6 +20,9 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Measure Helper
 from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
@@ -38,6 +41,7 @@ class ReceivedMsgStorer:
     ######################################################
     # [STAGE: (SR)] Store Received Message
     ######################################################
+    @measure_worker_func
     def _store_received_xxx_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
             received_u_ticket_json = u_ticket_to_jsonstr(received_u_ticket)
@@ -71,6 +75,7 @@ class ReceivedMsgStorer:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+    @measure_worker_func
     def _store_received_xxx_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
             received_r_ticket_json = r_ticket_to_jsonstr(received_r_ticket)

@@ -1,5 +1,3 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
-
 # Data Model (RAM)
 import copy
 from pydantic import ValidationError
@@ -12,6 +10,12 @@ from ureka_framework.resource.crypto.serialization_util import (
     byte_to_base64str,
     str_to_byte,
 )
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
 
 # Resource (Crypto)
 from cryptography.hazmat.primitives.asymmetric import ec
