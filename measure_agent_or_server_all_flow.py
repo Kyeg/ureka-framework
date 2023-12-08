@@ -16,14 +16,9 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
-                ######################################################
                 # Omit Cold-start
-                ######################################################
                 MenuAgentOrServer.set_environment("cold-start")
             else:
-                ######################################################
-                # Grant Device Access Right (to owner herself)
-                ######################################################
                 MenuAgentOrServer.set_environment("measurement")
 
             ######################################################
@@ -73,24 +68,6 @@ if __name__ == "__main__":
             assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
-        # Send Insecure Command
-        ######################################################
-        for option in ["shortest", "with_device_id", "u_ticket_size"]:
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Send Insecure Command ({option})")
-            simple_log("measure", "*" * 50)
-
-            # GIVEN: Initialized DM's CS
-            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
-
-            # WHEN: DM's CS apply the insecure_cmd to IoTD
-            cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
-                option=option
-            )
-
-        ######################################################
         # Transfer Device Ownership
         ######################################################
         simple_log("measure", "")
@@ -138,6 +115,24 @@ if __name__ == "__main__":
         # THEN: Issuer: DM's CS know that DO's UA has become the new owner of DO's IoTD (& ticket order++)
         assert "SUCCESS" in cloud_server_dm.shared_data.result_message
         assert cloud_server_dm.shared_data.device_table.get(target_device_id) == None
+
+        ######################################################
+        # Send Insecure Command & Receive Insecure Data
+        ######################################################
+        for option in ["shortest", "with_device_id", "u_ticket_size"]:
+            simple_log("measure", "")
+            simple_log("measure", "*" * 50)
+            simple_log("measure", f"+ Send Insecure Command ({option})")
+            simple_log("measure", "*" * 50)
+
+            # GIVEN: Initialized DM's CS
+            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+
+            # WHEN: DM's CS apply the insecure_cmd to IoTD
+            cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
+                option=option
+            )
 
         ######################################################
         # Grant Device Access Right (to owner herself)

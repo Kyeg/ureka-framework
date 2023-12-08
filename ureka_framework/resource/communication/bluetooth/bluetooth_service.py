@@ -155,7 +155,7 @@ class ConnectingWorker:
             )
             if len(service_matches) == 0:
                 simple_log(
-                    "cli",
+                    "warning",
                     f"+ Re-connecting {self.service_name} services : {reconnect_num} attempt",
                 )
                 time.sleep(self.reconnect_interval)
@@ -220,7 +220,10 @@ class AcceptSocket:
         ########################################################################
         # Connection Socket: Created through Server Socket
         ########################################################################
-        simple_log("cli", f"+ Waiting for connection on RFCOMM port {service_port}...")
+        simple_log(
+            "cli",
+            f"+ Waiting for {self.service_name} services: Connection on RFCOMM port {service_port}...",
+        )
         self.connection_socket, client_info = self.accept_socket.accept()
         simple_log("cli", f"+ Connection is generated with {client_info}.")
 

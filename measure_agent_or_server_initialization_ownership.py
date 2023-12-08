@@ -16,19 +16,10 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
-                ######################################################
                 # Omit Cold-start
-                ######################################################
                 MenuAgentOrServer.set_environment("cold-start")
             else:
-                ######################################################
-                # Intialize Device & Change Device Ownership
-                ######################################################
                 MenuAgentOrServer.set_environment("measurement")
-                simple_log("measure", "")
-                simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-                simple_log("measure", "*" * 50)
 
             ######################################################
             # Unintialized Agent or Server
@@ -75,24 +66,6 @@ if __name__ == "__main__":
 
             # THEN: Succeed to initialize DM's IoTD
             assert "SUCCESS" in cloud_server_dm.shared_data.result_message
-
-        ######################################################
-        # Send Insecure Command
-        ######################################################
-        for option in ["shortest", "with_device_id", "u_ticket_size"]:
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Send Insecure Command ({option})")
-            simple_log("measure", "*" * 50)
-
-            # GIVEN: Initialized DM's CS
-            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
-
-            # WHEN: DM's CS apply the insecure_cmd to IoTD
-            cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
-                option=option
-            )
 
         ######################################################
         # Transfer Device Ownership

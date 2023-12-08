@@ -15,19 +15,18 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
-                ######################################################
                 # Omit Cold-start
-                ######################################################
                 MenuAgentOrServer.set_environment("cold-start")
             else:
-                ######################################################
-                # Grant Device Access Right (to owner herself)
-                ######################################################
                 MenuAgentOrServer.set_environment("measurement")
-                simple_log("measure", "")
-                simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-                simple_log("measure", "*" * 50)
+
+            ######################################################
+            # Grant Device Access Right (to owner herself)
+            ######################################################
+            simple_log("measure", "")
+            simple_log("measure", "*" * 50)
+            simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
+            simple_log("measure", "*" * 50)
 
             ###########################
 

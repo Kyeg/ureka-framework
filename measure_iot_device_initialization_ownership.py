@@ -16,24 +16,14 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
-                ######################################################
                 # Omit Cold-start
-                ######################################################
                 MenuIoTDevice.set_environment("cold-start")
             else:
-                ######################################################
-                # Intialize Device & Change Device Ownership
-                ######################################################
                 MenuIoTDevice.set_environment("measurement")
-                simple_log("measure", "")
-                simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-                simple_log("measure", "*" * 50)
 
             ######################################################
             # Unintialized Device
             ######################################################
-
             # RE-GIVEN:
             SimpleStorage.delete_storage_in_test()
 
@@ -55,26 +45,6 @@ if __name__ == "__main__":
             assert "SUCCESS" in iot_device.shared_data.result_message
             assert iot_device.shared_data.this_device.ticket_order == 1
             assert iot_device.shared_data.this_device.device_priv_key_str != None
-
-        ######################################################
-        # Receive Insecure Command & Send Insecure Data
-        ######################################################
-        for option in ["shortest", "with_device_id", "u_ticket_size"]:
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Send Insecure Command ({option})")
-            simple_log("measure", "*" * 50)
-
-            # GIVEN: Initialized IoTD
-            menu_iot_device = MenuIoTDevice(device_name="iot_device")
-            iot_device = menu_iot_device.get_iot_device()
-
-            # WHEN: DM's CS apply the insecure_cmd to IoTD
-            iot_device = menu_iot_device.receive_insecure_cmd_through_bluetooth(
-                option=option
-            )
-
-            # THEN: ...
 
         ######################################################
         # Transfer Device Ownership

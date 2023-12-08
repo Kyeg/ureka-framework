@@ -15,20 +15,14 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
-                ######################################################
                 # Omit Cold-start
-                ######################################################
                 MenuIoTDevice.set_environment("cold-start")
             else:
-                ######################################################
-                # Grant Device Access Right (to owner herself)
-                ######################################################
                 MenuIoTDevice.set_environment("measurement")
 
             ######################################################
             # Unintialized Device
             ######################################################
-
             # RE-GIVEN:
             SimpleStorage.delete_storage_in_test()
 
@@ -52,6 +46,25 @@ if __name__ == "__main__":
             assert iot_device.shared_data.this_device.device_priv_key_str != None
 
         ######################################################
+        # Transfer Device Ownership
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Transfer Device Ownership")
+        simple_log("measure", "*" * 50)
+
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        iot_device = menu_iot_device.get_iot_device()
+
+        # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+
+        # THEN: Succeed to transfer ownership (become DO's IoTD)
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert iot_device.shared_data.this_device.owner_pub_key_str != None
+
+        ######################################################
         # Receive Insecure Command & Send Insecure Data
         ######################################################
         for option in ["shortest", "with_device_id", "u_ticket_size"]:
@@ -70,25 +83,6 @@ if __name__ == "__main__":
             )
 
             # THEN: ...
-
-        ######################################################
-        # Transfer Device Ownership
-        ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Transfer Device Ownership")
-        simple_log("measure", "*" * 50)
-
-        # GIVEN: Initialized IoTD
-        menu_iot_device = MenuIoTDevice(device_name="iot_device")
-        iot_device = menu_iot_device.get_iot_device()
-
-        # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
-        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
-
-        # THEN: Succeed to transfer ownership (become DO's IoTD)
-        assert "SUCCESS" in iot_device.shared_data.result_message
-        assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
         ######################################################
         # Grant Device Access Right (to owner herself)
