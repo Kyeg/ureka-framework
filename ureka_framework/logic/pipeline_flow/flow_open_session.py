@@ -95,7 +95,7 @@ class FlowOpenSession:
         try:
             # [STAGE: (R)(VR)]
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,
@@ -170,7 +170,7 @@ class FlowOpenSession:
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,
@@ -255,7 +255,7 @@ class FlowOpenSession:
             # [STAGE: (R)(VR)]
 
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,

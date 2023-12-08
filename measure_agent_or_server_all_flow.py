@@ -16,26 +16,15 @@ if __name__ == "__main__":
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
+                ######################################################
                 # Omit Cold-start
-                Environment.DEPLOYMENT_ENV = "PRODUCTION"
-                Environment.DEBUG_LOG = "CLOSED"
-                Environment.CLI_LOG = "CLOSED"
-                Environment.MEASURE_LOG = "CLOSED"
-                print(f"[   PRINT] : ")
-                print(f"[   PRINT] : {f'*' * 50}")
-                print(f"[   PRINT] : + Omit Cold-start...")
-                print(f"[   PRINT] : {f'*' * 50}")
+                ######################################################
+                MenuAgentOrServer.set_environment("cold-start")
             else:
                 ######################################################
-                # ENVIRONMENT
+                # Grant Device Access Right (to owner herself)
                 ######################################################
-                Environment.DEPLOYMENT_ENV = "PRODUCTION"
-                # Environment.DEBUG_LOG = "OPEN"
-                Environment.DEBUG_LOG = "CLOSED"
-                # Environment.CLI_LOG = "OPEN"
-                Environment.CLI_LOG = "CLOSED"
-                Environment.MEASURE_LOG = "OPEN"
-                # Environment.MEASURE_LOG = "CLOSED"
+                MenuAgentOrServer.set_environment("measurement")
 
             ######################################################
             # Unintialized Agent or Server

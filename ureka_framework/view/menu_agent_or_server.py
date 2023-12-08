@@ -26,6 +26,30 @@ from tests.conftest import (
 
 class MenuAgentOrServer:
     ######################################################
+    # Environment
+    ######################################################
+    @classmethod
+    def set_environment(cls, situation: str = "measurement") -> None:
+        if situation == "cold-start":
+            Environment.DEPLOYMENT_ENV = "PRODUCTION"
+            Environment.DEBUG_LOG = "CLOSED"
+            Environment.CLI_LOG = "CLOSED"
+            Environment.MEASURE_LOG = "CLOSED"
+            Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
+            Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
+            print(f"[ MEASURE] : ")
+            print(f"[ MEASURE] : {f'*' * 50}")
+            print(f"[ MEASURE] : + Omit Cold-start...")
+            print(f"[ MEASURE] : {f'*' * 50}")
+        elif situation == "measurement":
+            Environment.DEPLOYMENT_ENV = "PRODUCTION"
+            Environment.DEBUG_LOG = "CLOSED"
+            Environment.CLI_LOG = "CLOSED"
+            Environment.MEASURE_LOG = "OPEN"
+            Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
+            Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
+
+    ######################################################
     # Secure Mode
     ######################################################
     def __init__(self, device_name: str) -> None:

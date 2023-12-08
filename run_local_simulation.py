@@ -162,6 +162,8 @@ if __name__ == "__main__":
     Environment.DEBUG_LOG = "CLOSED"
     Environment.CLI_LOG = "OPEN"
     Environment.MEASURE_LOG = "OPEN"
+    Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
+    Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 
     setup()
 

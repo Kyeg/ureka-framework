@@ -268,7 +268,7 @@ class FlowIssueUTicket:
                 )
 
                 # [STAGE: (VRT)]
-                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                     r_ticket_in=received_r_ticket,
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,

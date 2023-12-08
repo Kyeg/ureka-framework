@@ -45,10 +45,16 @@ class MeasureHelper:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_perf_time = {cli_perf_time:.3f} seconds")
+        simple_log(
+            "measure",
+            f"cli_perf_time = {cli_perf_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+        )
         if cli_blocked_time > Environment.IO_BLOCKING_TOLERANCE_TIME:
             simple_log("warning", f"+ I/O MAYBE BLOCKED TOO LONG...")
-            simple_log("warning", f"cli_blocked_time = {cli_blocked_time:.3f} seconds")
+            simple_log(
+                "warning",
+                f"cli_blocked_time = {cli_blocked_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            )
 
     @measure_worker_func
     def measure_recv_msg_perf_time(self, comm_name: str) -> None:
@@ -58,10 +64,16 @@ class MeasureHelper:
         msg_blocked_time: float = abs(msg_perf_time - msg_process_time)
 
         # Print
-        simple_log("measure", f"msg_perf_time = {msg_perf_time:.3f} seconds")
+        simple_log(
+            "measure",
+            f"msg_perf_time = {msg_perf_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+        )
         if msg_blocked_time > Environment.IO_BLOCKING_TOLERANCE_TIME:
             simple_log("warning", f"+ I/O MAYBE BLOCKED TOO LONG...")
-            simple_log("warning", f"msg_blocked_time = {msg_blocked_time:.3f} seconds")
+            simple_log(
+                "warning",
+                f"msg_blocked_time = {msg_blocked_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            )
         simple_log("measure", f"+ Receive Message Input: {comm_name}")
         simple_log("measure", f"")
 
@@ -81,7 +93,10 @@ class MeasureHelper:
         # Print
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        simple_log("measure", f"comm_time = {comm_time:.3f} seconds")
+        simple_log(
+            "measure",
+            f"comm_time = {comm_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+        )
 
     ######################################################
     # Measurement Helper:

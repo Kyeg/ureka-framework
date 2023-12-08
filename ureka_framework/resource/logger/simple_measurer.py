@@ -17,6 +17,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 ######################################################
 # Decorator
 ######################################################
+MAX_FUNC_NAME_LENGTH: int = 50
+
+
 def measure_worker_func(func_to_be_measured: Callable):
     def measured_worker_func(*args, **kwargs):
         # Open/Close the @Decorator
@@ -25,6 +28,7 @@ def measure_worker_func(func_to_be_measured: Callable):
             start_time = time.perf_counter()
             result = func_to_be_measured(*args, **kwargs)
             end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
 
             # Measurement Log
             func_name = func_to_be_measured.__name__
@@ -35,9 +39,10 @@ def measure_worker_func(func_to_be_measured: Callable):
             caller_name = inspect.getframeinfo(caller_frame).function
 
             # Can opitionally set Threshold: Only show overhead large enough to be noticed
-            #   if end_time - start_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
+            #   if elapsed_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
             print(
-                f"[    MORE] : {caller_name: >60} -> {func_name: >60} : {(end_time - start_time):>6.4f} seconds"
+                f"[M-WORKER] : {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                f" : {(elapsed_time):>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
             )
 
             return result
@@ -55,6 +60,7 @@ def measure_resource_func(func_to_be_measured: Callable):
             start_time = time.perf_counter()
             result = func_to_be_measured(*args, **kwargs)
             end_time = time.perf_counter()
+            elapsed_time = end_time - start_time
 
             # Measurement Log
             func_name = func_to_be_measured.__name__
@@ -64,19 +70,20 @@ def measure_resource_func(func_to_be_measured: Callable):
             caller_frame = inspect.currentframe().f_back
             caller_name = inspect.getframeinfo(caller_frame).function
 
-            # Function Stack
-            caller2_name = ""
-            if caller_name != "<module>":
-                caller2_frame = inspect.currentframe().f_back.f_back
-                caller2_name = inspect.getframeinfo(caller2_frame).function
-                # if caller2_name != "<module>":
-                #     caller3_frame = inspect.currentframe().f_back.f_back.f_back
-                #     caller3_name = inspect.getframeinfo(caller3_frame).function
+            # # Deeper Function Stack
+            # caller2_name = ""
+            # if caller_name != "<module>":
+            #     caller2_frame = inspect.currentframe().f_back.f_back
+            #     caller2_name = inspect.getframeinfo(caller2_frame).function
+            #     if caller2_name != "<module>":
+            #         caller3_frame = inspect.currentframe().f_back.f_back.f_back
+            #         caller3_name = inspect.getframeinfo(caller3_frame).function
 
             # Can opitionally set Threshold: Only show overhead large enough to be noticed
-            #   if end_time - start_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
+            #   if elapsed_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
             print(
-                f"[    MORE] : {caller2_name: >60} -> {caller_name: >60} -> {func_name: >30} : {(end_time - start_time):>6.4f} seconds"
+                f"[ M-RESRC] : {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                f" : {(elapsed_time):>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
             )
 
             return result

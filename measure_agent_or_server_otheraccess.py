@@ -12,33 +12,21 @@ from ureka_framework.view.menu_agent_or_server import MenuAgentOrServer
 
 if __name__ == "__main__":
     try:
-        ######################################################
-        # ENVIRONMENT
-        ######################################################
-        Environment.DEPLOYMENT_ENV = "PRODUCTION"
-        Environment.DEBUG_LOG = "CLOSED"
-        Environment.CLI_LOG = "CLOSED"
-        Environment.MEASURE_LOG = "OPEN"
-        Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
-        Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
-
         # Omit 1st run (Cold-start)
         for times in range(2):
             if times == 0:
                 ######################################################
                 # Omit Cold-start
                 ######################################################
-                print(f"[   PRINT] : ")
-                print(f"[   PRINT] : {f'*' * 50}")
-                print(f"[   PRINT] : + Omit Cold-start...")
-                print(f"[   PRINT] : {f'*' * 50}")
+                MenuAgentOrServer.set_environment("cold-start")
             else:
                 ######################################################
                 # Grant Device Access Right (to others)
                 ######################################################
+                MenuAgentOrServer.set_environment("measurement")
                 simple_log("measure", "")
                 simple_log("measure", "*" * 50)
-                simple_log("measure", f"+ Grant Device Access Right (to others)")
+                simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
                 simple_log("measure", "*" * 50)
 
             ###########################

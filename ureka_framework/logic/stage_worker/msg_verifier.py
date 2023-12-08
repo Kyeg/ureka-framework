@@ -42,7 +42,7 @@ class MsgVerifier:
     #   (VR): classify_message_is_defined_type
     #   (VL): has_u_ticket_in_device_table
     #   (VUT): verify_u_ticket_can_execute
-    #   (VRT): verify_u_ticket_has_successfully_executed_through_r_ticket
+    #   (VRT): verify_u_ticket_has_executed_through_r_ticket
     #   (VTK): verify_token_through_hmac (when _execute_decrypt_ciphertext)
     #   (VTS): verify_cmd_is_in_task_scope
     ######################################################
@@ -152,7 +152,7 @@ class MsgVerifier:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     @measure_worker_func
-    def verify_u_ticket_has_successfully_executed_through_r_ticket(
+    def verify_u_ticket_has_executed_through_r_ticket(
         self,
         r_ticket_in: RTicket,
         audit_start_ticket: Optional[UTicket],

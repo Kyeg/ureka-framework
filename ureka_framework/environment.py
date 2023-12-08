@@ -40,3 +40,5 @@ class Environment:
     # Measurement
     ######################################################
     IO_BLOCKING_TOLERANCE_TIME = 0.010
+    MEASUREMENT_TIME_PRECISION: str = ".3f"
+    MORE_MEASUREMENT_TIME_PRECISION: str = "6.4f"

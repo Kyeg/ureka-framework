@@ -29,14 +29,12 @@ if __name__ == "__main__":
                 ######################################################
                 # Omit Cold-start
                 ######################################################
-                print(f"[   PRINT] : ")
-                print(f"[   PRINT] : {f'*' * 50}")
-                print(f"[   PRINT] : + Omit Cold-start...")
-                print(f"[   PRINT] : {f'*' * 50}")
+                MenuIoTDevice.set_environment("cold-start")
             else:
                 ######################################################
                 # Grant Device Access Right (to owner herself)
                 ######################################################
+                MenuIoTDevice.set_environment("measurement")
                 simple_log("measure", "")
                 simple_log("measure", "*" * 50)
                 simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
