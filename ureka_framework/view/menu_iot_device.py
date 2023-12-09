@@ -53,6 +53,7 @@ class MenuIoTDevice:
             device_type=this_device.IOT_DEVICE,
             device_name=device_name,
         )
+        # self.sleep_time = 0.2  # Simulate blocked I/O
 
     def get_iot_device(self) -> DeviceController:
         return self.iot_device
@@ -107,7 +108,9 @@ class MenuIoTDevice:
                 # WHEN: IoTD do data processing
                 if option == "shortest":
                     insecure_data_json = f"Data: {insecure_cmd_json}"
-                    time.sleep(0.1)  # Simulate blocked I/O
+                    # if self.sleep_time > 0:
+                    #     time.sleep(self.sleep_time)  # Simulate blocked I/O
+                    #     self.sleep_time = self.sleep_time - 0.02
                 else:
                     insecure_cmd_dict = json.loads(insecure_cmd_json)
                     insecure_data_dict = {
@@ -116,7 +119,9 @@ class MenuIoTDevice:
                         "insecure_data_response": f"Data: {insecure_cmd_dict['insecure_command']}",
                     }
                     insecure_data_json = json.dumps(insecure_data_dict, indent=4)
-                    # time.sleep(0.1)  # Simulate blocked I/O
+                    # if self.sleep_time > 0:
+                    #     time.sleep(self.sleep_time)  # Simulate blocked I/O
+                    #     self.sleep_time = self.sleep_time - 0.02
 
                 # WHEN: IoTD return the insecure_data to UA or CS
                 self.iot_device.shared_data.connection_socket.send_message(

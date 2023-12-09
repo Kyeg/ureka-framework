@@ -58,6 +58,9 @@ class ConnectionSocket:
         bytes_received = 0
         message_length = str(MSG_MAX_SIZE)
         while bytes_received < int(message_length):
+            # # Can opitionally set Timeout
+            # self.connection_socket.settimeout(second)
+
             # Receive
             chunk_with_length: bytes = self.connection_socket.recv(COMM_BUFFER_SIZE)
             chunk_with_length_str: str = self._byte_backto_str(chunk_with_length)
@@ -220,6 +223,9 @@ class AcceptSocket:
         ########################################################################
         # Connection Socket: Created through Server Socket
         ########################################################################
+        # # Can opitionally set Timeout
+        # self.accept_socket.settimeout(second)
+
         simple_log(
             "cli",
             f"+ Waiting for {self.service_name} services: Connection on RFCOMM port {service_port}...",

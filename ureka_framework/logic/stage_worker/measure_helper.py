@@ -42,7 +42,7 @@ class MeasureHelper:
         cli_perf_time: float = get_perf_time()
         cli_blocked_time: float = abs(cli_perf_time - cli_process_time)
 
-        # Collect Measurement Record
+        # Collect Measurement Raw Data
         if self.shared_data.measure_rec.get(cli_name) is None:
             self.shared_data.measure_rec[cli_name] = {}
         # Record cli_perf_time
@@ -50,7 +50,7 @@ class MeasureHelper:
         self.shared_data.measure_rec[cli_name]["cli_blocked_time"] = cli_blocked_time
         # simple_log("measure", f"measure_rec = {self.shared_data.measure_rec}")
 
-        # Print Measurement Record
+        # Print Measurement Raw Data
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive CLI Input: {cli_name}")
         simple_log(
@@ -71,7 +71,7 @@ class MeasureHelper:
         msg_perf_time: float = get_perf_time()
         msg_blocked_time: float = abs(msg_perf_time - msg_process_time)
 
-        # Collect Measurement Record
+        # Collect Measurement Raw Data
         if self.shared_data.measure_rec.get(comm_name) is None:
             self.shared_data.measure_rec[comm_name] = {}
         # Record msg_perf_time
@@ -91,7 +91,7 @@ class MeasureHelper:
             ] = self.shared_data.measure_rec["_recv_message"]["message_size"]
         # simple_log("measure", f"measure_rec = {self.shared_data.measure_rec}")
 
-        # Print Measurement Record
+        # Print Measurement Raw Data
         simple_log(
             "measure",
             f"msg_perf_time = {msg_perf_time:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
@@ -118,14 +118,14 @@ class MeasureHelper:
         # Response Time
         comm_time: float = get_comm_time()
 
-        # Collect Measurement Record
+        # Collect Measurement Raw Data
         if self.shared_data.measure_rec.get(comm_name) is None:
             self.shared_data.measure_rec[comm_name] = {}
         # Cache comm_time
         self.shared_data.measure_rec[comm_name]["comm_time"] = comm_time
         # simple_log("measure", f"measure_rec = {self.shared_data.measure_rec}")
 
-        # Print Measurement Record
+        # Print Measurement Raw Data
         simple_log("measure", f"")
         simple_log("measure", f"+ Receive Comm Input: {comm_name}")
         simple_log(
@@ -150,12 +150,12 @@ class MeasureHelper:
         # Data Size
         message_size: int = simple_size_calculator(received_message_with_header)
 
-        # Collect Measurement Record
+        # Collect Measurement Raw Data
         if self.shared_data.measure_rec.get(comm_name) is None:
             self.shared_data.measure_rec[comm_name] = {}
         # Cache message_size
         self.shared_data.measure_rec[comm_name]["message_size"] = message_size
         # simple_log("measure", f"measure_rec = {self.shared_data.measure_rec}")
 
-        # Print Measurement Record
+        # Print Measurement Raw Data
         simple_log("measure", f"message_size = {message_size} bytes")
