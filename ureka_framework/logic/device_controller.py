@@ -71,7 +71,6 @@ class DeviceController:
             this_person=ThisPerson(),
             device_table={},
             state=None,
-            simulated_comm_completed_flag=None,
         )
 
         # Resource (Storage)
@@ -88,6 +87,7 @@ class DeviceController:
             self.shared_data.connection_socket: Optional[ConnectionSocket] = None
 
         # Measurer
+        self.shared_data.measure_rec = dict()
         self.measure_helper = MeasureHelper(shared_data=self.shared_data)
 
         # Stage Worker

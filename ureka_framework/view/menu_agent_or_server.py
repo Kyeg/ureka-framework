@@ -37,15 +37,15 @@ class MenuAgentOrServer:
             Environment.MEASURE_LOG = "CLOSED"
             Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
             Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
-            print(f"[ MEASURE] : ")
-            print(f"[ MEASURE] : {f'*' * 50}")
-            print(f"[ MEASURE] : + Omit Cold-start...")
-            print(f"[ MEASURE] : {f'*' * 50}")
+            print(f"[   M-REC] : ")
+            print(f"[   M-REC] : {f'*' * 50}")
+            print(f"[   M-REC] : + Omit Cold-start...")
+            print(f"[   M-REC] : {f'*' * 50}")
         elif situation == "measurement":
             Environment.DEPLOYMENT_ENV = "PRODUCTION"
             Environment.DEBUG_LOG = "CLOSED"
             Environment.CLI_LOG = "CLOSED"
-            Environment.MEASURE_LOG = "OPEN"
+            Environment.MEASURE_LOG = "CLOSED"
             Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
             Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 
@@ -320,14 +320,14 @@ class MenuAgentOrServer:
             ########################################################################
             # End Comm Measurement
             ########################################################################
-            self.agent_or_server.measure_helper.measure_comm_time(
-                "_holder_or_device_recv_u_or_r_ticket"
-            )
+            self.agent_or_server.measure_helper.measure_comm_time("_recv_message")
 
             ########################################################################
             # Message Size Measurement
             ########################################################################
-            self.agent_or_server.measure_helper.measure_message_size(insecure_data_json)
+            self.agent_or_server.measure_helper.measure_message_size(
+                "_recv_message", insecure_data_json
+            )
             simple_log("cli", f"Received Data: {insecure_data_json}")
 
             ########################################################################

@@ -48,6 +48,9 @@ class SharedData:
     result_message: Optional[str] = None
     # target_device_id: Optional[str] = None
 
+    # Measurement Record
+    measure_rec: dict = None
+
     # Resource (Simulated Comm)
     simulated_comm_channel: Optional[SimulatedCommChannel] = None
     simulated_comm_receiver_thread: threading.Thread = None

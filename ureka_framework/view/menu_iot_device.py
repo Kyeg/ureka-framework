@@ -15,6 +15,9 @@ from typing import Optional, Tuple
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 
+# Threading
+import time
+
 
 class MenuIoTDevice:
     ######################################################
@@ -29,15 +32,15 @@ class MenuIoTDevice:
             Environment.MEASURE_LOG = "CLOSED"
             Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
             Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
-            print(f"[ MEASURE] : ")
-            print(f"[ MEASURE] : {f'*' * 50}")
-            print(f"[ MEASURE] : + Omit Cold-start...")
-            print(f"[ MEASURE] : {f'*' * 50}")
+            print(f"[   M-REC] : ")
+            print(f"[   M-REC] : {f'*' * 50}")
+            print(f"[   M-REC] : + Omit Cold-start...")
+            print(f"[   M-REC] : {f'*' * 50}")
         elif situation == "measurement":
             Environment.DEPLOYMENT_ENV = "PRODUCTION"
             Environment.DEBUG_LOG = "CLOSED"
             Environment.CLI_LOG = "CLOSED"
-            Environment.MEASURE_LOG = "OPEN"
+            Environment.MEASURE_LOG = "CLOSED"
             Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
             Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 
@@ -91,7 +94,9 @@ class MenuIoTDevice:
                 ########################################################################
                 # Message Size Measurement
                 ########################################################################
-                self.iot_device.measure_helper.measure_message_size(insecure_cmd_json)
+                self.iot_device.measure_helper.measure_message_size(
+                    "_recv_message", insecure_cmd_json
+                )
                 simple_log("cli", f"Received Command: {insecure_cmd_json}")
 
                 ######################################################
@@ -102,6 +107,7 @@ class MenuIoTDevice:
                 # WHEN: IoTD do data processing
                 if option == "shortest":
                     insecure_data_json = f"Data: {insecure_cmd_json}"
+                    time.sleep(0.1)  # Simulate blocked I/O
                 else:
                     insecure_cmd_dict = json.loads(insecure_cmd_json)
                     insecure_data_dict = {
@@ -110,6 +116,7 @@ class MenuIoTDevice:
                         "insecure_data_response": f"Data: {insecure_cmd_dict['insecure_command']}",
                     }
                     insecure_data_json = json.dumps(insecure_data_dict, indent=4)
+                    # time.sleep(0.1)  # Simulate blocked I/O
 
                 # WHEN: IoTD return the insecure_data to UA or CS
                 self.iot_device.shared_data.connection_socket.send_message(

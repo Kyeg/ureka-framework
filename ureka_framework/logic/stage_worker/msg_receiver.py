@@ -179,9 +179,7 @@ class MsgReceiver:
                         # End Comm Measurement
                         ########################################################################
                         if self.shared_data.this_device.device_name != "iot_device":
-                            self.measure_helper.measure_comm_time(
-                                "_holder_or_device_recv_u_or_r_ticket"
-                            )
+                            self.measure_helper.measure_comm_time("_recv_message")
 
                         simple_log(
                             "info",
@@ -196,7 +194,9 @@ class MsgReceiver:
                 ########################################################################
                 # Message Size Measurement
                 ########################################################################
-                self.measure_helper.measure_message_size(received_message_with_header)
+                self.measure_helper.measure_message_size(
+                    "_recv_message", received_message_with_header
+                )
 
                 ######################################################
                 # Start Process Measurement
