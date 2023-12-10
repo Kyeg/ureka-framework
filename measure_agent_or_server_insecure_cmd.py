@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -22,11 +19,11 @@ if __name__ == "__main__":
         option = "shortest"
 
         # GIVEN: Initialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
+        user_agent_do = menu_user_agent_do.get_agent_or_server()
 
         # WHEN: DM's CS apply the insecure_cmd to IoTD
-        cloud_server_dm = menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
+        user_agent_do = menu_user_agent_do.apply_insecure_cmd_through_bluetooth(
             option=option
         )
 
@@ -49,33 +46,30 @@ if __name__ == "__main__":
                 ###########################
 
                 # GIVEN: Initialized DM's CS
-                # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-                cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+                user_agent_do = menu_user_agent_do.get_agent_or_server()
 
                 # WHEN: DM's CS apply the insecure_cmd to IoTD
-                cloud_server_dm = (
-                    menu_cloud_server_dm.apply_insecure_cmd_through_bluetooth(
-                        option=option
-                    )
+                user_agent_do = menu_user_agent_do.apply_insecure_cmd_through_bluetooth(
+                    option=option
                 )
 
-                ###########################
-
+                ######################################################
                 # Do Not Collect Too Large Overhead (I/O Peak)
+                ######################################################
                 if (
-                    cloud_server_dm.shared_data.measure_rec[
-                        "_holder_recv_insecure_data"
-                    ]["comm_time"]
+                    user_agent_do.shared_data.measure_rec["_holder_recv_insecure_data"][
+                        "comm_time"
+                    ]
                     > Environment.COMM_BLOCKING_TOLERANCE_TIME
                 ):
                     print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                     continue
                 if (
-                    cloud_server_dm.shared_data.measure_rec[
-                        "holder_apply_insecure_cmd"
-                    ]["cli_blocked_time"]
+                    user_agent_do.shared_data.measure_rec["holder_apply_insecure_cmd"][
+                        "cli_blocked_time"
+                    ]
                     > Environment.IO_BLOCKING_TOLERANCE_TIME
-                    or cloud_server_dm.shared_data.measure_rec[
+                    or user_agent_do.shared_data.measure_rec[
                         "_holder_recv_insecure_data"
                     ]["msg_blocked_time"]
                     > Environment.IO_BLOCKING_TOLERANCE_TIME
@@ -83,23 +77,31 @@ if __name__ == "__main__":
                     print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                     continue
 
+                ######################################################
                 # Collect Measurement Raw Data
-                cloud_server_dm_measure_rec = copy.deepcopy(
-                    cloud_server_dm.shared_data.measure_rec
+                ######################################################
+                user_agent_do_measure_rec = copy.deepcopy(
+                    user_agent_do.shared_data.measure_rec
                 )
-                measurement_statistics.append(cloud_server_dm_measure_rec)
+                measurement_statistics.append(user_agent_do_measure_rec)
 
+                ######################################################
+                # Print Measurement Raw Data
+                ######################################################
+                print(
+                    f"[   M-REC] : "
+                    f"measure_rec = {json.dumps(user_agent_do.shared_data.measure_rec, indent=4)}"
+                )
+
+                ######################################################
                 # Complete Collecting Measurement Raw Data
+                ######################################################
                 times = times + 1
                 print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
-                # Print Measurement Raw Data
-                print(
-                    f"[   M-REC] : "
-                    f"measure_rec = {json.dumps(cloud_server_dm.shared_data.measure_rec, indent=4)}"
-                )
-
+            ######################################################
             # Print Measurement Statistics
+            ######################################################
             print(f"[   M-REC] : ")
             print(f"[   M-REC] : {f'*' * 50}")
             print(f"[   M-REC] : + Measurement Statistics")
@@ -176,12 +178,16 @@ if __name__ == "__main__":
                 f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
+            ######################################################
             # Collect Measurement Statistics
+            ######################################################
             diff_option_statistics[option] = (
                 average_cmd_p0 + average_cmd_data_c1 + average_cmd_data_p1
             )
 
-        # Print Measurement Statistics
+        ######################################################
+        # Print Measurement Summary
+        ######################################################
         print(f"[   M-REC] : ")
         print(f"[   M-REC] : {f'*' * 50}")
         print(f"[   M-REC] : + [Summarize] Measurement Statistics")

@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -11,7 +8,6 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import json
 
 # Data Model (RAM)
-from typing import Optional, Tuple
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 
@@ -48,7 +44,7 @@ class MenuIoTDevice:
     # Secure Mode
     ######################################################
     def __init__(self, device_name: str) -> None:
-        # GIVEN: Uninitialized IoTD
+        # GIVEN: Load IoTD
         self.iot_device = DeviceController(
             device_type=this_device.IOT_DEVICE,
             device_name=device_name,

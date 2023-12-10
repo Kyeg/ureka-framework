@@ -90,7 +90,7 @@ if __name__ == "__main__":
         target_device_id = menu_cloud_server_dm.get_target_device_id()
         menu_cloud_server_dm.issue_ownership_ticket_through_simulated_comm(
             target_device_id=target_device_id,
-            user_agent_do=user_agent_do,
+            new_owner=user_agent_do,
         )
 
         ###########################
@@ -223,7 +223,7 @@ if __name__ == "__main__":
         target_device_id = menu_user_agent_do.get_target_device_id()
         menu_user_agent_do.issue_access_ticket_through_simulated_comm(
             target_device_id=target_device_id,
-            cloud_server_ep=cloud_server_ep,
+            new_accessor=cloud_server_ep,
         )
 
         ###########################

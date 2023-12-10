@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -17,7 +14,7 @@ import json
 if __name__ == "__main__":
     try:
         ######################################################
-        # Grant Device Access Right (to others)
+        # Grant Device Access Right (to other)
         ######################################################
         MenuAgentOrServer.set_environment("measurement")
 
@@ -32,16 +29,14 @@ if __name__ == "__main__":
         while times < Environment.MEASUREMENT_REPEAT_TIMES:
             print(f"[   M-REC] : ")
             print(f"[   M-REC] : {f'*' * 50}")
-            print(f"[   M-REC] : + Grant Device Access Right (to other owner)")
+            print(f"[   M-REC] : + Grant Device Access Right (to other)")
             print(f"[   M-REC] : {f'*' * 50}")
 
             ###########################
 
             # GIVEN: Initialized DO's UA
-            # menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
             user_agent_do = menu_user_agent_do.get_agent_or_server()
             # GIVEN: Initialized EP's CS
-            # menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
             cloud_server_ep = menu_cloud_server_ep.get_agent_or_server()
 
             ###########################
@@ -50,7 +45,7 @@ if __name__ == "__main__":
             target_device_id = menu_user_agent_do.get_target_device_id()
             menu_user_agent_do.issue_access_ticket_through_simulated_comm(
                 target_device_id=target_device_id,
-                cloud_server_ep=cloud_server_ep,
+                new_accessor=cloud_server_ep,
             )
 
             ###########################
@@ -126,9 +121,9 @@ if __name__ == "__main__":
                 == original_agent_order + 1
             )
 
-            ###########################
-
+            ######################################################
             # Do Not Collect Too Large Overhead (I/O Peak)
+            ######################################################
             # UT=CRKE-1
             if (
                 cloud_server_ep.shared_data.measure_rec["holder_apply_u_ticket"][
@@ -216,27 +211,35 @@ if __name__ == "__main__":
                 print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
 
+            ######################################################
             # Collect Measurement Raw Data (cloud_server_ep)
+            ######################################################
             cloud_server_ep_measure_rec = copy.deepcopy(
                 cloud_server_ep.shared_data.measure_rec
             )
             measurement_statistics.append(cloud_server_ep_measure_rec)
 
+            ######################################################
             # Print Measurement Raw Data
+            ######################################################
             print(
                 f"[   M-REC] : "
                 f"measure_rec = {json.dumps(cloud_server_ep.shared_data.measure_rec, indent=4)}"
             )
 
+            ######################################################
             # Complete Collecting Measurement Raw Data
+            ######################################################
             times = times + 1
             print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
+        ######################################################
         # Print Measurement Statistics
+        ######################################################
         print(f"[   M-REC] : ")
         print(f"[   M-REC] : {f'*' * 50}")
         print(f"[   M-REC] : + Measurement Statistics")
-        print(f"[   M-REC] : + Grant Device Access Right (to other owner)")
+        print(f"[   M-REC] : + Grant Device Access Right (to other)")
         print(f"[   M-REC] : {f'*' * 50}")
 
         # =UT
@@ -249,7 +252,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_u_ticket: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         # UT=CRKE-1
@@ -296,7 +299,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_1: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -341,7 +344,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_3: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -408,7 +411,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_data: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -454,7 +457,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_r_ticket: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -503,11 +506,13 @@ if __name__ == "__main__":
             f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 
-        # Print Measurement Statistics
+        ######################################################
+        # Print Measurement Summary
+        ######################################################
         print(f"[   M-REC] : ")
         print(f"[   M-REC] : {f'*' * 50}")
         print(f"[   M-REC] : + [Summarize] Measurement Statistics")
-        print(f"[   M-REC] : + Grant Device Access Right (to other owner)")
+        print(f"[   M-REC] : + Grant Device Access Right (to other)")
         print(f"[   M-REC] : {f'*' * 50}")
 
         print(f"[   M-REC] : ")

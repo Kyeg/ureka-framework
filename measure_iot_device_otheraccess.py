@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -82,15 +79,17 @@ if __name__ == "__main__":
                 == original_device_order + 1
             )
 
-            ###########################
-
+            ######################################################
             # Print Measurement Raw Data
+            ######################################################
             print(
                 f"[   M-REC] : "
                 f"measure_rec = {json.dumps(iot_device.shared_data.measure_rec, indent=4)}"
             )
 
+            ######################################################
             # Complete Collecting Measurement Raw Data
+            ######################################################
             times = times + 1
             print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 

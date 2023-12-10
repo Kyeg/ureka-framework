@@ -14,7 +14,7 @@ import json
 if __name__ == "__main__":
     try:
         ######################################################
-        # Grant Device Access Right (to others)
+        # Transfer Device Ownership
         ######################################################
         MenuIoTDevice.set_environment("measurement")
 
@@ -27,57 +27,54 @@ if __name__ == "__main__":
         # TO-DO: If blocked I/O is detected, times should be larger than MEASUREMENT_REPEAT_TIMES
         # while times < Environment.MEASUREMENT_REPEAT_TIMES:
         while True:
+            ######################################################
+            # Transfer Device Ownership (Back: UA to DM)
+            ######################################################
             print(f"[   M-REC] : ")
             print(f"[   M-REC] : {f'*' * 50}")
-            print(f"[   M-REC] : + Grant Device Access Right (to owner herself)")
+            print(f"[   M-REC] : + Transfer Device Ownership (Back: UA to DM)")
             print(f"[   M-REC] : {f'*' * 50}")
 
-            ###########################
-
             # GIVEN: Initialized IoTD
-            # menu_iot_device = MenuIoTDevice(device_name="iot_device")
             iot_device = menu_iot_device.get_iot_device()
 
-            # WHEN: Holder: EP's CS apply the self_access_u_ticket to IoTD
+            # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
             iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            # THEN: Succeed to share a private session with DO's IoTD
+            # THEN: Succeed to transfer ownership (become DO's IoTD)
             assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
-            )
+            assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
-            ###########################
+            ######################################################
+            # Transfer Device Ownership (DM to UA)
+            ######################################################
+            print(f"[   M-REC] : ")
+            print(f"[   M-REC] : {f'*' * 50}")
+            print(f"[   M-REC] : + Transfer Device Ownership (DM to UA)")
+            print(f"[   M-REC] : {f'*' * 50}")
 
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
+            # GIVEN: Initialized IoTD
+            iot_device = menu_iot_device.get_iot_device()
 
-            # WHEN: Holder: EP's CS apply the u_token to IoTD
+            # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
             iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            # THEN: Succeed to share a private session with DO's IoTD
+            # THEN: Succeed to transfer ownership (become DO's IoTD)
             assert "SUCCESS" in iot_device.shared_data.result_message
-            # THEN: EP's CS can share a private session with DO's IoTD
-            assert (
-                iot_device.shared_data.current_session.plaintext_data
-                == "DATA: " + iot_device.shared_data.current_session.plaintext_cmd
-            )
+            assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
-            ###########################
-
-            # GIVEN: IoTD cannot be rebooted, because the state & session is non-volatile
-
-            # WHEN: Holder: EP's CS apply the access_end_u_token to IoTD
-            original_device_order = iot_device.shared_data.this_device.ticket_order
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
-
-            # THEN: Succeed to share a private session with DO's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            assert (
-                iot_device.shared_data.this_device.ticket_order
-                == original_device_order + 1
-            )
+            ######################################################
+            # Do Not Collect Too Large Overhead (I/O Peak)
+            ######################################################
+            # =UT
+            if (
+                iot_device.shared_data.measure_rec["_device_recv_u_ticket"][
+                    "msg_blocked_time"
+                ]
+                > Environment.IO_BLOCKING_TOLERANCE_TIME
+            ):
+                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
+                continue
 
             ######################################################
             # Print Measurement Raw Data

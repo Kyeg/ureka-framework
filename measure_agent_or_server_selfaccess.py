@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -36,7 +33,6 @@ if __name__ == "__main__":
             ###########################
 
             # GIVEN: Initialized DO's UA
-            # menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
             user_agent_do = menu_user_agent_do.get_agent_or_server()
 
             ###########################
@@ -95,9 +91,9 @@ if __name__ == "__main__":
                 == original_agent_order + 1
             )
 
-            ###########################
-
+            ######################################################
             # Do Not Collect Too Large Overhead (I/O Peak)
+            ######################################################
             # UT=CRKE-1
             if (
                 user_agent_do.shared_data.measure_rec["holder_apply_u_ticket"][
@@ -183,23 +179,31 @@ if __name__ == "__main__":
                 print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
 
+            ######################################################
             # Collect Measurement Raw Data (user_agent_do)
+            ######################################################
             user_agent_do_measure_rec = copy.deepcopy(
                 user_agent_do.shared_data.measure_rec
             )
             measurement_statistics.append(user_agent_do_measure_rec)
 
+            ######################################################
             # Print Measurement Raw Data
+            ######################################################
             print(
                 f"[   M-REC] : "
                 f"measure_rec = {json.dumps(user_agent_do.shared_data.measure_rec, indent=4)}"
             )
 
+            ######################################################
             # Complete Collecting Measurement Raw Data
+            ######################################################
             times = times + 1
             print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
+        ######################################################
         # Print Measurement Statistics
+        ######################################################
         print(f"[   M-REC] : ")
         print(f"[   M-REC] : {f'*' * 50}")
         print(f"[   M-REC] : + Measurement Statistics")
@@ -263,7 +267,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_1: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -308,7 +312,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_3: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -375,7 +379,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_data: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -421,7 +425,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_r_ticket: message_size = \n\t\t"
-            f"{average} seconds",
+            f"{average} bytes",
         )
 
         filtered_data = [
@@ -446,7 +450,9 @@ if __name__ == "__main__":
             f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 
-        # Print Measurement Statistics
+        ######################################################
+        # Print Measurement Summary
+        ######################################################
         print(f"[   M-REC] : ")
         print(f"[   M-REC] : {f'*' * 50}")
         print(f"[   M-REC] : + [Summarize] Measurement Statistics")

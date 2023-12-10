@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -11,7 +8,6 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 import json
 
 # Data Model (RAM)
-from typing import Optional, Tuple
 from ureka_framework.logic.device_controller import DeviceController
 import ureka_framework.model.data_model.this_device as this_device
 import ureka_framework.model.message_model.u_ticket as u_ticket
@@ -53,7 +49,7 @@ class MenuAgentOrServer:
     # Secure Mode
     ######################################################
     def __init__(self, device_name: str) -> None:
-        # GIVEN: Uninitialized UA or CS
+        # GIVEN: Load UA or CS
         self.agent_or_server = DeviceController(
             device_type=this_device.USER_AGENT_OR_CLOUD_SERVER,
             device_name=device_name,
@@ -63,12 +59,15 @@ class MenuAgentOrServer:
         return self.agent_or_server
 
     def get_target_device_id(self) -> str:
-        # For complicated case, show a device list and let user choose
+        # TODO: For complicated case, show a device list and let user choose
         # show_device_list()...
         # input()...
 
         # For simple case, just return the first device id
-        return list(self.agent_or_server.shared_data.device_table.keys())[0]
+        if list(self.agent_or_server.shared_data.device_table.keys())[0] == "no_id":
+            return list(self.agent_or_server.shared_data.device_table.keys())[1]
+        else:
+            return list(self.agent_or_server.shared_data.device_table.keys())[0]
 
     def intialize_agent_or_server_through_cli(self) -> DeviceController:
         # WHEN: Initialize UA or CS
@@ -106,20 +105,20 @@ class MenuAgentOrServer:
         return self.agent_or_server
 
     def issue_ownership_ticket_through_simulated_comm(
-        self, target_device_id: str, user_agent_do: DeviceController
+        self, target_device_id: str, new_owner: DeviceController
     ) -> None:
-        # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
+        # WHEN: Issuer: Old owner generate & send the ownership_u_ticket to New Owner
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_simulated_comm_connection(self.agent_or_server, user_agent_do)
+        create_simulated_comm_connection(self.agent_or_server, new_owner)
         generated_request: dict = {
             "device_id": f"{target_device_id}",
-            "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
+            "holder_id": f"{new_owner.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
         }
         self.agent_or_server.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
-        wait_simulated_comm_completed(user_agent_do, self.agent_or_server)
+        wait_simulated_comm_completed(new_owner, self.agent_or_server)
 
     def apply_ownership_ticket_through_bluetooth(
         self, target_device_id: str
@@ -171,22 +170,22 @@ class MenuAgentOrServer:
         return self.agent_or_server
 
     def issue_access_ticket_through_simulated_comm(
-        self, target_device_id: str, cloud_server_ep: DeviceController
+        self, target_device_id: str, new_accessor: DeviceController
     ) -> None:
         # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
         Environment.COMMUNICATION_CHANNEL = "SIMULATED"
-        create_simulated_comm_connection(self.agent_or_server, cloud_server_ep)
+        create_simulated_comm_connection(self.agent_or_server, new_accessor)
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
             "device_id": f"{target_device_id}",
-            "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
+            "holder_id": f"{new_accessor.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.agent_or_server.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
             device_id=target_device_id, arbitrary_dict=generated_request
         )
-        wait_simulated_comm_completed(cloud_server_ep, self.agent_or_server)
+        wait_simulated_comm_completed(new_accessor, self.agent_or_server)
 
     def apply_access_ticket_through_bluetooth(
         self, target_device_id: str

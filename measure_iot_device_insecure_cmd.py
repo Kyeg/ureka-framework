@@ -1,9 +1,6 @@
 # Environment
 from ureka_framework.environment import Environment
 
-# Resource (Storage)
-from ureka_framework.resource.storage.simple_storage import SimpleStorage
-
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
@@ -47,8 +44,6 @@ if __name__ == "__main__":
                 print(f"[   M-REC] : + Insecurely Recv Command & Send Data ({option})")
                 print(f"[   M-REC] : {f'*' * 50}")
 
-                ###########################
-
                 # GIVEN: Initialized IoTD
                 # menu_iot_device = MenuIoTDevice(device_name="iot_device")
                 iot_device = menu_iot_device.get_iot_device()
@@ -58,15 +53,17 @@ if __name__ == "__main__":
                     option=option
                 )
 
-                ###########################
-
+                ######################################################
                 # Print Measurement Raw Data
+                ######################################################
                 print(
                     f"[   M-REC] : "
                     f"measure_rec = {json.dumps(iot_device.shared_data.measure_rec, indent=4)}"
                 )
 
+                ######################################################
                 # Complete Collecting Measurement Raw Data
+                ######################################################
                 times = times + 1
                 print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
