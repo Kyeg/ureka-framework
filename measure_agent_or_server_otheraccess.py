@@ -249,7 +249,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_u_ticket: message_size = \n\t\t"
-            f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            f"{average} seconds",
         )
 
         # UT=CRKE-1
@@ -296,7 +296,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_1: message_size = \n\t\t"
-            f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            f"{average} seconds",
         )
 
         filtered_data = [
@@ -341,7 +341,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_cr_ke_3: message_size = \n\t\t"
-            f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            f"{average} seconds",
         )
 
         filtered_data = [
@@ -408,7 +408,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_data: message_size = \n\t\t"
-            f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            f"{average} seconds",
         )
 
         filtered_data = [
@@ -454,7 +454,7 @@ if __name__ == "__main__":
         print(
             f"[   M-REC] : "
             f"_holder_recv_r_ticket: message_size = \n\t\t"
-            f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            f"{average} seconds",
         )
 
         filtered_data = [
