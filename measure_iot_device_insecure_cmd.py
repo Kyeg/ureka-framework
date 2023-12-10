@@ -13,24 +13,13 @@ import json
 
 if __name__ == "__main__":
     try:
-        # Omit 1st run (Cold-start)
-        MenuIoTDevice.set_environment("cold-start")
-
-        option = "shortest"
-
-        # GIVEN: Initialized IoTD
-        menu_iot_device = MenuIoTDevice(device_name="iot_device")
-        iot_device = menu_iot_device.get_iot_device()
-
-        # WHEN: DM's CS apply the insecure_cmd to IoTD
-        iot_device = menu_iot_device.receive_insecure_cmd_through_bluetooth(
-            option=option
-        )
-
         ######################################################
         # Insecurely Recv Command & Send Insecure Data
         ######################################################
         MenuIoTDevice.set_environment("measurement")
+
+        # GIVEN: Initialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
 
         for option in ["shortest", "with_device_id", "u_ticket_size"]:
             # Repeatly measure the overhead
@@ -45,7 +34,6 @@ if __name__ == "__main__":
                 print(f"[   M-REC] : {f'*' * 50}")
 
                 # GIVEN: Initialized IoTD
-                # menu_iot_device = MenuIoTDevice(device_name="iot_device")
                 iot_device = menu_iot_device.get_iot_device()
 
                 # WHEN: DM's CS apply the insecure_cmd to IoTD

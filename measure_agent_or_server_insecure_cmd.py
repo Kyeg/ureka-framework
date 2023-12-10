@@ -13,24 +13,13 @@ import json
 
 if __name__ == "__main__":
     try:
-        # Omit 1st run (Cold-start)
-        MenuAgentOrServer.set_environment("cold-start")
-
-        option = "shortest"
-
-        # GIVEN: Initialized DM's CS
-        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
-        user_agent_do = menu_user_agent_do.get_agent_or_server()
-
-        # WHEN: DM's CS apply the insecure_cmd to IoTD
-        user_agent_do = menu_user_agent_do.apply_insecure_cmd_through_bluetooth(
-            option=option
-        )
-
         ######################################################
         # Insecurely Recv Command & Send Insecure Data
         ######################################################
         MenuAgentOrServer.set_environment("measurement")
+
+        # GIVEN: Initialized DO's UA
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
 
         diff_option_statistics = dict()
         for option in ["shortest", "with_device_id", "u_ticket_size"]:

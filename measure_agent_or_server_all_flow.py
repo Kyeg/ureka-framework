@@ -13,59 +13,51 @@ from ureka_framework.view.menu_agent_or_server import MenuAgentOrServer
 
 if __name__ == "__main__":
     try:
-        # Omit 1st run (Cold-start)
-        for times in range(2):
-            if times == 0:
-                # Omit Cold-start
-                MenuAgentOrServer.set_environment("cold-start")
-            else:
-                MenuAgentOrServer.set_environment("measurement")
+        ######################################################
+        # Unintialized Agent or Server
+        ######################################################
+        MenuAgentOrServer.set_environment("measurement")
 
-            ######################################################
-            # Unintialized Agent or Server
-            ######################################################
-            # RE-GIVEN:
-            SimpleStorage.delete_storage_in_test()
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
 
-            ######################################################
-            # Initialize Agent or Server
-            ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Initialize Agent or Server")
-            simple_log("measure", "*" * 50)
+        ######################################################
+        # Initialize Agent or Server
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Initialize Agent or Server")
+        simple_log("measure", "*" * 50)
 
-            # GIVEN: Uninitialized DM's CS
-            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        # GIVEN: Uninitialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
 
-            # WHEN: DM's CS initialize UA or CS
-            cloud_server_dm = (
-                menu_cloud_server_dm.intialize_agent_or_server_through_cli()
-            )
+        # WHEN: DM's CS initialize UA or CS
+        cloud_server_dm = menu_cloud_server_dm.intialize_agent_or_server_through_cli()
 
-            # THEN: Succeed to initialize UA or CS
-            assert cloud_server_dm.shared_data.this_device.ticket_order == 1
-            assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
+        # THEN: Succeed to initialize UA or CS
+        assert cloud_server_dm.shared_data.this_device.ticket_order == 1
+        assert cloud_server_dm.shared_data.this_device.device_priv_key_str != None
 
-            ######################################################
-            # Initialize Device
-            ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Initialize Device")
-            simple_log("measure", "*" * 50)
+        ######################################################
+        # Initialize Device
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Initialize Device")
+        simple_log("measure", "*" * 50)
 
-            # GIVEN: Initialized DM's CS
-            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
-            cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
+        # GIVEN: Initialized DM's CS
+        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
-            # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
-            cloud_server_dm = (
-                menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
-            )
+        # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
+        cloud_server_dm = (
+            menu_cloud_server_dm.apply_initialization_ticket_through_bluetooth()
+        )
 
-            # THEN: Succeed to initialize DM's IoTD
-            assert "SUCCESS" in cloud_server_dm.shared_data.result_message
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in cloud_server_dm.shared_data.result_message
 
         ######################################################
         # Transfer Device Ownership

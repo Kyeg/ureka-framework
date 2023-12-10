@@ -12,38 +12,32 @@ from ureka_framework.view.menu_iot_device import MenuIoTDevice
 
 if __name__ == "__main__":
     try:
-        # Omit 1st run (Cold-start)
-        for times in range(2):
-            if times == 0:
-                # Omit Cold-start
-                MenuIoTDevice.set_environment("cold-start")
-            else:
-                MenuIoTDevice.set_environment("measurement")
+        ######################################################
+        # Unintialized Device
+        ######################################################
+        MenuIoTDevice.set_environment("measurement")
 
-            ######################################################
-            # Unintialized Device
-            ######################################################
-            # RE-GIVEN:
-            SimpleStorage.delete_storage_in_test()
+        # RE-GIVEN:
+        SimpleStorage.delete_storage_in_test()
 
-            ######################################################
-            # Intialize Device
-            ######################################################
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Initialize Device")
-            simple_log("measure", "*" * 50)
+        ######################################################
+        # Intialize Device
+        ######################################################
+        simple_log("measure", "")
+        simple_log("measure", "*" * 50)
+        simple_log("measure", f"+ Initialize Device")
+        simple_log("measure", "*" * 50)
 
-            # GIVEN: Uninitialized IoTD
-            menu_iot_device = MenuIoTDevice(device_name="iot_device")
+        # GIVEN: Uninitialized IoTD
+        menu_iot_device = MenuIoTDevice(device_name="iot_device")
 
-            # WHEN: Holder: DM's CS apply the initialization_u_ticket to IoTD
-            iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
+        # WHEN: Holder: DM's CS apply the initialization_u_ticket to IoTD
+        iot_device = menu_iot_device.receive_u_ticket_through_bluetooth()
 
-            # THEN: Succeed to initialize DM's IoTD
-            assert "SUCCESS" in iot_device.shared_data.result_message
-            assert iot_device.shared_data.this_device.ticket_order == 1
-            assert iot_device.shared_data.this_device.device_priv_key_str != None
+        # THEN: Succeed to initialize DM's IoTD
+        assert "SUCCESS" in iot_device.shared_data.result_message
+        assert iot_device.shared_data.this_device.ticket_order == 1
+        assert iot_device.shared_data.this_device.device_priv_key_str != None
 
         ######################################################
         # Transfer Device Ownership

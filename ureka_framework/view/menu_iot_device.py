@@ -21,18 +21,7 @@ class MenuIoTDevice:
     ######################################################
     @classmethod
     def set_environment(cls, situation: str = "measurement") -> None:
-        if situation == "cold-start":
-            Environment.DEPLOYMENT_ENV = "PRODUCTION"
-            Environment.DEBUG_LOG = "CLOSED"
-            Environment.CLI_LOG = "CLOSED"
-            Environment.MEASURE_LOG = "CLOSED"
-            Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
-            Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
-            print(f"[   M-REC] : ")
-            print(f"[   M-REC] : {f'*' * 50}")
-            print(f"[   M-REC] : + Omit Cold-start...")
-            print(f"[   M-REC] : {f'*' * 50}")
-        elif situation == "measurement":
+        if situation == "measurement":
             Environment.DEPLOYMENT_ENV = "PRODUCTION"
             Environment.DEBUG_LOG = "CLOSED"
             Environment.CLI_LOG = "CLOSED"
