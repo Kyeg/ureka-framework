@@ -10,8 +10,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 # View (CLI Menu)
 from ureka_framework.view.menu_iot_device import MenuIoTDevice
 
-# Memory Management
+# Measurement Statistics
 import copy
+import json
 
 if __name__ == "__main__":
     try:
@@ -39,11 +40,14 @@ if __name__ == "__main__":
             times = 0
             measurement_statistics = list()
             # TO-DO: If blocked I/O is detected, times should be larger than MEASUREMENT_REPEAT_TIMES
-            while times < Environment.MEASUREMENT_REPEAT_TIMES:
+            # while times < Environment.MEASUREMENT_REPEAT_TIMES:
+            while True:
                 print(f"[   M-REC] : ")
                 print(f"[   M-REC] : {f'*' * 50}")
                 print(f"[   M-REC] : + Insecurely Recv Command & Send Data ({option})")
                 print(f"[   M-REC] : {f'*' * 50}")
+
+                ###########################
 
                 # GIVEN: Initialized IoTD
                 # menu_iot_device = MenuIoTDevice(device_name="iot_device")
@@ -54,83 +58,17 @@ if __name__ == "__main__":
                     option=option
                 )
 
-                # Do Not Collect Too Large Overhead (I/O Peak)
-                if (
-                    iot_device.shared_data.measure_rec["_device_recv_insecure_cmd"][
-                        "msg_blocked_time"
-                    ]
-                    > Environment.IO_BLOCKING_TOLERANCE_TIME
-                ):
-                    print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
-                    continue
-
-                # Collect Measurement Raw Data
-                tmp = copy.deepcopy(iot_device.shared_data.measure_rec)
-                measurement_statistics.append(tmp)
-                times = times + 1
+                ###########################
 
                 # Print Measurement Raw Data
+                print(
+                    f"[   M-REC] : "
+                    f"measure_rec = {json.dumps(iot_device.shared_data.measure_rec, indent=4)}"
+                )
 
-                # print(
-                #     f"[   M-REC] : "
-                #     f"measure_rec = {iot_device.shared_data.measure_rec}"
-                # )
-
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_device_recv_insecure_cmd: message_size = \n\t\t"
-                #     f"{iot_device.shared_data.measure_rec['_device_recv_insecure_cmd']['message_size']} bytes",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_device_recv_insecure_cmd: msg_perf_time = \n\t\t"
-                #     f"{iot_device.shared_data.measure_rec['_device_recv_insecure_cmd']['msg_perf_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_device_recv_insecure_cmd: msg_blocked_time = \n\t\t"
-                #     f"{iot_device.shared_data.measure_rec['_device_recv_insecure_cmd']['msg_blocked_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-
-            # Print Measurement Statistics
-            print(f"[   M-REC] : ")
-            print(f"[   M-REC] : {f'*' * 50}")
-            print(f"[   M-REC] : + Measurement Statistics")
-            print(f"[   M-REC] : + Insecurely Recv Command & Send Data ({option})")
-            print(f"[   M-REC] : {f'*' * 50}")
-
-            filtered_data = [
-                data["_device_recv_insecure_cmd"]["message_size"]
-                for data in measurement_statistics
-            ]
-            average = int(sum(filtered_data) / len(filtered_data))
-            print(
-                f"[   M-REC] : "
-                f"_device_recv_insecure_cmd: message_size = \n\t\t"
-                f"{average} bytes",
-            )
-
-            filtered_data = [
-                data["_device_recv_insecure_cmd"]["msg_perf_time"]
-                for data in measurement_statistics
-            ]
-            average = sum(filtered_data) / len(filtered_data)
-            print(
-                f"[   M-REC] : "
-                f"_device_recv_insecure_cmd: msg_perf_time = \n\t\t"
-                f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-            )
-
-            filtered_data = [
-                data["_device_recv_insecure_cmd"]["msg_blocked_time"]
-                for data in measurement_statistics
-            ]
-            average = sum(filtered_data) / len(filtered_data)
-            print(
-                f"[   M-REC] : "
-                f"_device_recv_insecure_cmd: msg_blocked_time = \n\t\t"
-                f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-            )
+                # Complete Collecting Measurement Raw Data
+                times = times + 1
+                print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

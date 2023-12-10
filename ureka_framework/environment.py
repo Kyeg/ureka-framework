@@ -39,8 +39,8 @@ class Environment:
     ######################################################
     # Measurement
     ######################################################
-    IO_BLOCKING_TOLERANCE_TIME = 0.010
-    COMM_BLOCKING_TOLERANCE_TIME = 0.100
+    IO_BLOCKING_TOLERANCE_TIME = 0.015
+    COMM_BLOCKING_TOLERANCE_TIME = 0.050
     MEASUREMENT_TIME_PRECISION: str = ".3f"
     MORE_MEASUREMENT_TIME_PRECISION: str = "6.4f"
-    MEASUREMENT_REPEAT_TIMES = 2
+    MEASUREMENT_REPEAT_TIMES = 5

@@ -10,8 +10,9 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 # View (CLI Menu)
 from ureka_framework.view.menu_agent_or_server import MenuAgentOrServer
 
-# Memory Management
+# Measurement Statistics
 import copy
+import json
 
 if __name__ == "__main__":
     try:
@@ -34,6 +35,7 @@ if __name__ == "__main__":
         ######################################################
         MenuAgentOrServer.set_environment("measurement")
 
+        diff_option_statistics = dict()
         for option in ["shortest", "with_device_id", "u_ticket_size"]:
             # Repeatly measure the overhead
             times = 0
@@ -43,6 +45,8 @@ if __name__ == "__main__":
                 print(f"[   M-REC] : {f'*' * 50}")
                 print(f"[   M-REC] : + Insecurely Recv Command & Send Data ({option})")
                 print(f"[   M-REC] : {f'*' * 50}")
+
+                ###########################
 
                 # GIVEN: Initialized DM's CS
                 # menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
@@ -54,6 +58,8 @@ if __name__ == "__main__":
                         option=option
                     )
                 )
+
+                ###########################
 
                 # Do Not Collect Too Large Overhead (I/O Peak)
                 if (
@@ -78,48 +84,20 @@ if __name__ == "__main__":
                     continue
 
                 # Collect Measurement Raw Data
-                tmp = copy.deepcopy(cloud_server_dm.shared_data.measure_rec)
-                measurement_statistics.append(tmp)
+                cloud_server_dm_measure_rec = copy.deepcopy(
+                    cloud_server_dm.shared_data.measure_rec
+                )
+                measurement_statistics.append(cloud_server_dm_measure_rec)
+
+                # Complete Collecting Measurement Raw Data
                 times = times + 1
                 print(f"[   M-REC] : " f"Complete Collecting Measurement Raw Data")
 
                 # Print Measurement Raw Data
-
-                # print(
-                #     f"[   M-REC] : "
-                #     f"measure_rec = {cloud_server_dm.shared_data.measure_rec}"
-                # )
-
-                # print(
-                #     f"[   M-REC] : "
-                #     f"holder_apply_insecure_cmd: cli_perf_time = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['holder_apply_insecure_cmd']['cli_perf_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"holder_apply_insecure_cmd: cli_blocked_time = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['holder_apply_insecure_cmd']['cli_blocked_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_holder_recv_insecure_data: comm_time = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['_holder_recv_insecure_data']['comm_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_holder_recv_insecure_data: message_size = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['_holder_recv_insecure_data']['message_size']} bytes",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_holder_recv_insecure_data: msg_perf_time = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['_holder_recv_insecure_data']['msg_perf_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
-                # print(
-                #     f"[   M-REC] : "
-                #     f"_holder_recv_insecure_data: msg_blocked_time = \n\t\t"
-                #     f"{cloud_server_dm.shared_data.measure_rec['_holder_recv_insecure_data']['msg_blocked_time']:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
-                # )
+                print(
+                    f"[   M-REC] : "
+                    f"measure_rec = {json.dumps(cloud_server_dm.shared_data.measure_rec, indent=4)}"
+                )
 
             # Print Measurement Statistics
             print(f"[   M-REC] : ")
@@ -128,15 +106,17 @@ if __name__ == "__main__":
             print(f"[   M-REC] : + Insecurely Recv Command & Send Data ({option})")
             print(f"[   M-REC] : {f'*' * 50}")
 
+            # CMD=DATA
+            print(f"[   M-REC] : ")
             filtered_data = [
                 data["holder_apply_insecure_cmd"]["cli_perf_time"]
                 for data in measurement_statistics
             ]
-            average = sum(filtered_data) / len(filtered_data)
+            average_cmd_p0 = sum(filtered_data) / len(filtered_data)
             print(
                 f"[   M-REC] : "
                 f"holder_apply_insecure_cmd: cli_perf_time = \n\t\t"
-                f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+                f"{average_cmd_p0:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
             filtered_data = [
@@ -150,15 +130,17 @@ if __name__ == "__main__":
                 f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
+            # =DATA
+            print(f"[   M-REC] : ")
             filtered_data = [
                 data["_holder_recv_insecure_data"]["comm_time"]
                 for data in measurement_statistics
             ]
-            average = sum(filtered_data) / len(filtered_data)
+            average_cmd_data_c1 = sum(filtered_data) / len(filtered_data)
             print(
                 f"[   M-REC] : "
                 f"_holder_recv_insecure_data: comm_time = \n\t\t"
-                f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+                f"{average_cmd_data_c1:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
             filtered_data = [
@@ -176,11 +158,11 @@ if __name__ == "__main__":
                 data["_holder_recv_insecure_data"]["msg_perf_time"]
                 for data in measurement_statistics
             ]
-            average = sum(filtered_data) / len(filtered_data)
+            average_cmd_data_p1 = sum(filtered_data) / len(filtered_data)
             print(
                 f"[   M-REC] : "
                 f"_holder_recv_insecure_data: msg_perf_time = \n\t\t"
-                f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+                f"{average_cmd_data_p1:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
             filtered_data = [
@@ -192,6 +174,26 @@ if __name__ == "__main__":
                 f"[   M-REC] : "
                 f"_holder_recv_insecure_data: msg_blocked_time = \n\t\t"
                 f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+            )
+
+            # Collect Measurement Statistics
+            diff_option_statistics[option] = (
+                average_cmd_p0 + average_cmd_data_c1 + average_cmd_data_p1
+            )
+
+        # Print Measurement Statistics
+        print(f"[   M-REC] : ")
+        print(f"[   M-REC] : {f'*' * 50}")
+        print(f"[   M-REC] : + [Summarize] Measurement Statistics")
+        print(f"[   M-REC] : + Insecurely Recv Command & Send Data")
+        print(f"[   M-REC] : {f'*' * 50}")
+
+        for option in ["shortest", "with_device_id", "u_ticket_size"]:
+            print(f"[   M-REC] : ")
+            print(
+                f"[   M-REC] : "
+                f"Total CMD-DATA Response Time ({option})= \n\t\t"
+                f"{diff_option_statistics[option]:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
             )
 
     except RuntimeError as error:
