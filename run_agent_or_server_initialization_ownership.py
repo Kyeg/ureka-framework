@@ -15,7 +15,7 @@ if __name__ == "__main__":
         ######################################################
         # Unintialized Agent or Server
         ######################################################
-        MenuAgentOrServer.set_environment("measurement")
+        MenuAgentOrServer.set_environment("cli")
 
         # RE-GIVEN:
         SimpleStorage.delete_storage_in_test()

@@ -10,16 +10,12 @@ from ureka_framework.resource.logger.simple_logger import simple_log
 # View (CLI Menu)
 from ureka_framework.view.menu_iot_device import MenuIoTDevice
 
-# Measurement Statistics
-import copy
-import json
-
 if __name__ == "__main__":
     try:
         ######################################################
         # Unintialized Device
         ######################################################
-        MenuIoTDevice.set_environment("measurement")
+        MenuIoTDevice.set_environment("cli")
 
         # RE-GIVEN:
         SimpleStorage.delete_storage_in_test()

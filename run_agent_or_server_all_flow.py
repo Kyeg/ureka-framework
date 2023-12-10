@@ -16,7 +16,7 @@ if __name__ == "__main__":
         ######################################################
         # Unintialized Agent or Server
         ######################################################
-        MenuAgentOrServer.set_environment("measurement")
+        MenuAgentOrServer.set_environment("cli")
 
         # RE-GIVEN:
         SimpleStorage.delete_storage_in_test()
@@ -24,16 +24,20 @@ if __name__ == "__main__":
         ######################################################
         # Initialize Agent or Server
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Initialize Agent or Server")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Initialize Agent or Server")
+        print(f"[   PRINT] : {f'*' * 50}")
 
-        # GIVEN: Uninitialized DM's CS
+        # GIVEN: Uninitialized UA or CS
         menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
+        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
+        menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
 
-        # WHEN: DM's CS initialize UA or CS
+        # WHEN: Initialize UA or CS
         cloud_server_dm = menu_cloud_server_dm.intialize_agent_or_server_through_cli()
+        user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
+        cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
 
         # THEN: Succeed to initialize UA or CS
         assert cloud_server_dm.shared_data.this_device.ticket_order == 1
@@ -42,13 +46,12 @@ if __name__ == "__main__":
         ######################################################
         # Initialize Device
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Initialize Device")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Initialize Device")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Initialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
         cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
         # WHEN: Holder: DM's CS generate & apply the initialization_u_ticket to IoTD
@@ -62,19 +65,17 @@ if __name__ == "__main__":
         ######################################################
         # Transfer Device Ownership
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Transfer Device Ownership")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Transfer Device Ownership")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         ###########################
 
         # GIVEN: Initialized DM's CS
-        menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
         cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
         # GIVEN: Initialized DO's UA
-        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
-        user_agent_do = menu_user_agent_do.intialize_agent_or_server_through_cli()
+        user_agent_do = menu_user_agent_do.get_agent_or_server()
 
         ###########################
 
@@ -112,13 +113,12 @@ if __name__ == "__main__":
         # Send Insecure Command & Receive Insecure Data
         ######################################################
         for option in ["shortest", "with_device_id", "u_ticket_size"]:
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Send Insecure Command ({option})")
-            simple_log("measure", "*" * 50)
+            print(f"[   PRINT] : ")
+            print(f"[   PRINT] : {f'*' * 50}")
+            print(f"[   PRINT] : + Insecurely Recv Command & Send Data ({option})")
+            print(f"[   PRINT] : {f'*' * 50}")
 
             # GIVEN: Initialized DM's CS
-            menu_cloud_server_dm = MenuAgentOrServer(device_name="cloud_server_dm")
             cloud_server_dm = menu_cloud_server_dm.get_agent_or_server()
 
             # WHEN: DM's CS apply the insecure_cmd to IoTD
@@ -129,15 +129,14 @@ if __name__ == "__main__":
         ######################################################
         # Grant Device Access Right (to owner herself)
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Grant Device Access Right (to owner herself)")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         ###########################
 
         # GIVEN: Initialized DM's CS
-        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
         user_agent_do = menu_user_agent_do.get_agent_or_server()
 
         ###########################
@@ -195,19 +194,17 @@ if __name__ == "__main__":
         )
 
         ######################################################
-        # Grant Device Access Right (to others)
+        # Grant Device Access Right (to other)
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Grant Device Access Right (to others)")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Grant Device Access Right (to other)")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Initialized DO's UA
-        menu_user_agent_do = MenuAgentOrServer(device_name="user_agent_do")
         user_agent_do = menu_user_agent_do.get_agent_or_server()
         # GIVEN: Initialized EP's CS
-        menu_cloud_server_ep = MenuAgentOrServer(device_name="cloud_server_ep")
-        cloud_server_ep = menu_cloud_server_ep.intialize_agent_or_server_through_cli()
+        cloud_server_ep = menu_cloud_server_ep.get_agent_or_server()
 
         ###########################
 
@@ -286,6 +283,8 @@ if __name__ == "__main__":
             user_agent_do.shared_data.device_table[target_device_id].ticket_order
             == original_agent_order + 1
         )
+
+        ###########################
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

@@ -15,7 +15,7 @@ if __name__ == "__main__":
         ######################################################
         # Unintialized Device
         ######################################################
-        MenuIoTDevice.set_environment("measurement")
+        MenuIoTDevice.set_environment("cli")
 
         # RE-GIVEN:
         SimpleStorage.delete_storage_in_test()
@@ -23,10 +23,10 @@ if __name__ == "__main__":
         ######################################################
         # Intialize Device
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Initialize Device")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Initialize Device")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Uninitialized IoTD
         menu_iot_device = MenuIoTDevice(device_name="iot_device")
@@ -42,13 +42,12 @@ if __name__ == "__main__":
         ######################################################
         # Transfer Device Ownership
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Transfer Device Ownership")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Transfer Device Ownership")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Initialized IoTD
-        menu_iot_device = MenuIoTDevice(device_name="iot_device")
         iot_device = menu_iot_device.get_iot_device()
 
         # WHEN: Holder: DO's UA apply the ownership_u_ticket to IoTD
@@ -62,13 +61,12 @@ if __name__ == "__main__":
         # Receive Insecure Command & Send Insecure Data
         ######################################################
         for option in ["shortest", "with_device_id", "u_ticket_size"]:
-            simple_log("measure", "")
-            simple_log("measure", "*" * 50)
-            simple_log("measure", f"+ Send Insecure Command ({option})")
-            simple_log("measure", "*" * 50)
+            print(f"[   PRINT] : ")
+            print(f"[   PRINT] : {f'*' * 50}")
+            print(f"[   PRINT] : + Insecurely Recv Command & Send Data ({option})")
+            print(f"[   PRINT] : {f'*' * 50}")
 
             # GIVEN: Initialized IoTD
-            menu_iot_device = MenuIoTDevice(device_name="iot_device")
             iot_device = menu_iot_device.get_iot_device()
 
             # WHEN: DM's CS apply the insecure_cmd to IoTD
@@ -81,13 +79,12 @@ if __name__ == "__main__":
         ######################################################
         # Grant Device Access Right (to owner herself)
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Grant Device Access Right (to owner herself)")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Grant Device Access Right (to owner herself)")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Initialized IoTD
-        menu_iot_device = MenuIoTDevice(device_name="iot_device")
         iot_device = menu_iot_device.get_iot_device()
 
         # WHEN: Holder: EP's CS apply the self_access_u_ticket to IoTD
@@ -131,15 +128,14 @@ if __name__ == "__main__":
         )
 
         ######################################################
-        # Grant Device Access Right (to others)
+        # Grant Device Access Right (to other)
         ######################################################
-        simple_log("measure", "")
-        simple_log("measure", "*" * 50)
-        simple_log("measure", f"+ Grant Device Access Right (to others)")
-        simple_log("measure", "*" * 50)
+        print(f"[   PRINT] : ")
+        print(f"[   PRINT] : {f'*' * 50}")
+        print(f"[   PRINT] : + Grant Device Access Right (to other)")
+        print(f"[   PRINT] : {f'*' * 50}")
 
         # GIVEN: Initialized IoTD
-        menu_iot_device = MenuIoTDevice(device_name="iot_device")
         iot_device = menu_iot_device.get_iot_device()
 
         # WHEN: Holder: EP's CS apply the access_u_ticket to IoTD
@@ -181,6 +177,8 @@ if __name__ == "__main__":
         assert (
             iot_device.shared_data.this_device.ticket_order == original_device_order + 1
         )
+
+        ###########################
 
     except RuntimeError as error:
         simple_log("error", f"{error}")

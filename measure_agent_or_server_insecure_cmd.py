@@ -67,7 +67,7 @@ if __name__ == "__main__":
                     continue
 
                 ######################################################
-                # Collect Measurement Raw Data
+                # Collect Measurement Raw Data (user_agent_do)
                 ######################################################
                 user_agent_do_measure_rec = copy.deepcopy(
                     user_agent_do.shared_data.measure_rec
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                 measurement_statistics.append(user_agent_do_measure_rec)
 
                 ######################################################
-                # Print Measurement Raw Data
+                # Print Measurement Raw Data (user_agent_do)
                 ######################################################
                 print(
                     f"[   M-REC] : "

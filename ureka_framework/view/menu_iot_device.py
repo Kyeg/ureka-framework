@@ -21,7 +21,14 @@ class MenuIoTDevice:
     ######################################################
     @classmethod
     def set_environment(cls, situation: str = "measurement") -> None:
-        if situation == "measurement":
+        if situation == "cli":
+            Environment.DEPLOYMENT_ENV = "PRODUCTION"
+            Environment.DEBUG_LOG = "CLOSED"
+            Environment.CLI_LOG = "OPEN"
+            Environment.MEASURE_LOG = "CLOSED"
+            Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
+            Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
+        elif situation == "measurement":
             Environment.DEPLOYMENT_ENV = "PRODUCTION"
             Environment.DEBUG_LOG = "CLOSED"
             Environment.CLI_LOG = "CLOSED"

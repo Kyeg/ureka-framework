@@ -188,7 +188,7 @@ if __name__ == "__main__":
             measurement_statistics.append(user_agent_do_measure_rec)
 
             ######################################################
-            # Print Measurement Raw Data
+            # Print Measurement Raw Data (user_agent_do)
             ######################################################
             print(
                 f"[   M-REC] : "

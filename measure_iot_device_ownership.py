@@ -77,7 +77,7 @@ if __name__ == "__main__":
                 continue
 
             ######################################################
-            # Print Measurement Raw Data
+            # Print Measurement Raw Data (iot_device)
             ######################################################
             print(
                 f"[   M-REC] : "
