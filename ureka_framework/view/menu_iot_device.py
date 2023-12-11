@@ -33,7 +33,7 @@ class MenuIoTDevice:
             Environment.DEBUG_LOG = "CLOSED"
             Environment.CLI_LOG = "CLOSED"
             Environment.MEASURE_LOG = "CLOSED"
-            Environment.MORE_MEASURE_WORKER_LOG = "OPEN"
+            Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
             Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 
     ######################################################
