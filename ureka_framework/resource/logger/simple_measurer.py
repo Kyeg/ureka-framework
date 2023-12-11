@@ -25,10 +25,14 @@ def measure_worker_func(func_to_be_measured: Callable):
         # Open/Close the @Decorator
         if Environment.MORE_MEASURE_WORKER_LOG == "OPEN":
             # Measurement
-            start_time = time.perf_counter()
+            start_process_time = time.process_time()
+            start_perf_time = time.perf_counter()
             result = func_to_be_measured(*args, **kwargs)
-            end_time = time.perf_counter()
-            elapsed_time = end_time - start_time
+            end_process_time = time.process_time()
+            end_perf_time = time.perf_counter()
+            elapsed_perf_time = end_perf_time - start_perf_time
+            elapsed_process_time = end_process_time - start_process_time
+            elapsed_block_time = abs(elapsed_perf_time - elapsed_process_time)
 
             # Measurement Log
             func_name = func_to_be_measured.__name__
@@ -38,12 +42,22 @@ def measure_worker_func(func_to_be_measured: Callable):
             caller_frame = inspect.currentframe().f_back
             caller_name = inspect.getframeinfo(caller_frame).function
 
+            # Can opitionally set Threshold: Only show blocking overhead large enough to be noticed
+            if (
+                elapsed_block_time
+                >= Environment.MORE_MEASUREMENT_BLOCKING_THRESHOLD_TIME
+            ):
+                print(
+                    f"[M-WORKER] : block_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                    f" : {elapsed_block_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
+                )
+
             # Can opitionally set Threshold: Only show overhead large enough to be noticed
-            #   if elapsed_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
-            print(
-                f"[M-WORKER] : {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
-                f" : {(elapsed_time):>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
-            )
+            if elapsed_perf_time >= Environment.MORE_MEASUREMENT_PERF_THRESHOLD_TIME:
+                print(
+                    f"[M-WORKER] :  perf_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                    f" : {elapsed_perf_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
+                )
 
             return result
         else:
@@ -57,10 +71,14 @@ def measure_resource_func(func_to_be_measured: Callable):
         # Open/Close the @Decorator
         if Environment.MORE_MEASURE_RESOURCE_LOG == "OPEN":
             # Measurement
-            start_time = time.perf_counter()
+            start_process_time = time.process_time()
+            start_perf_time = time.perf_counter()
             result = func_to_be_measured(*args, **kwargs)
-            end_time = time.perf_counter()
-            elapsed_time = end_time - start_time
+            end_process_time = time.process_time()
+            end_perf_time = time.perf_counter()
+            elapsed_perf_time = end_perf_time - start_perf_time
+            elapsed_process_time = end_process_time - start_process_time
+            elapsed_block_time = abs(elapsed_perf_time - elapsed_process_time)
 
             # Measurement Log
             func_name = func_to_be_measured.__name__
@@ -79,12 +97,22 @@ def measure_resource_func(func_to_be_measured: Callable):
             #         caller3_frame = inspect.currentframe().f_back.f_back.f_back
             #         caller3_name = inspect.getframeinfo(caller3_frame).function
 
+            # Can opitionally set Threshold: Only show blocking overhead large enough to be noticed
+            if (
+                elapsed_block_time
+                >= Environment.MORE_MEASUREMENT_BLOCKING_THRESHOLD_TIME
+            ):
+                print(
+                    f"[M-WORKER] : block_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                    f" : {elapsed_block_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
+                )
+
             # Can opitionally set Threshold: Only show overhead large enough to be noticed
-            #   if elapsed_time >= Environment.MORE_MEASUREMENT_THRESHOLD_TIME:
-            print(
-                f"[ M-RESRC] : {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
-                f" : {(elapsed_time):>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
-            )
+            if elapsed_perf_time >= Environment.MORE_MEASUREMENT_PERF_THRESHOLD_TIME:
+                print(
+                    f"[M-WORKER] :  perf_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+                    f" : {elapsed_perf_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
+                )
 
             return result
         else:
