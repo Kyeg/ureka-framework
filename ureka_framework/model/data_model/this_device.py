@@ -3,7 +3,7 @@ from typing import Optional, Union, Dict
 from dataclasses import dataclass
 import json
 
-# Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
+# Resource (Crypto): Notice that cryptography types are not supported by pydantic, so we simply use dataclass instead
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.crypto.serialization_util import (
     byte_to_base64str,

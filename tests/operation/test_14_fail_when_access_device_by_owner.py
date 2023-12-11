@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -98,12 +98,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Apply Flow (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder id + signature) cannot be generated
@@ -150,16 +150,16 @@ class TestFailWhenAccessDeviceByOwner:
         # WHEN: Interception (TYPE_SELFACCESS_UTICKET)
         #         Enough TYPE_SELFACCESS_UTICKET has NOT on BC, it maybe has been sent in WPAN (Reopen Session)
         #           the attacker can intercept & preempt it.
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
 
         # WHEN: Pretend Holder: Other
@@ -177,12 +177,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Preempt (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder signature) cannot be generated
@@ -230,33 +230,33 @@ class TestFailWhenAccessDeviceByOwner:
         # WHEN: Interception (TYPE_SELFACCESS_UTICKET)
         #         Enough TYPE_SELFACCESS_UTICKET has NOT on BC, it maybe has been sent in WPAN (Reopen Session)
         #           the attacker can intercept & reuse it.
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
         generated_request: dict = {
-            "device_id": f"{owned_device_id}",
+            "device_id": f"{target_device_id}",
             "holder_id": f"{self.user_agent_do.shared_data.this_person.person_pub_key_str}",
             "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
             "task_scope": f"{generated_task_scope}",
         }
         self.user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-            device_id=owned_device_id, arbitrary_dict=generated_request
+            device_id=target_device_id, arbitrary_dict=generated_request
         )
 
         # WHEN: Holder: DO's UA forward the self_access_u_ticket
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "HELLO-1"
         self.user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
-            owned_device_id, generated_command
+            target_device_id, generated_command
         )
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # WHEN: DO's UA close the session (ACCESS_END)
-        create_comm_connection(self.user_agent_do, self.iot_device)
+        create_simulated_comm_connection(self.user_agent_do, self.iot_device)
         generated_command = "ACCESS_END"
         self.user_agent_do.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, access_end=True
+            device_id=target_device_id, cmd=generated_command, access_end=True
         )
-        wait_comm_completed(self.user_agent_do, self.iot_device)
+        wait_simulated_comm_completed(self.user_agent_do, self.iot_device)
 
         # WHEN: Pretend Holder: Other
         # WHEN: Interception (issuer_issue_u_ticket_to_herself)
@@ -273,12 +273,12 @@ class TestFailWhenAccessDeviceByOwner:
         )
 
         # WHEN: Reuse (holder_apply_u_ticket)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-1"
         self.cloud_server_atk.flow_apply_u_ticket.holder_apply_u_ticket(
             target_device_id, generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal holder private key,
         #       legal authentication (holder signature) cannot be generated

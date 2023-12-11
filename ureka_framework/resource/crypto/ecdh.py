@@ -21,15 +21,23 @@ from ureka_framework.resource.crypto.serialization_util import (
     str_to_byte,
 )
 
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_resource_func
+
 
 ######################################################
 # Random Number Generation
 #   pyca/cryptography recommends using operating system’s provided random number generator
 ######################################################
+@measure_resource_func
 def generate_random_byte(bytes_num: int) -> bytes:
     return os.urandom(bytes_num)
 
 
+@measure_resource_func
 def generate_random_str(bytes_num: int) -> str:
     return byte_to_base64str(os.urandom(bytes_num))
 
@@ -37,6 +45,7 @@ def generate_random_str(bytes_num: int) -> str:
 ######################################################
 # Hash Function
 ######################################################
+@measure_resource_func
 def generate_sha256_hash_bytes(message: bytes) -> bytes:
     digest = hashes.Hash(hashes.SHA256())
     digest.update(message)
@@ -45,6 +54,7 @@ def generate_sha256_hash_bytes(message: bytes) -> bytes:
     return generated_hash
 
 
+@measure_resource_func
 def generate_sha256_hash_str(message_str: str) -> str:
     message_bytes: bytes = str_to_byte(message_str)
     generated_hash_bytes: bytes = generate_sha256_hash_bytes(message_bytes)
@@ -64,6 +74,7 @@ def generate_sha256_hash_str(message_str: str) -> str:
 #       -> A practical solution for ephemeral maybe periodically re-exchange a HKDF-derived session key.
 #       -> How to set the period depends on the trade-off between security and overhead.
 ######################################################
+@measure_resource_func
 def generate_ecdh_key(
     server_private_key: ec.EllipticCurvePrivateKey,
     salt: bytes,
@@ -97,6 +108,7 @@ def generate_ecdh_key(
 #           In this case, AES-GCM (Galois Counter Mode) is better,
 #               which is a  AEAD (authenticated encryption with additional data) mode so that HMAC are not necessary.
 ######################################################
+@measure_resource_func
 def cbc_encrypt(plaintext: bytes, key: bytes) -> Tuple[bytes, bytes]:
     # Randomly generate IV (Initialization Vector)
     #   IV must be the same number of bytes as the block_size of the cipher.
@@ -125,6 +137,7 @@ def cbc_encrypt(plaintext: bytes, key: bytes) -> Tuple[bytes, bytes]:
 ######################################################
 # ECDH AES Decryption (CBC Mode)
 ######################################################
+@measure_resource_func
 def cbc_decrypt(ciphertext: bytes, key: bytes, iv: bytes) -> bytes:
     # Initailize AES (CBC mode)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
@@ -149,12 +162,14 @@ def cbc_decrypt(ciphertext: bytes, key: bytes, iv: bytes) -> bytes:
 #       In ureka protocol, we assume all command & data are authenticated & encrypted,
 #           so associated_plaintext can be set as None.
 ######################################################
+@measure_resource_func
 def gcm_gen_iv() -> bytes:
     # Generate a random 96-bit IV.
     iv = generate_random_byte(12)
     return iv
 
 
+@measure_resource_func
 def gcm_encrypt(
     plaintext: bytes, associated_plaintext: bytes, key: bytes, iv: bytes = None
 ) -> Tuple[bytes, bytes, bytes]:
@@ -178,6 +193,7 @@ def gcm_encrypt(
 ######################################################
 # ECDH AES Decryption (GCM Mode)
 ######################################################
+@measure_resource_func
 def gcm_decrypt(
     ciphertext: bytes, associated_data: bytes, tag: bytes, key: bytes, iv: bytes
 ) -> bytes:

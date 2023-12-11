@@ -28,6 +28,9 @@ import shutil
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_resource_func
+
 
 class SimpleStorage:
     # Class Variables
@@ -60,6 +63,7 @@ class SimpleStorage:
 
     # The data access can be further optimized by more fine-grained interface
     # so that we can access each variable rather than access the whole object (faster, but more code)
+    @measure_resource_func
     def store_storage(
         self,
         this_device: ThisDevice,
@@ -81,6 +85,7 @@ class SimpleStorage:
 
     # The data access can be further optimized by more fine-grained interface
     # so that we can access each variable rather than access the whole object (faster, but more code)
+    @measure_resource_func
     def load_storage(
         self,
     ) -> Tuple[ThisDevice, dict[str, OtherDevice], ThisPerson, CurrentSession]:

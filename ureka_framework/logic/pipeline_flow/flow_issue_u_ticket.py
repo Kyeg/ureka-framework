@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -12,6 +15,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -25,6 +31,7 @@ class FlowIssueUTicket:
     def __init__(
         self,
         share_data: SharedData,
+        measure_helper: MeasureHelper,
         received_msg_storer: ReceivedMsgStorer,
         msg_verifier: MsgVerifier,
         executor: Executor,
@@ -33,6 +40,7 @@ class FlowIssueUTicket:
         msg_sender: MsgSender,
     ) -> None:
         self.shared_data = share_data
+        self.measure_helper = measure_helper
         self.received_msg_storer = received_msg_storer
         self.msg_verifier = msg_verifier
         self.executor = executor
@@ -61,7 +69,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)]
@@ -95,7 +103,9 @@ class FlowIssueUTicket:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("issuer_issue_u_ticket_to_herself")
+        self.measure_helper.measure_recv_cli_perf_time(
+            "issuer_issue_u_ticket_to_herself"
+        )
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -103,7 +113,7 @@ class FlowIssueUTicket:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)]
@@ -126,10 +136,6 @@ class FlowIssueUTicket:
                     generated_u_ticket_json,
                 )
 
-                # End Simulated Comm
-                simple_log("debug", f"+ Finish UT-UT~~ (issuer)")
-                self.msg_sender.close_simulated_comm()
-
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
@@ -144,10 +150,20 @@ class FlowIssueUTicket:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-UT~~ (issuer)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("issuer_issue_u_ticket_to_holder")
+        self.measure_helper.measure_recv_cli_perf_time(
+            "issuer_issue_u_ticket_to_holder"
+        )
 
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -171,11 +187,19 @@ class FlowIssueUTicket:
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
             pass
 
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish UT-UT~~ (holder)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
     def holder_send_r_ticket_to_issuer(self, device_id: str) -> None:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)(L)]
@@ -191,10 +215,6 @@ class FlowIssueUTicket:
                 stored_r_ticket_json,
             )
 
-            # End Simulated Comm
-            simple_log("debug", f"+ Finish RT-RT~~ (holder)")
-            self.msg_sender.close_simulated_comm()
-
         except KeyError:  # pragma: no cover -> FAILURE: (VL)
             error = "FAILURE: (VL)"
             self.shared_data.result_message = f"{error}"
@@ -203,10 +223,18 @@ class FlowIssueUTicket:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish RT-RT~~ (holder)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("holder_send_r_ticket_to_issuer")
+        self.measure_helper.measure_recv_cli_perf_time("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -240,27 +268,17 @@ class FlowIssueUTicket:
                 )
 
                 # [STAGE: (VRT)]
-                self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+                self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                     r_ticket_in=received_r_ticket,
                     audit_start_ticket=stored_u_ticket,
                     audit_end_ticket=None,
                 )
-                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
                 # [STAGE: (E)(O)]
-                if received_r_ticket.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
-                    # Now owner anymore, delete this device in table
-                    self.shared_data.device_table.pop(received_r_ticket.device_id)
-                elif received_r_ticket.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
-                    # Still owner, but keep/delete device_access_u_ticket_for_others in table
-                    self.shared_data.device_table[
-                        received_r_ticket.device_id
-                    ].device_access_u_ticket_for_others = None
-                    self.shared_data.device_table[
-                        received_r_ticket.device_id
-                    ].device_access_end_r_ticket_for_others = None
-                else:  # pragma: no cover -> Shouldn't Reach Here
-                    raise RuntimeError(f"Shouldn't Reach Here")
+                self.executor._execute_xxx_r_ticket(
+                    r_ticket_in=received_r_ticket, comm_end="issuer"
+                )
+                self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
                 # [STAGE: (C)]
                 self.executor._change_state(
@@ -287,3 +305,11 @@ class FlowIssueUTicket:
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish RT-RT~~ (issuer)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()

@@ -13,8 +13,14 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 # Resource (Serialization)
 from ureka_framework.resource.crypto.serialization_util import jsonstr_to_dict
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier_u_ticket import UTicketVerifier
@@ -23,24 +29,30 @@ from ureka_framework.logic.stage_worker.msg_verifier_message import MessageVerif
 
 
 class MsgVerifier:
-    def __init__(self, shared_data: SharedData) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        measure_helper: MeasureHelper,
+    ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
 
     ######################################################
     # [STAGE: (V)] Verify Message & Execute
     #   (VR): classify_message_is_defined_type
     #   (VL): has_u_ticket_in_device_table
     #   (VUT): verify_u_ticket_can_execute
-    #   (VRT): verify_u_ticket_has_successfully_executed_through_r_ticket
+    #   (VRT): verify_u_ticket_has_executed_through_r_ticket
     #   (VTK): verify_token_through_hmac (when _execute_decrypt_ciphertext)
     #   (VTS): verify_cmd_is_in_task_scope
     ######################################################
+    @measure_worker_func
     def _classify_message_is_defined_type(
         self, arbitrary_json: str
     ) -> Union[UTicket, RTicket]:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying message type...",
         )
 
         # [STAGE: (VR: UTicket)]
@@ -59,10 +71,11 @@ class MsgVerifier:
         elif message_in.message_type == r_ticket.MESSAGE_TYPE:
             return self._classify_r_ticket_is_defined_type(message_in.message_str)
 
+    @measure_worker_func
     def _classify_u_ticket_is_defined_type(self, arbitrary_json: str) -> UTicket:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying ticket type...",
         )
 
         # Notice that Pydantic can classify message type by json schema,
@@ -81,10 +94,11 @@ class MsgVerifier:
         except RuntimeError as error:  # pragma: no cover -> Weird Message
             raise RuntimeError(error)
 
+    @measure_worker_func
     def _classify_r_ticket_is_defined_type(self, arbitrary_json: str) -> RTicket:
         simple_log(
             "info",
-            f"+ {self.shared_data.this_device.device_name} is classifying message...",
+            f"+ {self.shared_data.this_device.device_name} is classifying ticket type...",
         )
 
         # Notice that Pydantic can classify message type by json schema,
@@ -109,6 +123,7 @@ class MsgVerifier:
         except RuntimeError as error:  # pragma: no cover -> Weird Message
             raise RuntimeError(error)
 
+    @measure_worker_func
     def verify_u_ticket_can_execute(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -136,7 +151,8 @@ class MsgVerifier:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
-    def verify_u_ticket_has_successfully_executed_through_r_ticket(
+    @measure_worker_func
+    def verify_u_ticket_has_executed_through_r_ticket(
         self,
         r_ticket_in: RTicket,
         audit_start_ticket: Optional[UTicket],
@@ -176,6 +192,7 @@ class MsgVerifier:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+    # @measure_worker_func
     def verify_cmd_is_in_task_scope(self, cmd: str) -> None:
         success_msg = f"-> SUCCESS: VERIFY_CMD_IN_TASK_SCOPE"
         failure_msg = f"-> FAILURE: VERIFY_CMD_IN_TASK_SCOPE"

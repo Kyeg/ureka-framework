@@ -2,27 +2,36 @@
 from ureka_framework.environment import Environment
 
 # Data Model (RAM)
-from ureka_framework.model.shared_data import SharedData
 from pydantic import ValidationError
+from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.message_model.message as message
 from ureka_framework.model.message_model.message import Message, message_to_jsonstr
 import ureka_framework.model.message_model.u_ticket as u_ticket
 import ureka_framework.model.message_model.u_ticket as r_ticket
 
-# Resource (Simulated Comm)
-from ureka_framework.resource.communication.simulated_comm.simulated_comm_channel import (
-    SimulatedCommChannel,
-)
-
 # Resource (Bluetooth Comm)
-import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
-from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
-    ConnectingWorker,
-    ConnectionSocket,
-)
+try:
+    HAS_PYBLUEZ = True
+    import ureka_framework.resource.communication.bluetooth.bluetooth_service as bt_service
+    from ureka_framework.resource.communication.bluetooth.bluetooth_service import (
+        AcceptSocket,
+        ConnectingWorker,
+        ConnectionSocket,
+    )
+except ImportError:
+    HAS_PYBLUEZ = False
+    # raise RuntimeError(
+    #     "PyBlueZ not found - only support SIMULATED comm but not BLUETOOTH comm"
+    # )
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 # Threading
 import time
@@ -32,26 +41,37 @@ class MsgSender:
     def __init__(
         self,
         shared_data: SharedData,
+        measure_helper: MeasureHelper,
     ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
 
     ######################################################
     # Resource (Simulated Comm)
     ######################################################
+    def start_simulated_comm(self) -> None:
+        self.shared_data.simulated_comm_completed_flag = False
+
+    def complete_simulated_comm(self) -> None:
+        self.shared_data.simulated_comm_completed_flag = True
+
     def wait_simulated_comm_completed(self) -> None:
-        while not self.shared_data.comm_done_flag:
-            time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
-        # simple_log("info",f"{self.shared_data.this_device.device_name}: this communication is completed")
-
-    def close_simulated_comm(self) -> None:
-        self.shared_data.comm_done_flag = True
-
-    def re_open_simulated_comm(self) -> None:
-        self.shared_data.comm_done_flag = False
+        if Environment.DEPLOYMENT_ENV == "TEST":
+            # Pytest terminates all daemon threads when main thread is finished
+            while not self.shared_data.simulated_comm_completed_flag:
+                time.sleep(Environment.SIMULULATED_COMM_INTERRUPT_CYCLE_TIME)
+        elif Environment.DEPLOYMENT_ENV == "PRODUCTION":
+            self.shared_data.simulated_comm_receiver_thread.join()
 
     ######################################################
     # Resource (Bluetooth Comm)
     ######################################################
+    def start_bluetooth_comm(self) -> None:
+        self.shared_data.bluetooth_comm_completed_flag = False
+
+    def complete_bluetooth_comm(self) -> None:
+        self.shared_data.bluetooth_comm_completed_flag = True
+
     def connect_bluetooth_comm(self) -> None:
         self.shared_data.connecting_worker = ConnectingWorker(
             service_uuid=bt_service.SERVICE_UUID,
@@ -69,6 +89,7 @@ class MsgSender:
     ######################################################
     # [STAGE: (S)] Send Message
     ######################################################
+    @measure_worker_func
     def _send_xxx_message(
         self, message_operation: str, message_type: str, sent_message_json: str
     ) -> None:
@@ -85,7 +106,7 @@ class MsgSender:
             try:
                 new_message = Message(**message_request)
                 new_message_json = message_to_jsonstr(new_message)
-                # simple_log("debug", f"sent_message_json: {new_message_json}")
+                # simple_log("debug", f"sent_message_json: {sent_message_json}")
             except ValidationError as error:  # pragma: no cover -> Weird M-Request
                 raise RuntimeError(f"Weird M-Request: {error}")
         else:  # pragma: no cover -> Weird M-Request
@@ -99,15 +120,15 @@ class MsgSender:
             )
 
             # Simulate Network Delay
-            for i in range(3):
-                for i in range(3):
-                    simple_log("info", f"+ network delay")
+            for _ in range(Environment.SIMULULATED_COMM_DELAY_COUNT):
+                simple_log("info", f"+ network delay")
+                simple_log("info", f"+ network delay")
+                simple_log("info", f"+ network delay")
                 if (
                     Environment.DEPLOYMENT_ENV == "PRODUCTION"
                 ):  # pragma: no cover -> PRODUCTION
-                    time.sleep(Environment.SIMULULATED_COMM_DELAY)
+                    time.sleep(Environment.SIMULULATED_COMM_DELAY_DURATION)
 
-            # self.shared_data.simulated_comm_channel.sender_queue.put(sent_message_json)
             self.shared_data.simulated_comm_channel.sender_queue.put(new_message_json)
         else:  # pragma: no cover -> PRODUCTION
             simple_log(

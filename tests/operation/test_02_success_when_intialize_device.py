@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -79,14 +79,16 @@ class TestSuccessWhenIntializeDevice:
         )
 
         # WHEN: Holder: DM's CS forward the access_u_ticket to Uninitialized IoTD
-        create_comm_connection(self.cloud_server_dm, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_dm, self.iot_device)
         self.cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
             id_for_initialization_u_ticket
         )
-        wait_comm_completed(self.cloud_server_dm, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_dm, self.iot_device)
 
         # THEN: Succeed to initialize DM's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_dm.shared_data.result_message
+        # THEN: Device: Set New Owner, Update ticket order
         assert self.iot_device.shared_data.this_device.ticket_order == 1
         assert self.iot_device.shared_data.this_device.device_priv_key_str != None
         assert self.iot_device.shared_data.this_device.device_pub_key_str != None

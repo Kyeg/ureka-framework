@@ -13,7 +13,7 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Storage)
 from ureka_framework.resource.storage.simple_storage import SimpleStorage
 
-# Resource (Cyrpto)
+# Resource (Crypto)
 import ureka_framework.resource.crypto.ecc as ecc
 import ureka_framework.resource.crypto.ecdh as ecdh
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -30,33 +30,32 @@ from ureka_framework.resource.crypto.serialization_util import (
 from ureka_framework.resource.logger.simple_logger import simple_log
 
 # Resource (Measurer)
-from ureka_framework.resource.logger.simple_measurer import (
-    start_process_timer,
-    get_process_time,
-    start_comm_timer,
-    get_comm_time,
-    simple_size_calculator,
-)
-
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 
 class Executor:
     def __init__(
         self,
         shared_data: SharedData,
+        measure_helper: MeasureHelper,
         simple_storage: SimpleStorage,
         msg_verifier: MsgVerifier,
     ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
         self.simple_storage = simple_storage
         self.msg_verifier = msg_verifier
 
     ######################################################
     # [STAGE: (E)] Execute
     ######################################################
+    # @measure_worker_func
     def _intialize_state(self) -> bool:
         ######################################################
         # Initial State
@@ -71,6 +70,7 @@ class Executor:
             self._change_state(this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT)
 
     # Execute Initialization (Update Keystore)
+    # @measure_worker_func
     def _execute_one_time_set_time_device_type_and_name(
         self, device_type: str, device_name: str
     ) -> bool:
@@ -98,11 +98,12 @@ class Executor:
             self.shared_data.current_session,
         )
 
+    # @measure_worker_func
     def _execute_one_time_intialize_agent_or_server(self) -> None:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         simple_log(
             "info",
@@ -176,9 +177,12 @@ class Executor:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.measure_cli_process("_execute_one_time_intialize_agent_or_server")
+        self.measure_helper.measure_recv_cli_perf_time(
+            "_execute_one_time_intialize_agent_or_server"
+        )
 
     # Execute UTicket (Update Keystore, Session, & Ticket Order)
+    @measure_worker_func
     def _execute_xxx_u_ticket(self, u_ticket_in: UTicket) -> None:
         if u_ticket_in.u_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET:
             try:
@@ -238,30 +242,73 @@ class Executor:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute RTicket (Update Session, & Ticket Order)
-    def _execute_xxx_r_ticket(self, r_ticket_in: RTicket) -> None:
-        if (
-            r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
-            or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
-        ):
-            # [STAGE: (O)]
-            self._execute_update_ticket_order("holder-verify-rticket", r_ticket_in)
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="device")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
-            # [STAGE: (E)]
-            self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
-        elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
-            # [STAGE: (E)]
-            self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
-        else:  # pragma: no cover -> Shouldn't Reach Here
-            raise RuntimeError(f"Shouldn't Reach Here")
+    @measure_worker_func
+    def _execute_xxx_r_ticket(
+        self, r_ticket_in: RTicket, comm_end="holder-or-device"
+    ) -> None:
+        if comm_end == "holder-or-device":
+            if (
+                r_ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
+                or r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET
+                or r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN
+            ):
+                # [STAGE: (O)]
+                self._execute_update_ticket_order(
+                    "holder-or-issuer-verify-rticket", r_ticket_in
+                )
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE1_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE2_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="device")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_CRKE3_RTICKET:
+                # [STAGE: (E)]
+                self._execute_cr_ke(ticket_in=r_ticket_in, comm_end="holder")
+            elif r_ticket_in.r_ticket_type == r_ticket.TYPE_DATA_RTOKEN:
+                # [STAGE: (E)]
+                self._execute_ps(executing_case="recv-rtoken", ticket_in=r_ticket_in)
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
+        elif comm_end == "issuer":
+            if r_ticket_in.r_ticket_type == u_ticket.TYPE_OWNERSHIP_UTICKET:
+                # Not owner anymore, delete this device in table
+                self.shared_data.device_table.pop(r_ticket_in.device_id)
+                ######################################################
+                # Storage
+                ######################################################
+                self.simple_storage.store_storage(
+                    self.shared_data.this_device,
+                    self.shared_data.device_table,
+                    self.shared_data.this_person,
+                    self.shared_data.current_session,
+                )
+            elif r_ticket_in.r_ticket_type == u_ticket.TYPE_ACCESS_END_UTOKEN:
+                # Still owner, but keep/delete device_access_u_ticket_for_others in table
+                self.shared_data.device_table[
+                    r_ticket_in.device_id
+                ].device_access_u_ticket_for_others = None
+                self.shared_data.device_table[
+                    r_ticket_in.device_id
+                ].device_access_end_r_ticket_for_others = None
+                # [STAGE: (O)]
+                self._execute_update_ticket_order(
+                    "holder-or-issuer-verify-rticket", r_ticket_in
+                )
+                ######################################################
+                # Storage
+                ######################################################
+                self.simple_storage.store_storage(
+                    self.shared_data.this_device,
+                    self.shared_data.device_table,
+                    self.shared_data.this_person,
+                    self.shared_data.current_session,
+                )
+            else:  # pragma: no cover -> Shouldn't Reach Here
+                raise RuntimeError(f"Shouldn't Reach Here")
 
     # Ownership
+    # @measure_worker_func
     def _execute_one_time_initialize_iot_device(self, u_ticket_in: UTicket) -> None:
         simple_log(
             "info",
@@ -305,6 +352,7 @@ class Executor:
             self.shared_data.current_session,
         )
 
+    # @measure_worker_func
     def _execute_ownership_transfer(self, new_u_ticket: UTicket) -> None:
         simple_log(
             "info",
@@ -330,6 +378,7 @@ class Executor:
         )
 
     # CR-KE
+    @measure_worker_func
     def _execute_cr_ke(
         self, ticket_in: Union[UTicket, RTicket], comm_end: str, cmd: str = ""
     ) -> None:
@@ -462,6 +511,7 @@ class Executor:
         #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
         # )
 
+    # @measure_worker_func
     def _execute_generate_session_key(
         self,
         salt_1: str,
@@ -494,6 +544,7 @@ class Executor:
         return current_session_key
 
     # PS
+    @measure_worker_func
     def _execute_ps(
         self,
         executing_case: str,
@@ -736,9 +787,11 @@ class Executor:
         #     self.shared_data.this_device, self.shared_data.device_table, self.shared_data.this_person, self.shared_data.current_session
         # )
 
+    # @measure_worker_func
     def _gen_next_iv(self) -> str:
         return byte_to_base64str(ecdh.gcm_gen_iv())
 
+    # @measure_worker_func
     def _execute_encrypt_plaintext(
         self,
         plaintext: str,
@@ -757,6 +810,7 @@ class Executor:
 
         return (ciphertext, gcm_authentication_tag)
 
+    # @measure_worker_func
     def _execute_decrypt_ciphertext(
         self,
         ciphertext: str,
@@ -799,6 +853,7 @@ class Executor:
             raise RuntimeError(f"Shouldn't Reach Here")
 
     # Execute Application & Data Processing
+    # @measure_worker_func
     def _execute_data_processing(
         self, plaintext_cmd: str, associated_plaintext_cmd: str
     ) -> Tuple[str, str]:
@@ -819,8 +874,9 @@ class Executor:
     #       "agent-initialization": Ticket Order = 1 after device/agent is initialized
     #       "holder-generate-or-receive-uticket": Generate or Receive UTicket (expected ticket order)
     #       "device-verify-uticket": Verify UTicket & End TX (actual ticket order)
-    #       "holder-verify-rticket": Verify RTicket (actual ticket order)
+    #       "holder-or-issuer-verify-rticket": Verify RTicket (actual ticket order)
     ######################################################
+    @measure_worker_func
     def _execute_update_ticket_order(
         self, updating_case: str, ticket_in: Union[UTicket, RTicket] = None
     ) -> None:
@@ -868,7 +924,7 @@ class Executor:
                 )
             else:  # pragma: no cover -> Shouldn't Reach Here
                 raise RuntimeError(f"Shouldn't Reach Here")
-        elif updating_case == "holder-verify-rticket":
+        elif updating_case == "holder-or-issuer-verify-rticket":
             # Execute UTicket
             if type(ticket_in) == RTicket and (
                 ticket_in.r_ticket_type == u_ticket.TYPE_INITIALIZATION_UTICKET
@@ -900,53 +956,6 @@ class Executor:
     ######################################################
     # [STAGE: (C)] Change Reciever State
     ######################################################
+    @measure_worker_func
     def _change_state(self, new_state: str) -> None:
         self.shared_data.state = new_state
-
-    ######################################################
-    # Measurement Helper:
-    #   Process Response Time
-    ######################################################
-    def measure_process_start(self) -> None:
-        start_process_timer()
-
-    def measure_cli_process(self, cli_name: str) -> None:
-        # Response Time
-        cli_process_time_xxx: float = get_process_time()
-
-        # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive CLI Input: {cli_name}")
-        simple_log("measure", f"cli_process_time_xxx = {cli_process_time_xxx:.4f} seconds")
-
-    def measure_comm_process(self, comm_name: str) -> None:
-        # Response Time
-        comm_process_time_xxx: float = get_process_time()
-
-        # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        simple_log(
-            "measure", f"comm_process_time_xxx = {comm_process_time_xxx:.4f} seconds"
-        )
-
-    ######################################################
-    # Measurement Helper:
-    #   Data Size + Comm Response Time
-    ######################################################
-    def measure_comm_start(self) -> None:
-        start_comm_timer()
-
-    def measure_comm_time(self, comm_name: str, received_message_json) -> None:
-        # Data Size
-        message_size_xxx: int = simple_size_calculator(received_message_json)
-
-        # Response Time
-        comm_time_xxx: float = get_comm_time()
-
-        # Print
-        simple_log("measure", f"")
-        simple_log("measure", f"+ Receive Comm Input: {comm_name}")
-        # simple_log("measure", f"+ Received Message: {received_message_json}")
-        simple_log("measure", f"message_size_xxx = {message_size_xxx} bytes")
-        simple_log("measure", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")

@@ -9,8 +9,8 @@ from tests.conftest import (
     current_test_when_and_then_log,
 )
 from tests.conftest import (
-    create_comm_connection,
-    wait_comm_completed,
+    create_simulated_comm_connection,
+    wait_simulated_comm_completed,
 )
 from tests.conftest import (
     device_manufacturer_server,
@@ -70,16 +70,18 @@ class TestFailWhenAccessDeviceByPrivateSession:
         current_test_when_and_then_log()
 
         # WHEN: Holder: EP's CS forward the u_token
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
+        # THEN: Succeed to allow EP's CS to limitedly access DO's IoTD
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: EP's CS can share a private session with DO's IoTD
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             == generated_command
@@ -98,17 +100,17 @@ class TestFailWhenAccessDeviceByPrivateSession:
 
         # WHEN: Holder: EP's CS forward the u_token
         #   (with Forbidden command)
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-3"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can share a private session with DO's IoTD
-        #   (but Forbidden command is not executed)
+        # THEN: Fail to allow EP's CS to limitedly access DO's IoTD
         assert "FAILURE" in self.iot_device.shared_data.result_message
+        # THEN: Device: Not execute the forbidden command
         assert (
             self.iot_device.shared_data.current_session.plaintext_cmd
             != generated_command
@@ -119,40 +121,44 @@ class TestFailWhenAccessDeviceByPrivateSession:
         )
 
         # WHEN: Holder: EP's CS forward the u_token (ACCESS_END)
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         original_device_order = self.iot_device.shared_data.this_device.ticket_order
         original_agent_order = self.cloud_server_ep.shared_data.device_table[
-            owned_device_id
+            target_device_id
         ].ticket_order
         generated_command = "ACCESS_END"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command, access_end=True
+            device_id=target_device_id, cmd=generated_command, access_end=True
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
-        # THEN: EP's CS can end this private session with DO's IoTD (& ticket order++)
+        # THEN: Succeed to end this session
         assert "SUCCESS" in self.iot_device.shared_data.result_message
+        assert "SUCCESS" in self.cloud_server_ep.shared_data.result_message
+        # THEN: Device: Update ticket order, EP's CS cannot access DO's IoTD anymore
         assert (
             self.iot_device.shared_data.this_device.ticket_order
             == original_device_order + 1
         )
         assert (
-            self.cloud_server_ep.shared_data.device_table[owned_device_id].ticket_order
+            self.cloud_server_ep.shared_data.device_table[target_device_id].ticket_order
             == original_agent_order + 1
         )
-        # THEN: EP's CS cannot access DO's IoTD anymore
 
-        # WHEN: Holder: DO's UA return the access_end_r_ticket to DM's CS
-
-        create_comm_connection(self.cloud_server_ep, self.user_agent_do)
+        # WHEN: Holder: EP's CS return the access_end_r_ticket to DO's UA
+        create_simulated_comm_connection(self.user_agent_do, self.cloud_server_ep)
         self.cloud_server_ep.flow_issuer_issue_u_ticket.holder_send_r_ticket_to_issuer(
-            owned_device_id
+            target_device_id
         )
-        wait_comm_completed(self.user_agent_do, self.cloud_server_ep)
+        wait_simulated_comm_completed(self.user_agent_do, self.cloud_server_ep)
 
-        # THEN: Succeed to transfer ownership (become DO's IoTD)
-        assert "SUCCESS" in self.iot_device.shared_data.result_message
+        # THEN: Issuer: DM's CS know that EP's CS has ended the private session with DO's IoTD (& ticket order++)
+        assert "SUCCESS" in self.user_agent_do.shared_data.result_message
+        assert (
+            self.user_agent_do.shared_data.device_table[target_device_id].ticket_order
+            == original_agent_order + 1
+        )
 
     ######################################################
     # Threat: (S) Spoofing, (T) Tampering, (E) Elevation of Privilege
@@ -200,12 +206,12 @@ class TestFailWhenAccessDeviceByPrivateSession:
         )
 
         # WHEN: Apply Flow (holder_send_cmd, incl. _execute_ps)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         generated_command = "HELLO-2"
         self.cloud_server_atk.flow_issue_u_token.holder_send_cmd(
             device_id=target_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal session key,
         #       legal authentication (iv+hmac) cannot be generated
@@ -258,16 +264,16 @@ class TestFailWhenAccessDeviceByPrivateSession:
         # WHEN: Interception (TYPE_CMD_UTOKEN)
         #         Here, after TYPE_CMD_UTOKEN has been Sent in WPAN (i.e., used),
         #           the attacker can intercept & use it.
-        create_comm_connection(self.cloud_server_ep, self.iot_device)
-        owned_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
+        create_simulated_comm_connection(self.cloud_server_ep, self.iot_device)
+        target_device_id = self.iot_device.shared_data.this_device.device_pub_key_str
         generated_command = "HELLO-2"
         self.cloud_server_ep.flow_issue_u_token.holder_send_cmd(
-            device_id=owned_device_id, cmd=generated_command
+            device_id=target_device_id, cmd=generated_command
         )
-        wait_comm_completed(self.cloud_server_ep, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_ep, self.iot_device)
 
         # WHEN: Interception (_holder_recv_u_ticket, incl. _execute_cr_ke + _execute_ps)
-        target_device_id = owned_device_id
+        target_device_id = target_device_id
         intercepted_uticket_json = self.cloud_server_ep.shared_data.device_table[
             target_device_id
         ].device_u_ticket_for_owner
@@ -278,11 +284,11 @@ class TestFailWhenAccessDeviceByPrivateSession:
             jsonstr_to_u_ticket(intercepted_uticket_json)
         )
         # WHEN: Interception (_device_recv_cmd)
-        target_device_id = owned_device_id
+        target_device_id = target_device_id
         intercepted_utoken_json = self.iot_device.shared_data.received_message_json
 
         # WHEN: Reuse (holder_send_cmd, incl. _execute_ps)
-        create_comm_connection(self.cloud_server_atk, self.iot_device)
+        create_simulated_comm_connection(self.cloud_server_atk, self.iot_device)
         self.cloud_server_atk.executor._change_state(
             this_device.STATE_AGENT_WAIT_FOR_DATA
         )
@@ -291,7 +297,7 @@ class TestFailWhenAccessDeviceByPrivateSession:
             u_ticket.MESSAGE_TYPE,
             intercepted_utoken_json,
         )
-        wait_comm_completed(self.cloud_server_atk, self.iot_device)
+        wait_simulated_comm_completed(self.cloud_server_atk, self.iot_device)
 
         # THEN: Because no legal session key & iv will be different in every use,
         #       legal authentication (iv+hmac) cannot be generated

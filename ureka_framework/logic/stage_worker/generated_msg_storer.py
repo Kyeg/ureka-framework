@@ -12,15 +12,28 @@ from ureka_framework.resource.storage.simple_storage import SimpleStorage
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 
 class GeneratedMsgStorer:
-    def __init__(self, shared_data: SharedData, simple_storage: SimpleStorage) -> None:
+    def __init__(
+        self,
+        shared_data: SharedData,
+        measure_helper: MeasureHelper,
+        simple_storage: SimpleStorage,
+    ) -> None:
         self.shared_data = shared_data
+        self.measure_helper = measure_helper
         self.simple_storage = simple_storage
 
     ######################################################
     # [STAGE: (SG)] Store Generated Message
     ######################################################
+    @measure_worker_func
     def _store_generated_xxx_u_ticket(self, generated_u_ticket_json: str) -> None:
         try:
             # [STAGE: (VR)]

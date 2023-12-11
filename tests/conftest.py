@@ -69,7 +69,12 @@ def current_teardown_log() -> None:
 ######################################################
 # Helper Functions (Simulated Comm)
 ######################################################
-def create_comm_connection(end1: DeviceController, end2: DeviceController):
+def create_simulated_comm_connection(end1: DeviceController, end2: DeviceController):
+    # # Re-open the sender/receiver
+    # end1.msg_sender.start_simulated_comm()
+    # end2.msg_sender.start_simulated_comm()
+
+    # Set Sender (on Main Thread) & Start Reciever Thread
     end1.msg_receiver.create_simulated_comm_connection(end2)
     end2.msg_receiver.create_simulated_comm_connection(end1)
 
@@ -79,13 +84,10 @@ def create_comm_connection(end1: DeviceController, end2: DeviceController):
     )
 
 
-def wait_comm_completed(end1: DeviceController, end2: DeviceController):
+def wait_simulated_comm_completed(end1: DeviceController, end2: DeviceController):
     # Wait for all sender/receiver to finish their works (block last 1st make log beautiful)
     end1.msg_sender.wait_simulated_comm_completed()
     end2.msg_sender.wait_simulated_comm_completed()
-    # Re-open the sender/receiver
-    end1.msg_sender.re_open_simulated_comm()
-    end2.msg_sender.re_open_simulated_comm()
 
     simple_log(
         "info",
@@ -123,7 +125,7 @@ def device_manufacturer_server_and_her_device() -> (
     )
 
     # WHEN: Issuer: DM's CS generate & send the intialization_u_ticket to Uninitialized IoTD
-    create_comm_connection(cloud_server_dm, iot_device)
+    create_simulated_comm_connection(cloud_server_dm, iot_device)
     id_for_initialization_u_ticket = "no_id"
     generated_request: dict = {
         "device_id": f"{id_for_initialization_u_ticket}",
@@ -136,7 +138,7 @@ def device_manufacturer_server_and_her_device() -> (
     cloud_server_dm.flow_apply_u_ticket.holder_apply_u_ticket(
         id_for_initialization_u_ticket
     )
-    wait_comm_completed(cloud_server_dm, iot_device)
+    wait_simulated_comm_completed(cloud_server_dm, iot_device)
 
     return (cloud_server_dm, iot_device)
 
@@ -163,22 +165,22 @@ def device_owner_agent_and_her_device() -> Tuple[DeviceController, DeviceControl
     user_agent_do = device_owner_agent()
 
     # WHEN: Issuer: DM's CS generate & send the ownership_u_ticket to DO's UA
-    create_comm_connection(cloud_server_dm, user_agent_do)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    create_simulated_comm_connection(cloud_server_dm, user_agent_do)
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_OWNERSHIP_UTICKET}",
     }
     cloud_server_dm.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
-    wait_comm_completed(user_agent_do, cloud_server_dm)
+    wait_simulated_comm_completed(user_agent_do, cloud_server_dm)
 
     # WHEN: Holder: DO's UA forward the ownership_u_ticket
-    create_comm_connection(user_agent_do, iot_device)
-    user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(owned_device_id)
-    wait_comm_completed(user_agent_do, iot_device)
+    create_simulated_comm_connection(user_agent_do, iot_device)
+    user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(target_device_id)
+    wait_simulated_comm_completed(user_agent_do, iot_device)
 
     return (user_agent_do, iot_device)
 
@@ -194,25 +196,25 @@ def device_owner_agent_and_her_session() -> Tuple[DeviceController, DeviceContro
     current_test_when_and_then_log()
 
     # WHEN: Issuer: DO's UA generate the self_access_u_ticket to herself
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{user_agent_do.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_SELFACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_herself(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
 
     # WHEN: Holder: DO's UA forward the self_access_u_ticket
-    create_comm_connection(user_agent_do, iot_device)
+    create_simulated_comm_connection(user_agent_do, iot_device)
     generated_command = "HELLO-1"
     user_agent_do.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
-    wait_comm_completed(user_agent_do, iot_device)
+    wait_simulated_comm_completed(user_agent_do, iot_device)
 
     return (user_agent_do, iot_device)
 
@@ -241,33 +243,33 @@ def enterprise_provider_server_and_her_session() -> (
     cloud_server_ep = enterprise_provider_server()
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
-    create_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    create_simulated_comm_connection(user_agent_do, cloud_server_ep)
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr({"ALL": "allow"})
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
-    wait_comm_completed(cloud_server_ep, user_agent_do)
+    wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
 
     # WHEN: Holder: EP's CS forward the access_u_ticket
-    create_comm_connection(cloud_server_ep, iot_device)
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     generated_command = "HELLO-1"
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
-    wait_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     return (user_agent_do, cloud_server_ep, iot_device)
 
@@ -285,8 +287,8 @@ def enterprise_provider_server_and_her_limited_session() -> (
     cloud_server_ep = enterprise_provider_server()
 
     # WHEN: Issuer: DO's UA generate & send the access_u_ticket to EP's CS
-    create_comm_connection(user_agent_do, cloud_server_ep)
-    owned_device_id = iot_device.shared_data.this_device.device_pub_key_str
+    create_simulated_comm_connection(user_agent_do, cloud_server_ep)
+    target_device_id = iot_device.shared_data.this_device.device_pub_key_str
     generated_task_scope = dict_to_jsonstr(
         {
             "SAY-HELLO-1": "allow",
@@ -295,23 +297,23 @@ def enterprise_provider_server_and_her_limited_session() -> (
         }
     )
     generated_request: dict = {
-        "device_id": f"{owned_device_id}",
+        "device_id": f"{target_device_id}",
         "holder_id": f"{cloud_server_ep.shared_data.this_person.person_pub_key_str}",
         "u_ticket_type": f"{u_ticket.TYPE_ACCESS_UTICKET}",
         "task_scope": f"{generated_task_scope}",
     }
     user_agent_do.flow_issuer_issue_u_ticket.issuer_issue_u_ticket_to_holder(
-        device_id=owned_device_id, arbitrary_dict=generated_request
+        device_id=target_device_id, arbitrary_dict=generated_request
     )
-    wait_comm_completed(cloud_server_ep, user_agent_do)
+    wait_simulated_comm_completed(cloud_server_ep, user_agent_do)
 
     # WHEN: Holder: EP's CS forward the access_u_ticket
-    create_comm_connection(cloud_server_ep, iot_device)
+    create_simulated_comm_connection(cloud_server_ep, iot_device)
     generated_command = "HELLO-1"
     cloud_server_ep.flow_apply_u_ticket.holder_apply_u_ticket(
-        owned_device_id, generated_command
+        target_device_id, generated_command
     )
-    wait_comm_completed(cloud_server_ep, iot_device)
+    wait_simulated_comm_completed(cloud_server_ep, iot_device)
 
     return (user_agent_do, cloud_server_ep, iot_device)
 

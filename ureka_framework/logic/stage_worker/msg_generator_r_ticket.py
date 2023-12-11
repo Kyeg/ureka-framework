@@ -1,22 +1,27 @@
-from ureka_framework.resource.logger.simple_logger import simple_log
-
+# Data Model (RAM)
+import copy
 from pydantic import ValidationError
-
 from ureka_framework.model.data_model.this_device import ThisDevice
 from ureka_framework.model.data_model.this_person import ThisPerson
 from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.message_model.r_ticket import RTicket, r_ticket_to_jsonstr
 import ureka_framework.model.message_model.r_ticket as r_ticket
 import ureka_framework.model.message_model.u_ticket as u_ticket
-
 from ureka_framework.resource.crypto.serialization_util import (
     str_to_byte,
     byte_to_base64str,
 )
+
+# Resource (Crypto)
 import ureka_framework.resource.crypto.ecc as ecc
 from cryptography.hazmat.primitives.asymmetric import ec
 from ureka_framework.resource.crypto import ecdh
-import copy
+
+# Resource (Logger)
+from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
 
 
 class RTicketGenerator:

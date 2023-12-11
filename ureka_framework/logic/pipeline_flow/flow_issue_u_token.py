@@ -1,3 +1,6 @@
+# Deployment Environment
+from ureka_framework.environment import Environment
+
 # Data Model (RAM)
 from ureka_framework.model.shared_data import SharedData
 import ureka_framework.model.data_model.this_device as this_device
@@ -11,6 +14,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
 
 # Stage Worker
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
@@ -28,6 +34,7 @@ class FlowIssueUToken:
     def __init__(
         self,
         share_data: SharedData,
+        measure_helper: MeasureHelper,
         received_msg_storer: ReceivedMsgStorer,
         msg_verifier: MsgVerifier,
         executor: Executor,
@@ -37,6 +44,7 @@ class FlowIssueUToken:
         flow_apply_u_ticket: FlowApplyUTicket,
     ) -> None:
         self.shared_data = share_data
+        self.measure_helper = measure_helper
         self.received_msg_storer = received_msg_storer
         self.msg_verifier = msg_verifier
         self.executor = executor
@@ -63,7 +71,7 @@ class FlowIssueUToken:
         ######################################################
         # Start Process Measurement
         ######################################################
-        self.executor.measure_process_start()
+        self.measure_helper.measure_process_perf_start()
 
         try:
             # [STAGE: (VL)]
@@ -118,7 +126,7 @@ class FlowIssueUToken:
         ######################################################
         # End Process Measurement
         ######################################################
-        self.executor.measure_cli_process("holder_send_cmd")
+        self.measure_helper.measure_recv_cli_perf_time("holder_send_cmd")
 
     def _device_recv_cmd(self, received_u_token: UTicket) -> None:
         try:
@@ -130,7 +138,6 @@ class FlowIssueUToken:
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
             self.executor._execute_xxx_u_ticket(received_u_token)
-
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_CAN_EXECUTE"
 
             if received_u_token.u_ticket_type == u_ticket.TYPE_CMD_UTOKEN:
@@ -201,6 +208,14 @@ class FlowIssueUToken:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish PS~~ (device)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+
     def _holder_recv_data(self, received_r_token: RTicket) -> None:
         try:
             # [STAGE: (R)(VR)]
@@ -218,7 +233,7 @@ class FlowIssueUToken:
             )
 
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_token,
                 audit_start_ticket=stored_u_ticket,
                 audit_end_ticket=None,
@@ -226,8 +241,9 @@ class FlowIssueUToken:
 
             # [STAGE: (VTK)]
             # [STAGE: (E)]
-            self.executor._execute_xxx_r_ticket(received_r_token)
-
+            self.executor._execute_xxx_r_ticket(
+                r_ticket_in=received_r_token, comm_end="holder-or-device"
+            )
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (C)]
@@ -245,3 +261,13 @@ class FlowIssueUToken:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        # Manually Finish Simulated/Bluetooth Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish PS~~ (holder)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+        elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            self.msg_sender.complete_bluetooth_comm()

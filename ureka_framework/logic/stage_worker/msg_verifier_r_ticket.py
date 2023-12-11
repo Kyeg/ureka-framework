@@ -5,6 +5,7 @@ from ureka_framework.model.data_model.other_device import OtherDevice
 from ureka_framework.model.data_model.current_session import CurrentSession
 
 # Data Model (Message)
+import copy
 import ureka_framework.model.message_model.u_ticket as u_ticket
 from ureka_framework.model.message_model.u_ticket import UTicket
 import ureka_framework.model.message_model.r_ticket as r_ticket
@@ -20,14 +21,18 @@ from ureka_framework.resource.crypto.serialization_util import (
     str_to_byte,
 )
 
-# Resource (Cyrpto)
+# Resource (Crypto)
 from cryptography.hazmat.primitives.asymmetric import ec
 import ureka_framework.resource.crypto.ecc as ecc
 from ureka_framework.resource.crypto import ecdh
-import copy
+
 
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
+
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 
 class RTicketVerifier:
     def __init__(

@@ -15,6 +15,9 @@ from ureka_framework.model.message_model.r_ticket import RTicket
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Measure Helper
+from ureka_framework.logic.stage_worker.measure_helper import MeasureHelper
+
 # Stage Worker
 from ureka_framework.logic.stage_worker.received_msg_storer import ReceivedMsgStorer
 from ureka_framework.logic.stage_worker.msg_verifier import MsgVerifier
@@ -28,6 +31,7 @@ class FlowOpenSession:
     def __init__(
         self,
         share_data: SharedData,
+        measure_helper: MeasureHelper,
         received_msg_storer: ReceivedMsgStorer,
         msg_verifier: MsgVerifier,
         executor: Executor,
@@ -36,6 +40,7 @@ class FlowOpenSession:
         msg_sender: MsgSender,
     ) -> None:
         self.shared_data = share_data
+        self.measure_helper = measure_helper
         self.received_msg_storer = received_msg_storer
         self.msg_verifier = msg_verifier
         self.executor = executor
@@ -90,15 +95,18 @@ class FlowOpenSession:
         try:
             # [STAGE: (R)(VR)]
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,
             )
-            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (E)]
-            self.executor._execute_xxx_r_ticket(received_r_ticket)
+            self.executor._execute_xxx_r_ticket(
+                r_ticket_in=received_r_ticket, comm_end="holder-or-device"
+            )
+            self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
+
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_AGENT_WAIT_FOR_CRKE3)
 
@@ -107,15 +115,21 @@ class FlowOpenSession:
 
         except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
+
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated/Bluetooth Comm
-            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-            self.msg_sender.close_simulated_comm()
-            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                self.msg_sender.close_bluetooth_connection()
+
+            # Automatically Terminate Simulated/Bluetooth Comm
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-1~~ (holder)",
+            )
+            if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+                self.msg_sender.complete_simulated_comm()
+            elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+                self.msg_sender.complete_bluetooth_comm()
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -156,7 +170,7 @@ class FlowOpenSession:
     def _device_recv_cr_ke_2(self, received_r_ticket: RTicket) -> None:
         try:
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,
@@ -164,8 +178,9 @@ class FlowOpenSession:
 
             # [STAGE: (VTK)(VTS)]
             # [STAGE: (E)]
-            self.executor._execute_xxx_r_ticket(received_r_ticket)
-
+            self.executor._execute_xxx_r_ticket(
+                r_ticket_in=received_r_ticket, comm_end="holder-or-device"
+            )
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (C)]
@@ -176,9 +191,13 @@ class FlowOpenSession:
 
             # [STAGE: (C)]
             self.executor._change_state(this_device.STATE_DEVICE_WAIT_FOR_UT)
-            # End Simulated Comm
-            simple_log("debug", f"+ Failed CR-KE~~ (device)")
-            self.msg_sender.close_simulated_comm()
+
+            # Automatically Terminate Simulated Comm
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-2~~ (device)",
+            )
+            # Anyway, Finish CR-KE~~
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
@@ -186,6 +205,14 @@ class FlowOpenSession:
         finally:
             # [STAGE: (G)(S)]
             self._device_send_cr_ke_3(self.shared_data.result_message)
+
+        # Manually Finish Simulated Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish CR-KE~~ (device)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
 
     def _device_send_cr_ke_3(self, result_message: str) -> None:
         try:
@@ -228,7 +255,7 @@ class FlowOpenSession:
             # [STAGE: (R)(VR)]
 
             # [STAGE: (VRT)]
-            self.msg_verifier.verify_u_ticket_has_successfully_executed_through_r_ticket(
+            self.msg_verifier.verify_u_ticket_has_executed_through_r_ticket(
                 r_ticket_in=received_r_ticket,
                 audit_start_ticket=None,
                 audit_end_ticket=None,
@@ -236,27 +263,41 @@ class FlowOpenSession:
 
             # [STAGE: (VTK)]
             # [STAGE: (E)]
-            self.executor._execute_xxx_r_ticket(received_r_ticket)
-
+            self.executor._execute_xxx_r_ticket(
+                r_ticket_in=received_r_ticket, comm_end="holder-or-device"
+            )
             self.shared_data.result_message = f"-> SUCCESS: VERIFY_UT_HAS_EXECUTED"
 
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-        except RuntimeError as error:  # pragm: no cover -> ???
+        except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
 
             # [STAGE: (C)]
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
-            # End Simulated/Bluetooth Comm
-            simple_log("debug", f"+ Failed CR-KE~~ (holder)")
-            self.msg_sender.close_simulated_comm()
-            if Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
-                self.msg_sender.close_bluetooth_connection()
+
+            # Automatically Terminate Simulated/Bluetooth Comm
+            simple_log(
+                "debug",
+                f"+ {self.shared_data.this_device.device_name} automatically terminate CR-KE-3~~ (holder)",
+            )
+            # Anyway, Finish CR-KE~~
+
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        # Manually Finish Simulated/Bluetooth Comm
+        simple_log(
+            "debug",
+            f"+ {self.shared_data.this_device.device_name} manually finish CR-KE~~ (holder)",
+        )
+        if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
+            self.msg_sender.complete_simulated_comm()
+        elif Environment.COMMUNICATION_CHANNEL == "BLUETOOTH":
+            self.msg_sender.complete_bluetooth_comm()
 
         simple_log("debug", f"result_message = {self.shared_data.result_message}")

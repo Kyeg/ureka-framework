@@ -5,6 +5,9 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 # Resource (Logger)
 from ureka_framework.resource.logger.simple_logger import simple_log
 
+# Resource (Measurer)
+from ureka_framework.resource.logger.simple_measurer import measure_worker_func
+
 ######################################################
 # Protocol Version
 ######################################################
@@ -86,6 +89,7 @@ class UTicket(BaseModel):
 #                                       v                                      #
 #                       < JSON_str (Printable Characters) >                    #
 ################################################################################
+@measure_worker_func
 def u_ticket_to_jsonstr(u_ticket_obj: UTicket) -> str:
     # "indent" do not affect json validation, but may affect json size!?
     u_ticket_json = u_ticket_obj.model_dump_json(indent=4, exclude_none=True)
