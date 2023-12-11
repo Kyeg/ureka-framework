@@ -101,7 +101,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =CRKE-1=CRKE-2
             if (
@@ -110,7 +109,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 user_agent_do.shared_data.measure_rec["_holder_recv_cr_ke_1"][
@@ -118,7 +116,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =CRKE-3
             if (
@@ -127,7 +124,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 user_agent_do.shared_data.measure_rec["_holder_recv_cr_ke_3"][
@@ -135,7 +131,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # CMD=DATA/RT
             if (
@@ -144,14 +139,12 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =DATA
             if (
                 user_agent_do.shared_data.measure_rec["_holder_recv_data"]["comm_time"]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 user_agent_do.shared_data.measure_rec["_holder_recv_data"][
@@ -159,7 +152,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =RT
             if (
@@ -168,7 +160,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 user_agent_do.shared_data.measure_rec["_holder_recv_r_ticket"][
@@ -176,7 +167,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
 
             ######################################################

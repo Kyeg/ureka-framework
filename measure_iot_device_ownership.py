@@ -73,7 +73,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
 
             ######################################################
