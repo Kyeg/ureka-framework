@@ -53,11 +53,11 @@ def measure_worker_func(func_to_be_measured: Callable):
                 )
 
             # Can opitionally set Threshold: Only show overhead large enough to be noticed
-            if elapsed_perf_time >= Environment.MORE_MEASUREMENT_PERF_THRESHOLD_TIME:
-                print(
-                    f"[M-WORKER] :  perf_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
-                    f" : {elapsed_perf_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
-                )
+            # if elapsed_perf_time >= Environment.MORE_MEASUREMENT_PERF_THRESHOLD_TIME:
+            #     print(
+            #         f"[M-WORKER] :  perf_time = {caller_name:>{MAX_FUNC_NAME_LENGTH}} -> {func_name:>{MAX_FUNC_NAME_LENGTH}}"
+            #         f" : {elapsed_perf_time:>{Environment.MORE_MEASUREMENT_TIME_PRECISION}} seconds"
+            #     )
 
             return result
         else:

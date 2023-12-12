@@ -206,10 +206,21 @@ if __name__ == "__main__":
             data["issuer_issue_u_ticket_to_herself"]["cli_perf_time"]
             for data in measurement_statistics
         ]
-        average = sum(filtered_data) / len(filtered_data)
+        average_gen_ut_p0 = sum(filtered_data) / len(filtered_data)
         print(
             f"[   M-REC] : "
             f"issuer_issue_u_ticket_to_herself: cli_perf_time = \n\t\t"
+            f"{average_gen_ut_p0:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+        )
+
+        filtered_data = [
+            data["issuer_issue_u_ticket_to_herself"]["cli_blocked_time"]
+            for data in measurement_statistics
+        ]
+        average = sum(filtered_data) / len(filtered_data)
+        print(
+            f"[   M-REC] : "
+            f"issuer_issue_u_ticket_to_herself: cli_blocked_time = \n\t\t"
             f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 
@@ -448,6 +459,13 @@ if __name__ == "__main__":
         print(f"[   M-REC] : + [Summarize] Measurement Statistics")
         print(f"[   M-REC] : + Grant Device Access Right (to owner herself)")
         print(f"[   M-REC] : {f'*' * 50}")
+
+        print(f"[   M-REC] : ")
+        print(
+            f"[   M-REC] : "
+            f"Total GEN-UT Response Time = \n\t\t"
+            f"{average_gen_ut_p0:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
+        )
 
         print(f"[   M-REC] : ")
         print(
