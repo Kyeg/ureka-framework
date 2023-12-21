@@ -284,7 +284,7 @@ class MenuAgentOrServer:
             insecure_cmd_dict = {
                 "protocol_verision": "UREKA-1.0",
                 "device_id": "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEuWt9xdWLXffJE-CydWYBTH05kv7xFmMGl-L3DT_7-YH2ocgHJWUUAPxQjjRBQGOeITMandJxLDye7jK8W26GmA==",
-                "insecure_command": "HELLO" * 90,
+                "insecure_command": "HELLO" * 150,
             }
             insecure_cmd_json = json.dumps(insecure_cmd_dict, indent=4)
 
@@ -299,6 +299,12 @@ class MenuAgentOrServer:
         self.agent_or_server.measure_helper.measure_recv_cli_perf_time(
             "holder_apply_insecure_cmd"
         )
+
+        ########################################################################
+        # Start Comm Measurement
+        ########################################################################
+        if self.agent_or_server.shared_data.this_device.device_name != "iot_device":
+            self.agent_or_server.measure_helper.measure_comm_perf_start()
 
         # WHEN: UA or CS receive the insecure_data from IoTD
         try:
@@ -338,6 +344,12 @@ class MenuAgentOrServer:
             self.agent_or_server.measure_helper.measure_recv_msg_perf_time(
                 "_holder_recv_insecure_data"
             )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.agent_or_server.shared_data.this_device.device_name != "iot_device":
+                self.agent_or_server.measure_helper.measure_comm_perf_start()
 
             simple_log("debug", f"+ Finish CMD-DATA~~ (holder)")
         except OSError:

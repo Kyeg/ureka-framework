@@ -164,11 +164,11 @@ class MsgReceiver:
                     Environment.COMMUNICATION_CHANNEL == "BLUETOOTH"
                 ):  # pragma: no cover -> PRODUCTION
                     try:
-                        ########################################################################
-                        # Start Comm Measurement
-                        ########################################################################
-                        if self.shared_data.this_device.device_name != "iot_device":
-                            self.measure_helper.measure_comm_perf_start()
+                        # ########################################################################
+                        # # Start Comm Measurement
+                        # ########################################################################
+                        # if self.shared_data.this_device.device_name != "iot_device":
+                        #     self.measure_helper.measure_comm_perf_start()
 
                         # This will block until message is received
                         received_message_with_header = (
@@ -225,23 +225,9 @@ class MsgReceiver:
                     # Flow
                     self.flow_apply_u_ticket._device_recv_u_ticket(received_message)
 
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time(
-                        "_device_recv_u_ticket"
-                    )
-
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CRKE2:
                     # Flow
                     self.flow_open_session._device_recv_cr_ke_2(received_message)
-
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time(
-                        "_device_recv_cr_ke_2"
-                    )
 
                     simple_log(
                         "cli",
@@ -251,11 +237,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_DEVICE_WAIT_FOR_CMD:
                     # Flow
                     self.flow_issue_u_token._device_recv_cmd(received_message)
-
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time("_device_recv_cmd")
 
                     simple_log(
                         "cli",
@@ -272,57 +253,23 @@ class MsgReceiver:
                         self.flow_issuer_issue_u_ticket._holder_recv_u_ticket(
                             received_message
                         )
-
-                        ######################################################
-                        # End Process Measurement
-                        ######################################################
-                        self.measure_helper.measure_recv_msg_perf_time(
-                            "_holder_recv_u_ticket",
-                        )
                     elif type(received_message) == RTicket:
                         # Flow
                         self.flow_issuer_issue_u_ticket._issuer_recv_r_ticket(
                             received_message
                         )
 
-                        ######################################################
-                        # End Process Measurement
-                        ######################################################
-                        self.measure_helper.measure_recv_msg_perf_time(
-                            "_issuer_recv_r_ticket",
-                        )
-
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_RT:
                     # Flow
                     self.flow_apply_u_ticket._holder_recv_r_ticket(received_message)
-
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time(
-                        "_holder_recv_r_ticket"
-                    )
 
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE1:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_1(received_message)
 
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time(
-                        "_holder_recv_cr_ke_1"
-                    )
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_CRKE3:
                     # Flow
                     self.flow_open_session._holder_recv_cr_ke_3(received_message)
-
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time(
-                        "_holder_recv_cr_ke_3"
-                    )
 
                     simple_log(
                         "cli",
@@ -336,11 +283,6 @@ class MsgReceiver:
                 elif self.shared_data.state == this_device.STATE_AGENT_WAIT_FOR_DATA:
                     # Flow
                     self.flow_issue_u_token._holder_recv_data(received_message)
-
-                    ######################################################
-                    # End Process Measurement
-                    ######################################################
-                    self.measure_helper.measure_recv_msg_perf_time("_holder_recv_data")
 
                     simple_log(
                         "cli",

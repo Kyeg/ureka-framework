@@ -100,12 +100,19 @@ class FlowIssueUTicket:
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
 
-        ######################################################
-        # End Process Measurement
-        ######################################################
-        self.measure_helper.measure_recv_cli_perf_time(
-            "issuer_issue_u_ticket_to_herself"
-        )
+        finally:
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_cli_perf_time(
+                "issuer_issue_u_ticket_to_herself"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
 
     def issuer_issue_u_ticket_to_holder(
         self, device_id: str, arbitrary_dict: dict
@@ -128,6 +135,19 @@ class FlowIssueUTicket:
                 self.generated_msg_storer._store_generated_xxx_u_ticket(
                     generated_u_ticket_json
                 )
+
+                ######################################################
+                # End Process Measurement
+                ######################################################
+                self.measure_helper.measure_recv_cli_perf_time(
+                    "issuer_issue_u_ticket_to_holder"
+                )
+
+                ########################################################################
+                # Start Comm Measurement
+                ########################################################################
+                if self.shared_data.this_device.device_name != "iot_device":
+                    self.measure_helper.measure_comm_perf_start()
 
                 # [STAGE: (S)]
                 self.msg_sender._send_xxx_message(
@@ -158,13 +178,6 @@ class FlowIssueUTicket:
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
 
-        ######################################################
-        # End Process Measurement
-        ######################################################
-        self.measure_helper.measure_recv_cli_perf_time(
-            "issuer_issue_u_ticket_to_holder"
-        )
-
     def _holder_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
             # [STAGE: (R)(VR)]
@@ -185,7 +198,21 @@ class FlowIssueUTicket:
         finally:
             # [STAGE: (G)(S)]
             # Can optionally _generate_xxx_r_ticket & _send_xxx_message
+
             pass
+
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time(
+                "_holder_recv_u_ticket",
+            )
+
+            # ########################################################################
+            # # Start Comm Measurement
+            # ########################################################################
+            # if self.shared_data.this_device.device_name != "iot_device":
+            #     self.measure_helper.measure_comm_perf_start()
 
         # Manually Finish Simulated Comm
         simple_log(
@@ -207,6 +234,19 @@ class FlowIssueUTicket:
                 device_id
             ].device_r_ticket_for_owner
             # simple_log("debug", f"Stored RTicket: {stored_r_ticket_json}")
+
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_cli_perf_time(
+                "holder_send_r_ticket_to_issuer"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
 
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
@@ -230,11 +270,6 @@ class FlowIssueUTicket:
         )
         if Environment.COMMUNICATION_CHANNEL == "SIMULATED":
             self.msg_sender.complete_simulated_comm()
-
-        ######################################################
-        # End Process Measurement
-        ######################################################
-        self.measure_helper.measure_recv_cli_perf_time("holder_send_r_ticket_to_issuer")
 
     def _issuer_recv_r_ticket(self, received_r_ticket: RTicket) -> None:
         try:
@@ -305,6 +340,19 @@ class FlowIssueUTicket:
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
+            # ######################################################
+            # # End Process Measurement
+            # ######################################################
+            # self.measure_helper.measure_recv_msg_perf_time(
+            #     "_issuer_recv_r_ticket",
+            # )
+
+            # ########################################################################
+            # # Start Comm Measurement
+            # ########################################################################
+            # if self.shared_data.this_device.device_name != "iot_device":
+            #     self.measure_helper.measure_comm_perf_start()
 
         # Manually Finish Simulated Comm
         simple_log(

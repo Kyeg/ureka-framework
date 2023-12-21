@@ -99,6 +99,17 @@ class FlowApplyUTicket:
             else:  # pragma: no cover -> Shouldn't Reach Here
                 raise RuntimeError(f"Shouldn't Reach Here")
 
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_cli_perf_time("holder_apply_u_ticket")
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
+
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
                 message.MESSAGE_VERIFY_AND_EXECUTE,
@@ -117,11 +128,6 @@ class FlowApplyUTicket:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
-
-        ######################################################
-        # End Process Measurement
-        ######################################################
-        self.measure_helper.measure_recv_cli_perf_time("holder_apply_u_ticket")
 
     def _device_recv_u_ticket(self, received_u_ticket: UTicket) -> None:
         try:
@@ -257,6 +263,19 @@ class FlowApplyUTicket:
             # [STAGE: (SG)]
             # Can optionally _stored_generated_xxx_r_ticket
 
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time(
+                "_device_recv_u_ticket_and_send_r_ticket"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
+
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
                 message.MESSAGE_VERIFY_AND_EXECUTE,
@@ -334,6 +353,17 @@ class FlowApplyUTicket:
 
         finally:
             simple_log("debug", f"result_message = {self.shared_data.result_message}")
+
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time("_holder_recv_r_ticket")
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
 
         # Manually Finish Simulated/Bluetooth Comm
         simple_log(

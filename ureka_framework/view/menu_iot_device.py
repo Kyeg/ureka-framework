@@ -128,6 +128,12 @@ class MenuIoTDevice:
                     "_device_recv_insecure_cmd"
                 )
 
+                ########################################################################
+                # Start Comm Measurement
+                ########################################################################
+                if self.iot_device.shared_data.this_device.device_name != "iot_device":
+                    self.iot_device.measure_helper.measure_comm_perf_start()
+
                 simple_log(
                     "debug",
                     f"+ {self.iot_device.shared_data.this_device.device_name} manually finish CMD-DATA~~ (device)",
