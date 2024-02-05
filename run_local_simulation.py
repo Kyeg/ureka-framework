@@ -159,9 +159,9 @@ if __name__ == "__main__":
     # ENVIRONMENT
     ######################################################
     Environment.DEPLOYMENT_ENV = "PRODUCTION"
-    Environment.DEBUG_LOG = "CLOSED"
+    Environment.DEBUG_LOG = "OPEN"
     Environment.CLI_LOG = "OPEN"
-    Environment.MEASURE_LOG = "OPEN"
+    Environment.MEASURE_LOG = "CLOSED"
     Environment.MORE_MEASURE_WORKER_LOG = "CLOSED"
     Environment.MORE_MEASURE_RESOURCE_LOG = "CLOSED"
 

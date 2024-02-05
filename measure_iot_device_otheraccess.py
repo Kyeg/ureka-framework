@@ -14,7 +14,7 @@ import json
 if __name__ == "__main__":
     try:
         ######################################################
-        # Grant Device Access Right (to others)
+        # Grant Device Access Right (to other)
         ######################################################
         MenuIoTDevice.set_environment("measurement")
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         while True:
             print(f"[   M-REC] : ")
             print(f"[   M-REC] : {f'*' * 50}")
-            print(f"[   M-REC] : + Grant Device Access Right (to other owner)")
+            print(f"[   M-REC] : + Grant Device Access Right (to other)")
             print(f"[   M-REC] : {f'*' * 50}")
 
             ###########################
