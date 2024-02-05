@@ -78,12 +78,17 @@ class MeasureHelper:
         self.shared_data.measure_rec[comm_name]["msg_perf_time"] = msg_perf_time
         self.shared_data.measure_rec[comm_name]["msg_blocked_time"] = msg_blocked_time
         # Record cached comm_time & message_size
-        if self.shared_data.measure_rec["_recv_message"].get("comm_time") is not None:
+        if (
+            self.shared_data.measure_rec.get("_recv_message") is not None
+            and self.shared_data.measure_rec.get("_recv_message").get("comm_time")
+            is not None
+        ):
             self.shared_data.measure_rec[comm_name][
                 "comm_time"
             ] = self.shared_data.measure_rec["_recv_message"]["comm_time"]
         if (
-            self.shared_data.measure_rec["_recv_message"].get("message_size")
+            self.shared_data.measure_rec.get("_recv_message") is not None
+            and self.shared_data.measure_rec.get("_recv_message").get("message_size")
             is not None
         ):
             self.shared_data.measure_rec[comm_name][

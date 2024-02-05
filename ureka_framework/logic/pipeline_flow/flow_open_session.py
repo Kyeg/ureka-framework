@@ -81,6 +81,19 @@ class FlowOpenSession:
             )
             # simple_log("debug",f"Generated RTicket: {generated_r_ticket_json}")
 
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time(
+                "_device_recv_u_ticket_and_send_cr_ke_1"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
+
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
                 message.MESSAGE_VERIFY_AND_EXECUTE,
@@ -156,6 +169,19 @@ class FlowOpenSession:
                 r_ticket_request
             )
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
+
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time(
+                "_holder_recv_cr_ke_1_and_send_cr_ke_2"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
 
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
@@ -240,6 +266,19 @@ class FlowOpenSession:
             )
             # simple_log("debug", f"Generated RTicket: {generated_r_ticket_json}")
 
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time(
+                "_device_recv_cr_ke_2_and_send_cr_ke_3"
+            )
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
+
             # [STAGE: (S)]
             self.msg_sender._send_xxx_message(
                 message.MESSAGE_VERIFY_AND_EXECUTE,
@@ -272,6 +311,7 @@ class FlowOpenSession:
             self.executor._change_state(
                 this_device.STATE_AGENT_WAIT_FOR_UREQ_UREJ_UT_RT
             )
+
         except RuntimeError as error:
             self.shared_data.result_message = f"{error}"
 
@@ -289,6 +329,18 @@ class FlowOpenSession:
 
         except:  # pragma: no cover -> Shouldn't Reach Here
             raise RuntimeError(f"Shouldn't Reach Here")
+
+        finally:
+            ######################################################
+            # End Process Measurement
+            ######################################################
+            self.measure_helper.measure_recv_msg_perf_time("_holder_recv_cr_ke_3")
+
+            ########################################################################
+            # Start Comm Measurement
+            ########################################################################
+            if self.shared_data.this_device.device_name != "iot_device":
+                self.measure_helper.measure_comm_perf_start()
 
         # Manually Finish Simulated/Bluetooth Comm
         simple_log(

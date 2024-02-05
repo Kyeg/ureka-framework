@@ -51,7 +51,6 @@ if __name__ == "__main__":
                     ]
                     > Environment.COMM_BLOCKING_TOLERANCE_TIME
                 ):
-                    print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                     continue
                 if (
                     user_agent_do.shared_data.measure_rec["holder_apply_insecure_cmd"][
@@ -63,7 +62,6 @@ if __name__ == "__main__":
                     ]["msg_blocked_time"]
                     > Environment.IO_BLOCKING_TOLERANCE_TIME
                 ):
-                    print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                     continue
 
                 ######################################################

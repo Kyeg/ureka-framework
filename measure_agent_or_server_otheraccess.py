@@ -131,24 +131,21 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =CRKE-1=CRKE-2
             if (
-                cloud_server_ep.shared_data.measure_rec["_holder_recv_cr_ke_1"][
-                    "comm_time"
-                ]
+                cloud_server_ep.shared_data.measure_rec[
+                    "_holder_recv_cr_ke_1_and_send_cr_ke_2"
+                ]["comm_time"]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
-                cloud_server_ep.shared_data.measure_rec["_holder_recv_cr_ke_1"][
-                    "msg_blocked_time"
-                ]
+                cloud_server_ep.shared_data.measure_rec[
+                    "_holder_recv_cr_ke_1_and_send_cr_ke_2"
+                ]["msg_blocked_time"]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =CRKE-3
             if (
@@ -157,7 +154,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 cloud_server_ep.shared_data.measure_rec["_holder_recv_cr_ke_3"][
@@ -165,7 +161,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # CMD=DATA/RT
             if (
@@ -174,7 +169,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =DATA
             if (
@@ -183,7 +177,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 cloud_server_ep.shared_data.measure_rec["_holder_recv_data"][
@@ -191,7 +184,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
             # =RT
             if (
@@ -200,7 +192,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.COMM_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ COMM I/O MAYBE BLOCKED TOO LONG...")
                 continue
             if (
                 cloud_server_ep.shared_data.measure_rec["_holder_recv_r_ticket"][
@@ -208,7 +199,6 @@ if __name__ == "__main__":
                 ]
                 > Environment.IO_BLOCKING_TOLERANCE_TIME
             ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
                 continue
 
             ######################################################
@@ -282,45 +272,46 @@ if __name__ == "__main__":
         # =CRKE-1=CRKE-2
         print(f"[   M-REC] : ")
         filtered_data = [
-            data["_holder_recv_cr_ke_1"]["comm_time"] for data in measurement_statistics
+            data["_holder_recv_cr_ke_1_and_send_cr_ke_2"]["comm_time"]
+            for data in measurement_statistics
         ]
         average_crke_c1 = sum(filtered_data) / len(filtered_data)
         print(
             f"[   M-REC] : "
-            f"_holder_recv_cr_ke_1: comm_time = \n\t\t"
+            f"_holder_recv_cr_ke_1_and_send_cr_ke_2: comm_time = \n\t\t"
             f"{average_crke_c1:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 
         filtered_data = [
-            data["_holder_recv_cr_ke_1"]["message_size"]
+            data["_holder_recv_cr_ke_1_and_send_cr_ke_2"]["message_size"]
             for data in measurement_statistics
         ]
         average = int(sum(filtered_data) / len(filtered_data))
         print(
             f"[   M-REC] : "
-            f"_holder_recv_cr_ke_1: message_size = \n\t\t"
+            f"_holder_recv_cr_ke_1_and_send_cr_ke_2: message_size = \n\t\t"
             f"{average} bytes",
         )
 
         filtered_data = [
-            data["_holder_recv_cr_ke_1"]["msg_perf_time"]
+            data["_holder_recv_cr_ke_1_and_send_cr_ke_2"]["msg_perf_time"]
             for data in measurement_statistics
         ]
         average_crke_p1 = sum(filtered_data) / len(filtered_data)
         print(
             f"[   M-REC] : "
-            f"_holder_recv_cr_ke_1: msg_perf_time = \n\t\t"
+            f"_holder_recv_cr_ke_1_and_send_cr_ke_2: msg_perf_time = \n\t\t"
             f"{average_crke_p1:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 
         filtered_data = [
-            data["_holder_recv_cr_ke_1"]["msg_blocked_time"]
+            data["_holder_recv_cr_ke_1_and_send_cr_ke_2"]["msg_blocked_time"]
             for data in measurement_statistics
         ]
         average = sum(filtered_data) / len(filtered_data)
         print(
             f"[   M-REC] : "
-            f"_holder_recv_cr_ke_1: msg_blocked_time = \n\t\t"
+            f"_holder_recv_cr_ke_1_and_send_cr_ke_2: msg_blocked_time = \n\t\t"
             f"{average:{Environment.MEASUREMENT_TIME_PRECISION}} seconds",
         )
 

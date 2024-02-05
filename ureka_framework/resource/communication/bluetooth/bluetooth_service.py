@@ -93,19 +93,27 @@ class ConnectionSocket:
         # Divide message into Chunks
         message_length = self._message_size(original_message_str)
         # simple_log("debug", f"Message Length: {message_length}")
-        sent_chunk_strs = []
+        sent_chunk_strs = list()
         for i in range(0, len(original_message_str), MSG_MAX_SIZE):
             sent_chunk_str = original_message_str[i : i + MSG_MAX_SIZE]
             sent_chunk_strs.append(sent_chunk_str)
 
+        times = 0
         for sent_chunk_str in sent_chunk_strs:
+            if (
+                times != 0
+            ):  # not resend too fast (may not received if peer cannot parallelizedly receive)
+                time.sleep(WAIT_NEXT_CHUNK)
             message_with_length = f"{message_length}{SPLIT_SIGN}{sent_chunk_str}"
             # simple_log("debug", f"Sent Chunk: {sent_chunk_str}")
             # simple_log("debug", f"Sent Chunk With Length: {message_with_length}")
 
             # Send
             self.connection_socket.send(message_with_length)
-            time.sleep(WAIT_NEXT_CHUNK)
+
+            # Resend
+            times = times + 1
+            # simple_log("debug", f"Resend {times} times.")
 
     def close(self):
         ########################################################################

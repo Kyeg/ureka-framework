@@ -64,19 +64,6 @@ if __name__ == "__main__":
             assert iot_device.shared_data.this_device.owner_pub_key_str != None
 
             ######################################################
-            # Do Not Collect Too Large Overhead (I/O Peak)
-            ######################################################
-            # =UT
-            if (
-                iot_device.shared_data.measure_rec["_device_recv_u_ticket"][
-                    "msg_blocked_time"
-                ]
-                > Environment.IO_BLOCKING_TOLERANCE_TIME
-            ):
-                print(f"[ WARNING] : " f"+ PROC I/O MAYBE BLOCKED TOO LONG...")
-                continue
-
-            ######################################################
             # Print Measurement Raw Data (iot_device)
             ######################################################
             print(
